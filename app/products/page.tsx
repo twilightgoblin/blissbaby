@@ -8,10 +8,10 @@ import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { useState, useEffect } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link"
 import { Star, SlidersHorizontal, X } from "lucide-react"
-import { useState } from "react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 
 export default function ProductsPage() {
@@ -19,104 +19,15 @@ export default function ProductsPage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedAges, setSelectedAges] = useState<string[]>([])
 
-  const products = [
-    {
-      id: 1,
-      name: "Organic Cotton Baby Onesie",
-      price: 24.99,
-      rating: 4.8,
-      reviews: 124,
-      image: "/baby-onesie-organic-cotton.jpg",
-      category: "clothing",
-      age: "0-6 months",
-      badge: "Bestseller",
-    },
-    {
-      id: 2,
-      name: "Silicone Baby Bottle Set",
-      price: 34.99,
-      rating: 4.9,
-      reviews: 89,
-      image: "/baby-bottle-silicone-set.jpg",
-      category: "feeding",
-      age: "0-12 months",
-      badge: "New",
-    },
-    {
-      id: 3,
-      name: "Soft Plush Teddy Bear",
-      price: 18.99,
-      rating: 4.7,
-      reviews: 156,
-      image: "/soft-teddy-bear-baby-toy.jpg",
-      category: "toys",
-      age: "0-24 months",
-      badge: null,
-    },
-    {
-      id: 4,
-      name: "Natural Baby Skincare Kit",
-      price: 42.99,
-      rating: 4.9,
-      reviews: 203,
-      image: "/baby-skincare-natural-products.jpg",
-      category: "hygiene",
-      age: "0-12 months",
-      badge: "Popular",
-    },
-    {
-      id: 5,
-      name: "Baby Diaper Bag Backpack",
-      price: 59.99,
-      rating: 4.6,
-      reviews: 78,
-      image: "/modern-diaper-bag-backpack.jpg",
-      category: "baby-care",
-      age: "All ages",
-      badge: null,
-    },
-    {
-      id: 6,
-      name: "Wooden Baby Rattle Set",
-      price: 16.99,
-      rating: 4.5,
-      reviews: 91,
-      image: "/wooden-baby-rattle-toys.jpg",
-      category: "toys",
-      age: "3-12 months",
-      badge: null,
-    },
-    {
-      id: 7,
-      name: "Muslin Swaddle Blankets 3-Pack",
-      price: 29.99,
-      rating: 4.8,
-      reviews: 167,
-      image: "/muslin-swaddle-blankets-pack.jpg",
-      category: "baby-care",
-      age: "0-6 months",
-      badge: "Bestseller",
-    },
-    {
-      id: 8,
-      name: "Baby Food Maker & Steamer",
-      price: 79.99,
-      rating: 4.7,
-      reviews: 134,
-      image: "/baby-food-maker-steamer.jpg",
-      category: "feeding",
-      age: "6-24 months",
-      badge: null,
-    },
-  ]
-
-  const categories = [
+  // TODO: Replace with API calls to fetch real products and categories
+  const [products, setProducts] = useState([])
+  const [categories] = useState([
     { id: "baby-care", label: "Baby Care" },
     { id: "feeding", label: "Feeding" },
     { id: "toys", label: "Toys" },
     { id: "clothing", label: "Clothing" },
     { id: "hygiene", label: "Hygiene" },
-  ]
+  ])
 
   const ageRanges = [
     { id: "0-6", label: "0-6 months" },
@@ -124,6 +35,11 @@ export default function ProductsPage() {
     { id: "12-24", label: "12-24 months" },
     { id: "24+", label: "2+ years" },
   ]
+
+  // TODO: Add useEffect to fetch real products from API
+  useEffect(() => {
+    // fetchProducts().then(setProducts)
+  }, [])
 
   const toggleCategory = (categoryId: string) => {
     setSelectedCategories((prev) =>

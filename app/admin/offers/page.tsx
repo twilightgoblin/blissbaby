@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -20,83 +21,15 @@ import { Plus, Edit, Trash2, Tag, Calendar, TrendingUp, ImageIcon } from "lucide
 import { Switch } from "@/components/ui/switch"
 
 export default function OffersPage() {
-  const offers = [
-    {
-      id: 1,
-      title: "Holiday Season Sale",
-      description: "Get up to 40% off on all baby clothing",
-      discount: 40,
-      code: "HOLIDAY40",
-      startDate: "Dec 1, 2024",
-      endDate: "Dec 31, 2024",
-      used: 234,
-      status: "active",
-      type: "percentage",
-    },
-    {
-      id: 2,
-      title: "Free Shipping",
-      description: "Free shipping on orders over $50",
-      discount: 0,
-      code: "FREESHIP50",
-      startDate: "Jan 1, 2024",
-      endDate: "Dec 31, 2024",
-      used: 1456,
-      status: "active",
-      type: "shipping",
-    },
-    {
-      id: 3,
-      title: "First Purchase Discount",
-      description: "$10 off on your first order",
-      discount: 10,
-      code: "WELCOME10",
-      startDate: "Jan 1, 2024",
-      endDate: "Dec 31, 2024",
-      used: 892,
-      status: "active",
-      type: "fixed",
-    },
-    {
-      id: 4,
-      title: "Black Friday Deal",
-      description: "50% off on selected items",
-      discount: 50,
-      code: "BLACKFRI50",
-      startDate: "Nov 25, 2024",
-      endDate: "Nov 30, 2024",
-      used: 567,
-      status: "expired",
-      type: "percentage",
-    },
-  ]
+  // TODO: Replace with API calls to fetch real offers and banners
+  const [offers, setOffers] = useState([])
+  const [banners, setBanners] = useState([])
 
-  const banners = [
-    {
-      id: 1,
-      title: "Hero Banner - Holiday Sale",
-      position: "Home Hero",
-      status: "active",
-      clicks: 1234,
-      image: "/placeholder.svg?height=200&width=400",
-    },
-    {
-      id: 2,
-      title: "Category Promo - Toys",
-      position: "Products Page",
-      status: "active",
-      clicks: 567,
-      image: "/placeholder.svg?height=200&width=400",
-    },
-    {
-      id: 3,
-      title: "Flash Sale Banner",
-      position: "Cart Page",
-      status: "inactive",
-      clicks: 234,
-      image: "/placeholder.svg?height=200&width=400",
-    },
-  ]
+  // TODO: Add useEffect to fetch real offers and banners from API
+  useEffect(() => {
+    // fetchOffers().then(setOffers)
+    // fetchBanners().then(setBanners)
+  }, [])
 
   const getOfferStatusBadge = (status: string) => {
     const configs = {

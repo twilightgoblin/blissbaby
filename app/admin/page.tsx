@@ -5,98 +5,24 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ShoppingCart, Package, Users, DollarSign, TrendingUp, TrendingDown, ArrowUpRight } from "lucide-react"
 import { Line, LineChart, Bar, BarChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts"
+import { useState, useEffect } from "react"
 
 export default function AdminDashboard() {
-  // Mock data
-  const stats = [
-    {
-      title: "Total Revenue",
-      value: "$45,231.89",
-      change: "+20.1%",
-      trend: "up",
-      icon: DollarSign,
-      color: "text-green-600 bg-green-100",
-    },
-    {
-      title: "Orders",
-      value: "2,345",
-      change: "+15.3%",
-      trend: "up",
-      icon: ShoppingCart,
-      color: "text-blue-600 bg-blue-100",
-    },
-    {
-      title: "Products",
-      value: "186",
-      change: "+12",
-      trend: "up",
-      icon: Package,
-      color: "text-purple-600 bg-purple-100",
-    },
-    {
-      title: "Customers",
-      value: "3,842",
-      change: "-2.5%",
-      trend: "down",
-      icon: Users,
-      color: "text-pink-600 bg-pink-100",
-    },
-  ]
+  // TODO: Replace with API calls to fetch real dashboard data
+  const [stats, setStats] = useState([])
+  const [revenueData, setRevenueData] = useState([])
+  const [categoryData, setCategoryData] = useState([])
+  const [recentOrders, setRecentOrders] = useState([])
+  const [topProducts, setTopProducts] = useState([])
 
-  const revenueData = [
-    { month: "Jan", revenue: 4000 },
-    { month: "Feb", revenue: 3000 },
-    { month: "Mar", revenue: 5000 },
-    { month: "Apr", revenue: 4500 },
-    { month: "May", revenue: 6000 },
-    { month: "Jun", revenue: 5500 },
-  ]
-
-  const categoryData = [
-    { category: "Baby Care", sales: 2400 },
-    { category: "Feeding", sales: 1800 },
-    { category: "Toys", sales: 3200 },
-    { category: "Clothing", sales: 2800 },
-    { category: "Hygiene", sales: 1600 },
-  ]
-
-  const recentOrders = [
-    {
-      id: "ORD-001",
-      customer: "Sarah Johnson",
-      amount: 124.99,
-      status: "completed",
-      date: "2 mins ago",
-    },
-    {
-      id: "ORD-002",
-      customer: "Mike Peters",
-      amount: 89.5,
-      status: "processing",
-      date: "15 mins ago",
-    },
-    {
-      id: "ORD-003",
-      customer: "Emma Wilson",
-      amount: 156.0,
-      status: "shipped",
-      date: "1 hour ago",
-    },
-    {
-      id: "ORD-004",
-      customer: "John Davis",
-      amount: 67.25,
-      status: "completed",
-      date: "2 hours ago",
-    },
-  ]
-
-  const topProducts = [
-    { name: "Organic Cotton Baby Onesie", sales: 234, revenue: 5845.66 },
-    { name: "Silicone Baby Bottle Set", sales: 189, revenue: 6605.11 },
-    { name: "Soft Plush Teddy Bear", sales: 167, revenue: 3170.33 },
-    { name: "Baby Monitor with Camera", sales: 145, revenue: 14355.55 },
-  ]
+  // TODO: Add useEffect to fetch real dashboard data from API
+  useEffect(() => {
+    // fetchDashboardStats().then(setStats)
+    // fetchRevenueData().then(setRevenueData)
+    // fetchCategoryData().then(setCategoryData)
+    // fetchRecentOrders().then(setRecentOrders)
+    // fetchTopProducts().then(setTopProducts)
+  }, [])
 
   const getStatusBadge = (status: string) => {
     const configs = {

@@ -7,70 +7,16 @@ import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Mail, Phone, MapPin, ShoppingBag, Star } from "lucide-react"
+import { useState, useEffect } from "react"
 
 export default function CustomersPage() {
-  const customers = [
-    {
-      id: 1,
-      name: "Sarah Johnson",
-      email: "sarah.j@email.com",
-      phone: "+1 (555) 123-4567",
-      location: "New York, USA",
-      orders: 12,
-      totalSpent: 1456.78,
-      status: "vip",
-      joinDate: "Jan 2024",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: 2,
-      name: "Mike Peters",
-      email: "mike.p@email.com",
-      phone: "+1 (555) 234-5678",
-      location: "Los Angeles, USA",
-      orders: 8,
-      totalSpent: 892.45,
-      status: "regular",
-      joinDate: "Feb 2024",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: 3,
-      name: "Emma Wilson",
-      email: "emma.w@email.com",
-      phone: "+1 (555) 345-6789",
-      location: "Chicago, USA",
-      orders: 15,
-      totalSpent: 2134.56,
-      status: "vip",
-      joinDate: "Dec 2023",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: 4,
-      name: "John Davis",
-      email: "john.d@email.com",
-      phone: "+1 (555) 456-7890",
-      location: "Houston, USA",
-      orders: 5,
-      totalSpent: 567.23,
-      status: "regular",
-      joinDate: "Mar 2024",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: 5,
-      name: "Lisa Chen",
-      email: "lisa.c@email.com",
-      phone: "+1 (555) 567-8901",
-      location: "San Francisco, USA",
-      orders: 3,
-      totalSpent: 345.67,
-      status: "new",
-      joinDate: "Nov 2024",
-      avatar: "/placeholder.svg?height=40&width=40",
-    },
-  ]
+  // TODO: Replace with API call to fetch real customers
+  const [customers, setCustomers] = useState([])
+
+  // TODO: Add useEffect to fetch real customers from API
+  useEffect(() => {
+    // fetchCustomers().then(setCustomers)
+  }, [])
 
   const getStatusBadge = (status: string) => {
     const configs = {

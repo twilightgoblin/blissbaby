@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -14,73 +15,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Search, Eye, Package, Truck, CheckCircle, XCircle } from "lucide-react"
-import { useState } from "react"
 
 export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState("all")
+  // TODO: Replace with API call to fetch real orders
+  const [orders, setOrders] = useState([])
 
-  const orders = [
-    {
-      id: "ORD-2024-001",
-      customer: "Sarah Johnson",
-      email: "sarah.j@email.com",
-      items: 3,
-      total: 124.99,
-      status: "completed",
-      date: "Dec 20, 2024",
-      time: "10:30 AM",
-      payment: "Credit Card",
-      shipping: "Express Delivery",
-    },
-    {
-      id: "ORD-2024-002",
-      customer: "Mike Peters",
-      email: "mike.p@email.com",
-      items: 2,
-      total: 89.5,
-      status: "processing",
-      date: "Dec 20, 2024",
-      time: "09:15 AM",
-      payment: "PayPal",
-      shipping: "Standard Delivery",
-    },
-    {
-      id: "ORD-2024-003",
-      customer: "Emma Wilson",
-      email: "emma.w@email.com",
-      items: 5,
-      total: 156.0,
-      status: "shipped",
-      date: "Dec 19, 2024",
-      time: "04:20 PM",
-      payment: "Credit Card",
-      shipping: "Express Delivery",
-    },
-    {
-      id: "ORD-2024-004",
-      customer: "John Davis",
-      email: "john.d@email.com",
-      items: 1,
-      total: 67.25,
-      status: "pending",
-      date: "Dec 19, 2024",
-      time: "02:45 PM",
-      payment: "Bank Transfer",
-      shipping: "Standard Delivery",
-    },
-    {
-      id: "ORD-2024-005",
-      customer: "Lisa Chen",
-      email: "lisa.c@email.com",
-      items: 4,
-      total: 203.75,
-      status: "cancelled",
-      date: "Dec 18, 2024",
-      time: "11:00 AM",
-      payment: "Credit Card",
-      shipping: "Express Delivery",
-    },
-  ]
+  // TODO: Add useEffect to fetch real orders from API
+  useEffect(() => {
+    // fetchAdminOrders().then(setOrders)
+  }, [])
 
   const getStatusConfig = (status: string) => {
     const configs = {

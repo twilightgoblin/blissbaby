@@ -8,9 +8,9 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Star, Heart, Share2, Truck, Shield, ArrowLeft, Minus, Plus, Check } from "lucide-react"
-import { useState } from "react"
 import { useParams } from "next/navigation"
 
 export default function ProductDetailPage() {
@@ -20,94 +20,24 @@ export default function ProductDetailPage() {
   const [isFavorite, setIsFavorite] = useState(false)
 
   // Mock product data
-  const product = {
-    id: params.id,
-    name: "Organic Cotton Baby Onesie",
-    price: 24.99,
-    originalPrice: 34.99,
-    rating: 4.8,
-    reviews: 124,
-    inStock: true,
-    badge: "Bestseller",
-    category: "Clothing",
-    age: "0-6 months",
-    images: ["/baby-onesie-organic-cotton.jpg", "/baby-onesie-organic-cotton.jpg", "/baby-onesie-organic-cotton.jpg"],
-    features: [
-      "100% Organic Cotton",
-      "Hypoallergenic & Breathable",
-      "Easy Snap Closures",
-      "Machine Washable",
-      "GOTS Certified",
-    ],
-    description:
-      "Our premium organic cotton baby onesie is designed with your little one's comfort in mind. Made from the softest GOTS-certified organic cotton, this onesie is gentle on sensitive skin and perfect for everyday wear. The convenient snap closures make diaper changes quick and easy.",
+  // TODO: Replace with API call to fetch real product data
+  const [product, setProduct] = useState(null)
+  const [relatedProducts, setRelatedProducts] = useState([])
+  const [reviews, setReviews] = useState([])
+  const [ratingBreakdown, setRatingBreakdown] = useState([])
+
+  // TODO: Add useEffect to fetch real product data from API
+  useEffect(() => {
+    // fetchProduct(params.id).then(setProduct)
+    // fetchRelatedProducts(params.id).then(setRelatedProducts)
+    // fetchProductReviews(params.id).then(setReviews)
+    // fetchRatingBreakdown(params.id).then(setRatingBreakdown)
+  }, [params.id])
+
+  // Show loading state while data is being fetched
+  if (!product) {
+    return <div>Loading...</div>
   }
-
-  const relatedProducts = [
-    {
-      id: 2,
-      name: "Silicone Baby Bottle Set",
-      price: 34.99,
-      rating: 4.9,
-      reviews: 89,
-      image: "/baby-bottle-silicone-set.jpg",
-    },
-    {
-      id: 3,
-      name: "Soft Plush Teddy Bear",
-      price: 18.99,
-      rating: 4.7,
-      reviews: 156,
-      image: "/soft-teddy-bear-baby-toy.jpg",
-    },
-    {
-      id: 7,
-      name: "Muslin Swaddle Blankets",
-      price: 29.99,
-      rating: 4.8,
-      reviews: 167,
-      image: "/muslin-swaddle-blankets-pack.jpg",
-    },
-  ]
-
-  const reviews = [
-    {
-      id: 1,
-      author: "Sarah M.",
-      rating: 5,
-      date: "2 weeks ago",
-      verified: true,
-      comment:
-        "Absolutely love this onesie! The fabric is so soft and my baby seems very comfortable in it. Worth every penny!",
-      helpful: 12,
-    },
-    {
-      id: 2,
-      author: "Emily R.",
-      rating: 5,
-      date: "1 month ago",
-      verified: true,
-      comment: "Great quality organic cotton. Washes well and maintains its softness. Highly recommend!",
-      helpful: 8,
-    },
-    {
-      id: 3,
-      author: "Jessica L.",
-      rating: 4,
-      date: "2 months ago",
-      verified: true,
-      comment: "Nice onesie, fits true to size. Only wish it came in more colors!",
-      helpful: 5,
-    },
-  ]
-
-  const ratingBreakdown = [
-    { stars: 5, percentage: 75 },
-    { stars: 4, percentage: 15 },
-    { stars: 3, percentage: 5 },
-    { stars: 2, percentage: 3 },
-    { stars: 1, percentage: 2 },
-  ]
 
   const incrementQuantity = () => setQuantity((prev) => prev + 1)
   const decrementQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1))
@@ -440,7 +370,7 @@ export default function ProductDetailPage() {
                     </div>
                     <div className="flex justify-between border-b border-border/60 pb-2">
                       <dt className="text-muted-foreground">Material</dt>
-                      <dd className="font-medium">100% Organic Cotton</dd>
+                      <dd className="font-medium">{product.material || 'N/A'}</dd>
                     </div>
                     <div className="flex justify-between border-b border-border/60 pb-2">
                       <dt className="text-muted-foreground">Care Instructions</dt>

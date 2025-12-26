@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { useState, useEffect } from "react"
 
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
@@ -10,35 +11,15 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import { Minus, Plus, X, ShoppingBag, Tag, ArrowRight } from "lucide-react"
-import { useState } from "react"
 
 export default function CartPage() {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "Organic Cotton Baby Onesie",
-      price: 24.99,
-      quantity: 2,
-      image: "/baby-onesie-organic-cotton.jpg",
-      category: "Clothing",
-    },
-    {
-      id: 2,
-      name: "Silicone Baby Bottle Set",
-      price: 34.99,
-      quantity: 1,
-      image: "/baby-bottle-silicone-set.jpg",
-      category: "Feeding",
-    },
-    {
-      id: 3,
-      name: "Soft Plush Teddy Bear",
-      price: 18.99,
-      quantity: 1,
-      image: "/soft-teddy-bear-baby-toy.jpg",
-      category: "Toys",
-    },
-  ])
+  // TODO: Replace with API call to fetch real cart items
+  const [cartItems, setCartItems] = useState([])
+
+  // TODO: Add useEffect to fetch real cart items from API
+  useEffect(() => {
+    // fetchCartItems().then(setCartItems)
+  }, [])
 
   const [promoCode, setPromoCode] = useState("")
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null)

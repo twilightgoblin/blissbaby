@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Heart, ShoppingCart, Trash2, Star } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 interface WishlistItem {
   id: number
@@ -19,63 +19,14 @@ interface WishlistItem {
   category: string
 }
 
-const initialWishlistItems: WishlistItem[] = [
-  {
-    id: 1,
-    name: "Organic Cotton Baby Blanket",
-    price: 34.99,
-    originalPrice: 49.99,
-    image: "/muslin-swaddle-blankets-pack.jpg",
-    rating: 4.8,
-    reviews: 124,
-    inStock: true,
-    category: "Baby Care",
-  },
-  {
-    id: 2,
-    name: "Wooden Baby Rattle Set",
-    price: 24.99,
-    image: "/wooden-baby-rattle-toys.jpg",
-    rating: 4.9,
-    reviews: 89,
-    inStock: true,
-    category: "Toys",
-  },
-  {
-    id: 3,
-    name: "Baby Food Maker & Steamer",
-    price: 79.99,
-    originalPrice: 99.99,
-    image: "/baby-food-maker-steamer.jpg",
-    rating: 4.7,
-    reviews: 234,
-    inStock: true,
-    category: "Feeding",
-  },
-  {
-    id: 4,
-    name: "Modern Diaper Bag Backpack",
-    price: 89.99,
-    image: "/modern-diaper-bag-backpack.jpg",
-    rating: 4.6,
-    reviews: 156,
-    inStock: false,
-    category: "Baby Care",
-  },
-  {
-    id: 5,
-    name: "Soft Plush Teddy Bear",
-    price: 19.99,
-    image: "/colorful-baby-toys.png",
-    rating: 5.0,
-    reviews: 312,
-    inStock: true,
-    category: "Toys",
-  },
-]
-
 export default function WishlistPage() {
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>(initialWishlistItems)
+  // TODO: Replace with API call to fetch real wishlist items
+  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>([])
+
+  // TODO: Add useEffect to fetch real wishlist items from API
+  useEffect(() => {
+    // fetchWishlistItems().then(setWishlistItems)
+  }, [])
 
   const removeFromWishlist = (id: number) => {
     setWishlistItems(wishlistItems.filter((item) => item.id !== id))

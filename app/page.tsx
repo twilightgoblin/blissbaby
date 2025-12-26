@@ -1,3 +1,5 @@
+"use client"
+
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
@@ -5,85 +7,18 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Star, Truck, Shield, HeadphonesIcon, Sparkles } from "lucide-react"
 import Link from "next/link"
+import { useState, useEffect } from "react"
 
 export default function HomePage() {
-  const categories = [
-    {
-      name: "Baby Care",
-      slug: "baby-care",
-      image: "/baby-care-products.png",
-      color: "bg-pink-100/80",
-      description: "Essential care products",
-    },
-    {
-      name: "Feeding",
-      slug: "feeding",
-      image: "/baby-feeding-bottles.jpg",
-      color: "bg-blue-100/80",
-      description: "Bottles, bibs & more",
-    },
-    {
-      name: "Toys",
-      slug: "toys",
-      image: "/colorful-baby-toys.png",
-      color: "bg-purple-100/80",
-      description: "Fun & educational toys",
-    },
-    {
-      name: "Clothing",
-      slug: "clothing",
-      image: "/assorted-baby-clothes.png",
-      color: "bg-indigo-100/80",
-      description: "Soft & comfy outfits",
-    },
-    {
-      name: "Hygiene",
-      slug: "hygiene",
-      image: "/baby-hygiene-products.jpg",
-      color: "bg-green-100/80",
-      description: "Clean & safe products",
-    },
-  ]
+  // TODO: Replace with API calls to fetch real categories and featured products
+  const [categories, setCategories] = useState([])
+  const [featuredProducts, setFeaturedProducts] = useState([])
 
-  const featuredProducts = [
-    {
-      id: 1,
-      name: "Organic Cotton Baby Onesie",
-      price: 24.99,
-      originalPrice: 34.99,
-      rating: 4.8,
-      reviews: 124,
-      image: "/baby-onesie-organic-cotton.jpg",
-      badge: "Bestseller",
-    },
-    {
-      id: 2,
-      name: "Silicone Baby Bottle Set",
-      price: 34.99,
-      rating: 4.9,
-      reviews: 89,
-      image: "/baby-bottle-silicone-set.jpg",
-      badge: "New",
-    },
-    {
-      id: 3,
-      name: "Soft Plush Teddy Bear",
-      price: 18.99,
-      rating: 4.7,
-      reviews: 156,
-      image: "/soft-teddy-bear-baby-toy.jpg",
-      badge: null,
-    },
-    {
-      id: 4,
-      name: "Natural Baby Skincare Kit",
-      price: 42.99,
-      rating: 4.9,
-      reviews: 203,
-      image: "/baby-skincare-natural-products.jpg",
-      badge: "Popular",
-    },
-  ]
+  // TODO: Add useEffect to fetch real data from API
+  useEffect(() => {
+    // fetchCategories().then(setCategories)
+    // fetchFeaturedProducts().then(setFeaturedProducts)
+  }, [])
 
   return (
     <div className="min-h-screen">

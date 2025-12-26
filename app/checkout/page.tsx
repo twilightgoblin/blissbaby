@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { useState, useEffect } from "react"
 
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
@@ -13,7 +14,6 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link"
 import { CreditCard, Lock, Package, CheckCircle2 } from "lucide-react"
-import { useState } from "react"
 import { useRouter } from "next/navigation"
 
 export default function CheckoutPage() {
@@ -22,22 +22,13 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState("card")
   const [sameAsShipping, setSameAsShipping] = useState(true)
 
-  const cartItems = [
-    {
-      id: 1,
-      name: "Organic Cotton Baby Onesie",
-      price: 24.99,
-      quantity: 2,
-      image: "/baby-onesie-organic-cotton.jpg",
-    },
-    {
-      id: 2,
-      name: "Silicone Baby Bottle Set",
-      price: 34.99,
-      quantity: 1,
-      image: "/baby-bottle-silicone-set.jpg",
-    },
-  ]
+  // TODO: Replace with real cart data from context/API
+  const [cartItems, setCartItems] = useState([])
+
+  // TODO: Add useEffect to fetch real cart items
+  useEffect(() => {
+    // fetchCartItems().then(setCartItems)
+  }, [])
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
   const shipping = 0

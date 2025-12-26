@@ -56,6 +56,23 @@ model Address {
   @@map("addresses")
 }
 
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  icon        String?
+  color       String?  @default("bg-blue-100")
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  products    Product[]
+
+  @@map("categories")
+}
+
 model Product {
   id          String   @id @default(cuid())
   name        String
@@ -64,7 +81,7 @@ model Product {
   comparePrice Decimal? @db.Decimal(10, 2)
   sku         String?  @unique
   barcode     String?
-  category    String
+  categoryId  String?
   brand       String?
   images      String[]
   weight      Decimal? @db.Decimal(8, 2)
@@ -80,6 +97,7 @@ model Product {
   updatedAt   DateTime @updatedAt
 
   // Relations
+  category    Category? @relation(fields: [categoryId], references: [id])
   cartItems   CartItem[]
   orderItems  OrderItem[]
 

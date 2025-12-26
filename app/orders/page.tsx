@@ -7,69 +7,16 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { Package, Truck, CheckCircle2, Clock, Eye } from "lucide-react"
+import { useState, useEffect } from "react"
 
 export default function OrdersPage() {
-  const orders = [
-    {
-      id: "BB-12345",
-      date: "Dec 20, 2024",
-      status: "delivered",
-      total: 84.97,
-      items: [
-        {
-          id: 1,
-          name: "Organic Cotton Baby Onesie",
-          quantity: 2,
-          price: 24.99,
-          image: "/baby-onesie-organic-cotton.jpg",
-        },
-        {
-          id: 2,
-          name: "Silicone Baby Bottle Set",
-          quantity: 1,
-          price: 34.99,
-          image: "/baby-bottle-silicone-set.jpg",
-        },
-      ],
-    },
-    {
-      id: "BB-12344",
-      date: "Dec 15, 2024",
-      status: "in-transit",
-      total: 62.97,
-      items: [
-        {
-          id: 3,
-          name: "Soft Plush Teddy Bear",
-          quantity: 1,
-          price: 18.99,
-          image: "/soft-teddy-bear-baby-toy.jpg",
-        },
-        {
-          id: 4,
-          name: "Natural Baby Skincare Kit",
-          quantity: 1,
-          price: 42.99,
-          image: "/baby-skincare-natural-products.jpg",
-        },
-      ],
-    },
-    {
-      id: "BB-12343",
-      date: "Dec 10, 2024",
-      status: "processing",
-      total: 29.99,
-      items: [
-        {
-          id: 7,
-          name: "Muslin Swaddle Blankets 3-Pack",
-          quantity: 1,
-          price: 29.99,
-          image: "/muslin-swaddle-blankets-pack.jpg",
-        },
-      ],
-    },
-  ]
+  // TODO: Replace with API call to fetch real user orders
+  const [orders, setOrders] = useState([])
+
+  // TODO: Add useEffect to fetch real orders from API
+  useEffect(() => {
+    // fetchUserOrders().then(setOrders)
+  }, [])
 
   const getStatusConfig = (status: string) => {
     switch (status) {
