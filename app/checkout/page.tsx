@@ -2,6 +2,8 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
+import { Elements } from '@stripe/react-stripe-js'
+import { loadStripe } from '@stripe/stripe-js'
 
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
@@ -13,31 +15,133 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link"
-import { CreditCard, Lock, Package, CheckCircle2 } from "lucide-react"
+import { CreditCard, Lock, Package, CheckCircle2, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useCart } from "@/contexts/cart-context"
+import { useAuth } from "@/contexts/auth-context"
+import { useToast } from "@/hooks/use-toast"
+import StripeCheckoutForm from "./stripe-checkout-form"
+
+// Initialize Stripe
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 export default function CheckoutPage() {
   const router = useRouter()
+  const { cart, clearCart } = useCart()
+  const { user, isAuthenticated } = useAuth()
+  const { toast } = useToast()
+  
   const [step, setStep] = useState<"checkout" | "success">("checkout")
-  const [paymentMethod, setPaymentMethod] = useState("card")
-  const [sameAsShipping, setSameAsShipping] = useState(true)
+  const [clientSecret, setClientSecret] = useState<string>("")
+  const [paymentIntentId, setPaymentIntentId] = useState<string>("")
+  const [loading, setLoading] = useState(false)
+  const [orderNumber, setOrderNumber] = useState<string>("")
 
-  // TODO: Replace with real cart data from context/API
-  const [cartItems, setCartItems] = useState([])
-
-  // TODO: Add useEffect to fetch real cart items
+  // Redirect if not authenticated
   useEffect(() => {
-    // fetchCartItems().then(setCartItems)
-  }, [])
+    if (!isAuthenticated) {
+      router.push('/auth/login?redirect=/checkout')
+      return
+    }
+  }, [isAuthenticated, router])
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const shipping = 0
-  const total = subtotal + shipping
+  // Calculate totals
+  const subtotal = cart?.items?.reduce((sum, item) => sum + (item.product.price * item.quantity), 0) || 0
+  const shipping = 0 // Free shipping
+  const tax = subtotal * 0.08 // 8% tax
+  const total = subtotal + shipping + tax
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  // Create payment intent when component mounts
+  useEffect(() => {
+    if (cart?.items?.length && total > 0) {
+      createPaymentIntent()
+    }
+  }, [cart, total])
+
+  const createPaymentIntent = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/stripe/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: total,
+          metadata: {
+            userId: user?.id,
+            cartId: cart?.id,
+            itemCount: cart?.items?.length || 0
+          }
+        })
+      })
+
+      const data = await response.json()
+      
+      if (response.ok) {
+        setClientSecret(data.clientSecret)
+        setPaymentIntentId(data.paymentIntentId)
+      } else {
+        toast({
+          title: "Error",
+          description: data.error || "Failed to initialize payment",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      console.error('Error creating payment intent:', error)
+      toast({
+        title: "Error",
+        description: "Failed to initialize payment",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handlePaymentSuccess = async () => {
+    // Generate order number
+    const orderNum = `BB-${Math.floor(Math.random() * 100000)}`
+    setOrderNumber(orderNum)
+    
+    // Clear cart after successful payment
+    await clearCart()
+    
+    // Show success step
     setStep("success")
-    // In a real app, you would process the payment here
+    
+    toast({
+      title: "Payment Successful!",
+      description: `Your order ${orderNum} has been confirmed.`,
+    })
+  }
+
+  // Show loading if not authenticated or cart is loading
+  if (!isAuthenticated || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+
+  // Show empty cart message
+  if (!cart?.items?.length) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <Package className="h-16 w-16 mx-auto text-muted-foreground" />
+            <h1 className="text-2xl font-bold">Your cart is empty</h1>
+            <p className="text-muted-foreground">Add some items to your cart to proceed with checkout.</p>
+            <Button asChild>
+              <Link href="/products">Continue Shopping</Link>
+            </Button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
   }
 
   if (step === "success") {
@@ -61,11 +165,15 @@ export default function CheckoutPage() {
                   <CardContent className="p-6 space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Order Number</span>
-                      <span className="font-medium">#BB-{Math.floor(Math.random() * 100000)}</span>
+                      <span className="font-medium">{orderNumber}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Total Amount</span>
-                      <span className="font-bold text-primary">${total.toFixed(2)}</span>
+                      <span className="font-bold text-primary">₹{total.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Payment ID</span>
+                      <span className="font-medium text-xs">{paymentIntentId}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Estimated Delivery</span>
@@ -102,206 +210,82 @@ export default function CheckoutPage() {
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">Checkout</h1>
           <div className="mt-4 flex items-center gap-2 text-sm">
             <Lock className="h-4 w-4 text-primary" />
-            <span className="text-muted-foreground">Secure checkout powered by SSL encryption</span>
+            <span className="text-muted-foreground">Secure checkout powered by Stripe</span>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
-            {/* Checkout Form */}
-            <div className="space-y-6">
-              {/* Shipping Information */}
-              <Card className="rounded-3xl border-border/60">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Package className="h-5 w-5 text-primary" />
-                    Shipping Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input id="firstName" placeholder="John" required className="rounded-full" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input id="lastName" placeholder="Doe" required className="rounded-full" />
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="john@example.com" required className="rounded-full" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" type="tel" placeholder="+1 (555) 000-0000" required className="rounded-full" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="address">Street Address</Label>
-                    <Input id="address" placeholder="123 Main St" required className="rounded-full" />
-                  </div>
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="city">City</Label>
-                      <Input id="city" placeholder="New York" required className="rounded-full" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="state">State</Label>
-                      <Select required>
-                        <SelectTrigger id="state" className="rounded-full">
-                          <SelectValue placeholder="Select" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="ny">New York</SelectItem>
-                          <SelectItem value="ca">California</SelectItem>
-                          <SelectItem value="tx">Texas</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="zip">ZIP Code</Label>
-                      <Input id="zip" placeholder="10001" required className="rounded-full" />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Payment Method */}
-              <Card className="rounded-3xl border-border/60">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5 text-primary" />
-                    Payment Method
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-                    <div className="flex items-center space-x-3 rounded-2xl border border-border/60 p-4 hover:bg-muted/30 transition-colors">
-                      <RadioGroupItem value="card" id="card" />
-                      <Label htmlFor="card" className="flex-1 cursor-pointer">
-                        Credit / Debit Card
-                      </Label>
-                      <div className="flex gap-1">
-                        <div className="h-6 w-9 rounded bg-muted flex items-center justify-center text-[10px] font-bold">
-                          VISA
-                        </div>
-                        <div className="h-6 w-9 rounded bg-muted flex items-center justify-center text-[10px] font-bold">
-                          MC
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3 rounded-2xl border border-border/60 p-4 hover:bg-muted/30 transition-colors">
-                      <RadioGroupItem value="paypal" id="paypal" />
-                      <Label htmlFor="paypal" className="flex-1 cursor-pointer">
-                        PayPal
-                      </Label>
-                    </div>
-                  </RadioGroup>
-
-                  {paymentMethod === "card" && (
-                    <div className="space-y-4 pt-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="cardNumber">Card Number</Label>
-                        <Input id="cardNumber" placeholder="1234 5678 9012 3456" required className="rounded-full" />
-                      </div>
-                      <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label htmlFor="expiry">Expiry Date</Label>
-                          <Input id="expiry" placeholder="MM/YY" required className="rounded-full" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="cvv">CVV</Label>
-                          <Input id="cvv" placeholder="123" required className="rounded-full" />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Billing Address */}
-              <Card className="rounded-3xl border-border/60">
-                <CardHeader>
-                  <CardTitle>Billing Address</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="sameAsShipping"
-                      checked={sameAsShipping}
-                      onCheckedChange={(checked) => setSameAsShipping(checked as boolean)}
-                    />
-                    <label
-                      htmlFor="sameAsShipping"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                    >
-                      Same as shipping address
-                    </label>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Order Summary */}
-            <div>
-              <Card className="rounded-3xl border-border/60 sticky top-24">
-                <CardHeader>
-                  <CardTitle>Order Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Cart Items */}
-                  <div className="space-y-4">
-                    {cartItems.map((item) => (
-                      <div key={item.id} className="flex gap-3">
-                        <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-muted/50">
-                          <img
-                            src={item.image || "/placeholder.svg"}
-                            alt={item.name}
-                            className="h-full w-full object-cover"
-                          />
-                          <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-                            {item.quantity}
-                          </div>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{item.name}</p>
-                          <p className="text-sm font-bold text-primary">${(item.price * item.quantity).toFixed(2)}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Price Breakdown */}
-                  <div className="space-y-3 border-t border-border/60 pt-4">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Subtotal</span>
-                      <span className="font-medium">${subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Shipping</span>
-                      <span className="font-medium text-primary">Free</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between border-t border-border/60 pt-4">
-                    <span className="text-lg font-bold">Total</span>
-                    <span className="text-2xl font-bold text-primary">${total.toFixed(2)}</span>
-                  </div>
-
-                  <Button type="submit" className="w-full rounded-full bg-primary hover:bg-primary/90 h-12" size="lg">
-                    <Lock className="mr-2 h-4 w-4" />
-                    Place Order
-                  </Button>
-
-                  <p className="text-xs text-center text-muted-foreground">
-                    By placing your order, you agree to our Terms & Conditions
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
+        <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
+          {/* Checkout Form */}
+          <div className="space-y-6">
+            {clientSecret && (
+              <Elements stripe={stripePromise} options={{ clientSecret }}>
+                <StripeCheckoutForm 
+                  clientSecret={clientSecret}
+                  onSuccess={handlePaymentSuccess}
+                  total={total}
+                />
+              </Elements>
+            )}
           </div>
-        </form>
+
+          {/* Order Summary */}
+          <div>
+            <Card className="rounded-3xl border-border/60 sticky top-24">
+              <CardHeader>
+                <CardTitle>Order Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Cart Items */}
+                <div className="space-y-4">
+                  {cart.items.map((item) => (
+                    <div key={item.id} className="flex gap-3">
+                      <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-muted/50">
+                        <img
+                          src={item.product.images?.[0] || "/placeholder.svg"}
+                          alt={item.product.name}
+                          className="h-full w-full object-cover"
+                        />
+                        <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                          {item.quantity}
+                        </div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{item.product.name}</p>
+                        <p className="text-xs text-muted-foreground">{item.product.category?.name}</p>
+                        <p className="text-sm font-bold text-primary">₹{(item.product.price * item.quantity).toFixed(2)}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Price Breakdown */}
+                <div className="space-y-3 border-t border-border/60 pt-4">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="font-medium">₹{subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Shipping</span>
+                    <span className="font-medium text-primary">Free</span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Tax</span>
+                    <span className="font-medium">₹{tax.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between border-t border-border/60 pt-4">
+                  <span className="text-lg font-bold">Total</span>
+                  <span className="text-2xl font-bold text-primary">₹{total.toFixed(2)}</span>
+                </div>
+
+                <p className="text-xs text-center text-muted-foreground">
+                  By placing your order, you agree to our Terms & Conditions
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </main>
 
       <Footer />

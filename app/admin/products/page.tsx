@@ -30,6 +30,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Plus, Search, Edit, Trash2, Upload, IndianRupee, Package, AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { ProductImageManager } from "@/components/admin/product-image-manager"
+import { ProductImage } from "@/components/ui/optimized-image"
 
 interface Product {
   id: string
@@ -91,7 +93,8 @@ export default function ProductsPage() {
     status: 'ACTIVE' as const,
     tags: [] as string[],
     seoTitle: '',
-    seoDescription: ''
+    seoDescription: '',
+    images: [] as string[]
   })
   const { toast } = useToast()
 
@@ -161,7 +164,8 @@ export default function ProductsPage() {
       status: 'ACTIVE',
       tags: [],
       seoTitle: '',
-      seoDescription: ''
+      seoDescription: '',
+      images: []
     })
   }
 
@@ -288,7 +292,8 @@ export default function ProductsPage() {
       status: product.status,
       tags: product.tags,
       seoTitle: product.seoTitle || '',
-      seoDescription: product.seoDescription || ''
+      seoDescription: product.seoDescription || '',
+      images: product.images || []
     })
     setIsEditDialogOpen(true)
   }
@@ -511,6 +516,17 @@ export default function ProductsPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Product Images */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Product Images</h3>
+                <ProductImageManager
+                  productName={formData.name || 'New Product'}
+                  images={formData.images}
+                  onImagesChange={(images) => setFormData({...formData, images})}
+                  maxImages={5}
+                />
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" className="rounded-full bg-transparent" onClick={() => setIsAddDialogOpen(false)}>
@@ -593,10 +609,12 @@ export default function ProductsPage() {
                   <div className="flex gap-6">
                     <div className="relative h-28 w-28 flex-shrink-0 overflow-hidden rounded-2xl bg-muted/50">
                       {product.images.length > 0 ? (
-                        <img
+                        <ProductImage
                           src={product.images[0]}
                           alt={product.name}
-                          className="h-full w-full object-cover"
+                          size="small"
+                          className="h-full w-full"
+                          priority={false}
                         />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center">
@@ -857,6 +875,18 @@ export default function ProductsPage() {
                 </div>
               </div>
             </div>
+
+            {/* Product Images */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Product Images</h3>
+              <ProductImageManager
+                productId={selectedProduct?.id}
+                productName={formData.name || 'Product'}
+                images={formData.images}
+                onImagesChange={(images) => setFormData({...formData, images})}
+                maxImages={5}
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" className="rounded-full bg-transparent" onClick={() => setIsEditDialogOpen(false)}>
@@ -879,15 +909,15 @@ export default function ProductsPage() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete "{selectedProduct?.name}"? This action cannot be undone.
-              {selectedProduct && (
-                <div className="mt-2 p-3 bg-muted rounded-lg">
-                  <div className="text-sm font-medium">Product Details:</div>
-                  <div className="text-sm text-muted-foreground">SKU: {selectedProduct.sku || 'N/A'}</div>
-                  <div className="text-sm text-muted-foreground">Price: {formatPrice(selectedProduct.price)}</div>
-                  <div className="text-sm text-muted-foreground">Stock: {selectedProduct.inventory}</div>
-                </div>
-              )}
             </AlertDialogDescription>
+            {selectedProduct && (
+              <div className="mt-2 p-3 bg-muted rounded-lg">
+                <div className="text-sm font-medium">Product Details:</div>
+                <div className="text-sm text-muted-foreground">SKU: {selectedProduct.sku || 'N/A'}</div>
+                <div className="text-sm text-muted-foreground">Price: {formatPrice(selectedProduct.price)}</div>
+                <div className="text-sm text-muted-foreground">Stock: {selectedProduct.inventory}</div>
+              </div>
+            )}
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="rounded-full">Cancel</AlertDialogCancel>

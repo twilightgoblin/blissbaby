@@ -8,22 +8,77 @@ export async function GET(request: NextRequest) {
     const limit = searchParams.get('limit')
     const category = searchParams.get('category')
     const featured = searchParams.get('featured')
+    const minPrice = searchParams.get('minPrice')
+    const maxPrice = searchParams.get('maxPrice')
+    const sortBy = searchParams.get('sortBy') || 'createdAt'
+    const sortOrder = searchParams.get('sortOrder') || 'desc'
+    const search = searchParams.get('search')
 
-    let products
-
-    if (category || featured) {
-      const where: any = { status: 'ACTIVE' }
-      if (category) where.category = category
-      if (featured === 'true') where.featured = true
-
-      products = await db.product.findMany({
-        where,
-        take: limit ? parseInt(limit) : undefined,
-        orderBy: { createdAt: 'desc' }
-      })
-    } else {
-      products = await getActiveProducts(limit ? parseInt(limit) : undefined)
+    const where: any = { status: 'ACTIVE' }
+    
+    // Category filter
+    if (category) {
+      where.categoryId = category
     }
+    
+    // Featured filter
+    if (featured === 'true') {
+      where.featured = true
+    }
+    
+    // Price range filter
+    if (minPrice || maxPrice) {
+      where.price = {}
+      if (minPrice) where.price.gte = parseFloat(minPrice)
+      if (maxPrice) where.price.lte = parseFloat(maxPrice)
+    }
+    
+    // Search filter
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { brand: { contains: search, mode: 'insensitive' } }
+      ]
+    }
+
+    // Determine sort order
+    let orderBy: any = { createdAt: 'desc' }
+    switch (sortBy) {
+      case 'price-low':
+        orderBy = { price: 'asc' }
+        break
+      case 'price-high':
+        orderBy = { price: 'desc' }
+        break
+      case 'name':
+        orderBy = { name: 'asc' }
+        break
+      case 'newest':
+        orderBy = { createdAt: 'desc' }
+        break
+      case 'popular':
+        // For now, use featured products first, then by creation date
+        orderBy = [{ featured: 'desc' }, { createdAt: 'desc' }]
+        break
+      default:
+        orderBy = { [sortBy]: sortOrder }
+    }
+
+    const products = await db.product.findMany({
+      where,
+      include: {
+        category: {
+          select: {
+            id: true,
+            name: true,
+            color: true
+          }
+        }
+      },
+      take: limit ? parseInt(limit) : undefined,
+      orderBy
+    })
 
     return NextResponse.json({ products })
   } catch (error) {

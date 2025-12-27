@@ -1,6 +1,18 @@
 import { db } from './db'
 import { UserRole, ProductStatus, OrderStatus, PaymentStatus } from './generated/prisma'
 
+// Utility function to get user email and name
+export const getUserEmailAndName = async (userId: string) => {
+  const user = await db.user.findUnique({
+    where: { id: userId },
+    select: { email: true, name: true }
+  })
+  return {
+    userEmail: user?.email || '',
+    userName: user?.name || null
+  }
+}
+
 // User helpers
 export const createUser = async (data: {
   email: string
@@ -78,19 +90,32 @@ export const getOrCreateCart = async (userId: string) => {
     include: {
       items: {
         include: {
-          product: true
+          product: {
+            include: {
+              category: true
+            }
+          }
         }
       }
     }
   })
 
   if (!cart) {
+    const { userEmail, userName } = await getUserEmailAndName(userId)
     cart = await db.cart.create({
-      data: { userId },
+      data: { 
+        userId,
+        userEmail,
+        userName
+      },
       include: {
         items: {
           include: {
-            product: true
+            product: {
+              include: {
+                category: true
+              }
+            }
           }
         }
       }
@@ -102,6 +127,13 @@ export const getOrCreateCart = async (userId: string) => {
 
 export const addToCart = async (userId: string, productId: string, quantity: number = 1) => {
   const cart = await getOrCreateCart(userId)
+  const { userEmail, userName } = await getUserEmailAndName(userId)
+  
+  // Get product info
+  const product = await db.product.findUnique({
+    where: { id: productId },
+    select: { name: true }
+  })
   
   const existingItem = await db.cartItem.findUnique({
     where: {
@@ -116,10 +148,17 @@ export const addToCart = async (userId: string, productId: string, quantity: num
     return await db.cartItem.update({
       where: { id: existingItem.id },
       data: {
-        quantity: existingItem.quantity + quantity
+        quantity: existingItem.quantity + quantity,
+        productName: product?.name,
+        userName,
+        userEmail
       },
       include: {
-        product: true
+        product: {
+          include: {
+            category: true
+          }
+        }
       }
     })
   } else {
@@ -127,10 +166,17 @@ export const addToCart = async (userId: string, productId: string, quantity: num
       data: {
         cartId: cart.id,
         productId,
-        quantity
+        quantity,
+        productName: product?.name,
+        userName,
+        userEmail
       },
       include: {
-        product: true
+        product: {
+          include: {
+            category: true
+          }
+        }
       }
     })
   }
@@ -152,12 +198,15 @@ export const createOrder = async (data: {
   discountAmount?: number
 }) => {
   const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+  const { userEmail, userName } = await getUserEmailAndName(data.userId)
   
   const totalAmount = data.subtotal + (data.taxAmount || 0) + (data.shippingAmount || 0) - (data.discountAmount || 0)
 
   return await db.order.create({
     data: {
       userId: data.userId,
+      userEmail,
+      userName,
       orderNumber,
       status: OrderStatus.PENDING,
       subtotal: data.subtotal,
@@ -214,9 +263,23 @@ export const createPayment = async (data: {
   provider?: string
   providerPaymentId?: string
 }) => {
+  // Get user info from the order
+  const order = await db.order.findUnique({
+    where: { id: data.orderId },
+    select: { userId: true }
+  })
+  
+  if (!order) {
+    throw new Error('Order not found')
+  }
+  
+  const { userEmail, userName } = await getUserEmailAndName(order.userId)
+  
   return await db.payment.create({
     data: {
       ...data,
+      userEmail,
+      userName,
       status: PaymentStatus.PENDING,
       method: data.method as any
     }
@@ -236,10 +299,44 @@ export const createAddress = async (data: {
   phone?: string
   isDefault?: boolean
 }) => {
+  const { userEmail, userName } = await getUserEmailAndName(data.userId)
+  
   return await db.address.create({
     data: {
       ...data,
+      userEmail,
+      userName,
       country: data.country || 'US'
+    }
+  })
+}
+
+// Refund helpers
+export const createRefund = async (data: {
+  orderId: string
+  paymentId?: string
+  amount: number
+  reason: string
+  description?: string
+}) => {
+  // Get user info from the order
+  const order = await db.order.findUnique({
+    where: { id: data.orderId },
+    select: { userId: true }
+  })
+  
+  if (!order) {
+    throw new Error('Order not found')
+  }
+  
+  const { userEmail, userName } = await getUserEmailAndName(order.userId)
+  
+  return await db.refund.create({
+    data: {
+      ...data,
+      userEmail,
+      userName,
+      reason: data.reason as any
     }
   })
 }

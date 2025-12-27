@@ -67,9 +67,34 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ message: 'Item removed from cart' })
     }
 
+    // Get the cart item to access user and product info
+    const existingCartItem = await db.cartItem.findUnique({
+      where: { id: cartItemId },
+      include: {
+        cart: {
+          include: {
+            user: true
+          }
+        },
+        product: true
+      }
+    })
+
+    if (!existingCartItem) {
+      return NextResponse.json(
+        { error: 'Cart item not found' },
+        { status: 404 }
+      )
+    }
+
     const cartItem = await db.cartItem.update({
       where: { id: cartItemId },
-      data: { quantity },
+      data: { 
+        quantity,
+        productName: existingCartItem.product.name,
+        userName: existingCartItem.cart.user.name,
+        userEmail: existingCartItem.cart.user.email
+      },
       include: {
         product: true
       }

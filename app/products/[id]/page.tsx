@@ -10,33 +10,133 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Star, Heart, Share2, Truck, Shield, ArrowLeft, Minus, Plus, Check } from "lucide-react"
-import { useParams } from "next/navigation"
+import { Star, Heart, Share2, Truck, Shield, ArrowLeft, Minus, Plus, Check, ShoppingCart } from "lucide-react"
+import { useParams, useRouter } from "next/navigation"
+import { useAuth } from "@/contexts/auth-context"
+import { useCart } from "@/contexts/cart-context"
+import { toast } from "sonner"
 
-export default function ProductDetailPage() {
-  const params = useParams()
+export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const router = useRouter()
+  const { user, isAuthenticated } = useAuth()
+  const { addToCart, loading: cartLoading } = useCart()
+  
   const [quantity, setQuantity] = useState(1)
   const [selectedImage, setSelectedImage] = useState(0)
   const [isFavorite, setIsFavorite] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [addingToCart, setAddingToCart] = useState(false)
+  const [productId, setProductId] = useState<string | null>(null)
 
-  // Mock product data
-  // TODO: Replace with API call to fetch real product data
   const [product, setProduct] = useState(null)
   const [relatedProducts, setRelatedProducts] = useState([])
-  const [reviews, setReviews] = useState([])
-  const [ratingBreakdown, setRatingBreakdown] = useState([])
 
-  // TODO: Add useEffect to fetch real product data from API
   useEffect(() => {
-    // fetchProduct(params.id).then(setProduct)
-    // fetchRelatedProducts(params.id).then(setRelatedProducts)
-    // fetchProductReviews(params.id).then(setReviews)
-    // fetchRatingBreakdown(params.id).then(setRatingBreakdown)
-  }, [params.id])
+    const getParams = async () => {
+      const resolvedParams = await params
+      setProductId(resolvedParams.id)
+    }
+    getParams()
+  }, [params])
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!productId) return
+      
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/products/${productId}`)
+        
+        if (!response.ok) {
+          throw new Error('Product not found')
+        }
+        
+        const data = await response.json()
+        setProduct(data.product)
+        setRelatedProducts(data.relatedProducts || [])
+      } catch (error) {
+        console.error('Error fetching product:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProduct()
+  }, [productId])
+
+  const handleAddToCart = async () => {
+    // Check if user is authenticated
+    if (!isAuthenticated || !user) {
+      toast.error("Please sign in to add items to your cart")
+      router.push('/auth/signin')
+      return
+    }
+
+    // Check if product is in stock
+    if (!product || product.inventory <= 0) {
+      toast.error("This product is out of stock")
+      return
+    }
+
+    try {
+      setAddingToCart(true)
+      await addToCart(product.id, quantity)
+      toast.success(`Added ${quantity} ${quantity === 1 ? 'item' : 'items'} to cart!`)
+    } catch (error) {
+      console.error('Error adding to cart:', error)
+      toast.error("Failed to add item to cart. Please try again.")
+    } finally {
+      setAddingToCart(false)
+    }
+  }
 
   // Show loading state while data is being fetched
+  if (loading) {
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-muted rounded w-1/3 mb-6" />
+            <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
+              <div className="space-y-4">
+                <div className="aspect-square bg-muted rounded-3xl" />
+                <div className="grid grid-cols-3 gap-3">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="aspect-square bg-muted rounded-2xl" />
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-6">
+                <div className="h-8 bg-muted rounded w-3/4" />
+                <div className="h-4 bg-muted rounded w-1/2" />
+                <div className="h-6 bg-muted rounded w-1/4" />
+                <div className="h-20 bg-muted rounded" />
+              </div>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
   if (!product) {
-    return <div>Loading...</div>
+    return (
+      <div className="min-h-screen">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <h1 className="text-2xl font-bold mb-4">Product Not Found</h1>
+            <p className="text-muted-foreground mb-6">The product you're looking for doesn't exist or has been removed.</p>
+            <Button asChild>
+              <Link href="/products">Back to Products</Link>
+            </Button>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
   }
 
   const incrementQuantity = () => setQuantity((prev) => prev + 1)
@@ -74,50 +174,61 @@ export default function ProductDetailPage() {
             <Card className="overflow-hidden rounded-3xl border-border/60 hover:shadow-xl transition-shadow duration-500">
               <CardContent className="p-0">
                 <div className="relative aspect-square bg-muted/50">
-                  {product.badge && (
+                  {product.featured && (
                     <Badge className="absolute left-4 top-4 z-10 rounded-full bg-primary text-primary-foreground border-0 animate-bounce-soft">
-                      {product.badge}
+                      Featured
+                    </Badge>
+                  )}
+                  {product.comparePrice && parseFloat(product.comparePrice) > parseFloat(product.price) && (
+                    <Badge className="absolute right-4 top-4 z-10 rounded-full bg-destructive text-destructive-foreground border-0">
+                      {Math.round(((parseFloat(product.comparePrice) - parseFloat(product.price)) / parseFloat(product.comparePrice)) * 100)}% OFF
                     </Badge>
                   )}
                   <img
-                    src={product.images[selectedImage] || "/placeholder.svg"}
+                    src={product.images?.[selectedImage] || "/placeholder.svg"}
                     alt={product.name}
                     className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
                   />
                 </div>
               </CardContent>
             </Card>
-            <div className="grid grid-cols-3 gap-3">
-              {product.images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`overflow-hidden rounded-2xl border-2 transition-all duration-300 hover:scale-105 ${
-                    selectedImage === index ? "border-primary shadow-lg" : "border-border/60 hover:border-border"
-                  }`}
-                >
-                  <div className="aspect-square bg-muted/50">
-                    <img
-                      src={image || "/placeholder.svg"}
-                      alt={`${product.name} ${index + 1}`}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                </button>
-              ))}
-            </div>
+            {product.images && product.images.length > 1 && (
+              <div className="grid grid-cols-3 gap-3">
+                {product.images.slice(0, 3).map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImage(index)}
+                    className={`overflow-hidden rounded-2xl border-2 transition-all duration-300 hover:scale-105 ${
+                      selectedImage === index ? "border-primary shadow-lg" : "border-border/60 hover:border-border"
+                    }`}
+                  >
+                    <div className="aspect-square bg-muted/50">
+                      <img
+                        src={image || "/placeholder.svg"}
+                        alt={`${product.name} ${index + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Details */}
           <div className="space-y-6 animate-slide-in-right">
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="rounded-full">
-                  {product.category}
-                </Badge>
-                <Badge variant="outline" className="rounded-full">
-                  {product.age}
-                </Badge>
+                {product.category && (
+                  <Badge variant="secondary" className="rounded-full">
+                    {product.category.name}
+                  </Badge>
+                )}
+                {product.brand && (
+                  <Badge variant="outline" className="rounded-full">
+                    {product.brand}
+                  </Badge>
+                )}
               </div>
               <h1 className="text-3xl font-bold tracking-tight md:text-4xl text-balance">{product.name}</h1>
               <div className="flex items-center gap-3">
@@ -126,40 +237,60 @@ export default function ProductDetailPage() {
                     <Star
                       key={i}
                       className={`h-5 w-5 transition-all duration-300 ${
-                        i < Math.floor(product.rating) ? "fill-primary text-primary" : "text-muted"
+                        i < 4 ? "fill-primary text-primary" : "text-muted"
                       }`}
                     />
                   ))}
                 </div>
-                <span className="font-medium">{product.rating}</span>
-                <span className="text-muted-foreground">({product.reviews} reviews)</span>
+                <span className="font-medium">4.5</span>
+                <span className="text-muted-foreground">(0 reviews)</span>
               </div>
             </div>
 
             <div className="flex items-baseline gap-3">
-              <span className="text-4xl font-bold text-primary">${product.price}</span>
-              {product.originalPrice && (
-                <span className="text-xl text-muted-foreground line-through">${product.originalPrice}</span>
-              )}
-              {product.originalPrice && (
-                <Badge className="rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20 border-0 animate-pulse-soft">
-                  Save {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
-                </Badge>
+              <span className="text-4xl font-bold text-primary">₹{product.price}</span>
+              {product.comparePrice && parseFloat(product.comparePrice) > parseFloat(product.price) && (
+                <>
+                  <span className="text-xl text-muted-foreground line-through">₹{product.comparePrice}</span>
+                  <Badge className="rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20 border-0 animate-pulse-soft">
+                    Save {Math.round(((parseFloat(product.comparePrice) - parseFloat(product.price)) / parseFloat(product.comparePrice)) * 100)}%
+                  </Badge>
+                </>
               )}
             </div>
 
-            <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+            {product.description && (
+              <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+            )}
 
-            {/* Features */}
+            {/* Key Features */}
             <div className="space-y-3">
               <h3 className="font-semibold">Key Features:</h3>
               <ul className="space-y-2 stagger-fade-in">
-                {product.features.map((feature, index) => (
+                <li className="flex items-center gap-2 text-sm">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10">
+                    <Check className="h-3 w-3 text-primary" />
+                  </div>
+                  High-quality materials
+                </li>
+                <li className="flex items-center gap-2 text-sm">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10">
+                    <Check className="h-3 w-3 text-primary" />
+                  </div>
+                  Safe for babies
+                </li>
+                <li className="flex items-center gap-2 text-sm">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10">
+                    <Check className="h-3 w-3 text-primary" />
+                  </div>
+                  Easy to clean
+                </li>
+                {product.tags && product.tags.length > 0 && product.tags.map((tag, index) => (
                   <li key={index} className="flex items-center gap-2 text-sm">
                     <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary/10">
                       <Check className="h-3 w-3 text-primary" />
                     </div>
-                    {feature}
+                    {tag}
                   </li>
                 ))}
               </ul>
@@ -194,9 +325,20 @@ export default function ProductDetailPage() {
                 <Button
                   className="flex-1 rounded-full bg-primary hover:bg-primary/90 h-12 hover:scale-105 transition-all duration-300 hover:shadow-lg"
                   size="lg"
-                  asChild
+                  onClick={handleAddToCart}
+                  disabled={addingToCart || cartLoading || !product || product.inventory <= 0}
                 >
-                  <Link href="/cart">Add to Cart</Link>
+                  {addingToCart ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      Adding...
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      Add to Cart
+                    </>
+                  )}
                 </Button>
                 <Button
                   variant="outline"
@@ -215,10 +357,15 @@ export default function ProductDetailPage() {
                 </Button>
               </div>
 
-              {product.inStock ? (
+              {product.inventory > 0 ? (
                 <div className="flex items-center gap-2 text-sm text-green-600 animate-fade-in">
                   <Check className="h-4 w-4" />
-                  <span className="font-medium">In Stock - Ships within 24 hours</span>
+                  <span className="font-medium">
+                    {product.inventory <= product.lowStock 
+                      ? `Only ${product.inventory} left in stock!` 
+                      : 'In Stock - Ships within 24 hours'
+                    }
+                  </span>
                 </div>
               ) : (
                 <div className="text-sm text-destructive">Out of Stock</div>
@@ -250,135 +397,59 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Tabs Section */}
-        <Tabs defaultValue="reviews" className="mb-16 animate-fade-in-up">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 rounded-full bg-muted/50">
-            <TabsTrigger
-              value="reviews"
-              className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-            >
-              Reviews ({product.reviews})
-            </TabsTrigger>
+        <Tabs defaultValue="details" className="mb-16 animate-fade-in-up">
+          <TabsList className="grid w-full max-w-md mx-auto grid-cols-1 rounded-full bg-muted/50">
             <TabsTrigger
               value="details"
               className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
             >
-              Details
+              Product Details
             </TabsTrigger>
           </TabsList>
-
-          <TabsContent value="reviews" className="mt-8">
-            <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
-              {/* Rating Summary */}
-              <Card className="rounded-3xl border-border/60 h-fit hover:shadow-lg transition-shadow duration-300">
-                <CardContent className="p-6 space-y-4">
-                  <div className="text-center space-y-2">
-                    <div className="text-5xl font-bold text-primary">{product.rating}</div>
-                    <div className="flex items-center justify-center gap-1">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-5 w-5 ${
-                            i < Math.floor(product.rating) ? "fill-primary text-primary" : "text-muted"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <p className="text-sm text-muted-foreground">Based on {product.reviews} reviews</p>
-                  </div>
-                  <div className="space-y-2">
-                    {ratingBreakdown.map((item) => (
-                      <div key={item.stars} className="flex items-center gap-3">
-                        <div className="flex items-center gap-1 w-16">
-                          <span className="text-sm">{item.stars}</span>
-                          <Star className="h-3 w-3 fill-primary text-primary" />
-                        </div>
-                        <Progress value={item.percentage} className="flex-1" />
-                        <span className="text-sm text-muted-foreground w-12 text-right">{item.percentage}%</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Reviews List */}
-              <div className="space-y-6 stagger-fade-in">
-                {reviews.map((review) => (
-                  <Card
-                    key={review.id}
-                    className="rounded-3xl border-border/60 hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
-                  >
-                    <CardContent className="p-6 space-y-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <Avatar>
-                            <AvatarImage src="/placeholder.svg" />
-                            <AvatarFallback className="bg-primary/10 text-primary">
-                              {review.author.charAt(0)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="font-semibold">{review.author}</p>
-                              {review.verified && (
-                                <Badge variant="secondary" className="rounded-full text-xs">
-                                  Verified
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-sm text-muted-foreground">{review.date}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`h-4 w-4 ${i < review.rating ? "fill-primary text-primary" : "text-muted"}`}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <p className="text-sm leading-relaxed">{review.comment}</p>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Button variant="ghost" size="sm" className="h-auto p-0 hover:text-primary transition-colors">
-                          Helpful ({review.helpful})
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
 
           <TabsContent value="details" className="mt-8">
             <Card className="rounded-3xl border-border/60 hover:shadow-lg transition-shadow duration-300">
               <CardContent className="p-8 space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold mb-3">Product Description</h3>
-                  <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {product.description || 'No description available for this product.'}
+                  </p>
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold mb-3">Specifications</h3>
                   <dl className="grid gap-3">
+                    {product.category && (
+                      <div className="flex justify-between border-b border-border/60 pb-2">
+                        <dt className="text-muted-foreground">Category</dt>
+                        <dd className="font-medium">{product.category.name}</dd>
+                      </div>
+                    )}
+                    {product.brand && (
+                      <div className="flex justify-between border-b border-border/60 pb-2">
+                        <dt className="text-muted-foreground">Brand</dt>
+                        <dd className="font-medium">{product.brand}</dd>
+                      </div>
+                    )}
+                    {product.sku && (
+                      <div className="flex justify-between border-b border-border/60 pb-2">
+                        <dt className="text-muted-foreground">SKU</dt>
+                        <dd className="font-medium">{product.sku}</dd>
+                      </div>
+                    )}
+                    {product.weight && (
+                      <div className="flex justify-between border-b border-border/60 pb-2">
+                        <dt className="text-muted-foreground">Weight</dt>
+                        <dd className="font-medium">{product.weight} kg</dd>
+                      </div>
+                    )}
                     <div className="flex justify-between border-b border-border/60 pb-2">
-                      <dt className="text-muted-foreground">Category</dt>
-                      <dd className="font-medium">{product.category}</dd>
-                    </div>
-                    <div className="flex justify-between border-b border-border/60 pb-2">
-                      <dt className="text-muted-foreground">Age Range</dt>
-                      <dd className="font-medium">{product.age}</dd>
-                    </div>
-                    <div className="flex justify-between border-b border-border/60 pb-2">
-                      <dt className="text-muted-foreground">Material</dt>
-                      <dd className="font-medium">{product.material || 'N/A'}</dd>
-                    </div>
-                    <div className="flex justify-between border-b border-border/60 pb-2">
-                      <dt className="text-muted-foreground">Care Instructions</dt>
-                      <dd className="font-medium">Machine Washable</dd>
-                    </div>
-                    <div className="flex justify-between border-b border-border/60 pb-2">
-                      <dt className="text-muted-foreground">Certification</dt>
-                      <dd className="font-medium">GOTS Certified</dd>
+                      <dt className="text-muted-foreground">Status</dt>
+                      <dd className="font-medium">
+                        <Badge variant={product.inventory > 0 ? "default" : "destructive"}>
+                          {product.inventory > 0 ? 'In Stock' : 'Out of Stock'}
+                        </Badge>
+                      </dd>
                     </div>
                   </dl>
                 </div>
@@ -388,40 +459,42 @@ export default function ProductDetailPage() {
         </Tabs>
 
         {/* Related Products */}
-        <section className="animate-fade-in-up">
-          <h2 className="text-2xl font-bold tracking-tight mb-6">You May Also Like</h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 stagger-fade-in">
-            {relatedProducts.map((relatedProduct) => (
-              <Link href={`/products/${relatedProduct.id}`} key={relatedProduct.id}>
-                <Card className="group overflow-hidden rounded-3xl border-border/60 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 hover:border-primary/30">
-                  <CardContent className="p-0">
-                    <div className="relative aspect-square bg-muted/50 overflow-hidden">
-                      <img
-                        src={relatedProduct.image || "/placeholder.svg"}
-                        alt={relatedProduct.name}
-                        className="h-full w-full object-cover transition-all duration-700 group-hover:scale-125 group-hover:rotate-2"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    </div>
-                    <div className="space-y-3 p-4">
-                      <h3 className="font-semibold group-hover:text-primary transition-colors duration-300 text-balance">
-                        {relatedProduct.name}
-                      </h3>
-                      <div className="flex items-center gap-2 text-sm">
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-primary text-primary" />
-                          <span className="font-medium">{relatedProduct.rating}</span>
-                        </div>
-                        <span className="text-muted-foreground">({relatedProduct.reviews})</span>
+        {relatedProducts.length > 0 && (
+          <section className="animate-fade-in-up">
+            <h2 className="text-2xl font-bold tracking-tight mb-6">You May Also Like</h2>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 stagger-fade-in">
+              {relatedProducts.map((relatedProduct) => (
+                <Link href={`/products/${relatedProduct.id}`} key={relatedProduct.id}>
+                  <Card className="group overflow-hidden rounded-3xl border-border/60 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 hover:border-primary/30">
+                    <CardContent className="p-0">
+                      <div className="relative aspect-square bg-muted/50 overflow-hidden">
+                        <img
+                          src={relatedProduct.images?.[0] || "/placeholder.svg"}
+                          alt={relatedProduct.name}
+                          className="h-full w-full object-cover transition-all duration-700 group-hover:scale-125 group-hover:rotate-2"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       </div>
-                      <p className="text-lg font-bold text-primary">${relatedProduct.price}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </section>
+                      <div className="space-y-3 p-4">
+                        <h3 className="font-semibold group-hover:text-primary transition-colors duration-300 text-balance">
+                          {relatedProduct.name}
+                        </h3>
+                        <div className="flex items-center gap-2 text-sm">
+                          <div className="flex items-center gap-1">
+                            <Star className="h-4 w-4 fill-primary text-primary" />
+                            <span className="font-medium">4.5</span>
+                          </div>
+                          <span className="text-muted-foreground">(0)</span>
+                        </div>
+                        <p className="text-lg font-bold text-primary">₹{relatedProduct.price}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
 
       <Footer />

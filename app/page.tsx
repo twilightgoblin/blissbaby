@@ -10,14 +10,30 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 
 export default function HomePage() {
-  // TODO: Replace with API calls to fetch real categories and featured products
   const [categories, setCategories] = useState([])
   const [featuredProducts, setFeaturedProducts] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  // TODO: Add useEffect to fetch real data from API
   useEffect(() => {
-    // fetchCategories().then(setCategories)
-    // fetchFeaturedProducts().then(setFeaturedProducts)
+    const fetchData = async () => {
+      try {
+        // Fetch categories
+        const categoriesResponse = await fetch('/api/categories')
+        const categoriesData = await categoriesResponse.json()
+        setCategories(categoriesData.categories || [])
+
+        // Fetch featured products
+        const productsResponse = await fetch('/api/products?featured=true&limit=4')
+        const productsData = await productsResponse.json()
+        setFeaturedProducts(productsData.products || [])
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
   }, [])
 
   return (
@@ -120,34 +136,71 @@ export default function HomePage() {
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl text-balance">Shop by Category</h2>
           <p className="text-muted-foreground text-pretty">Find exactly what you need for your little one</p>
         </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 stagger-fade-in">
-          {categories.map((category, index) => (
-            <Link key={category.slug} href={`/products?category=${category.slug}`}>
-              <div className="animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
-                <Card className="group overflow-hidden rounded-3xl border-border/60 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 hover:border-primary/30 cursor-pointer">
-                  <CardContent className="p-0">
-                    <div className={`relative aspect-square ${category.color} overflow-hidden`}>
-                      <img
-                        src={category.image || "/placeholder.svg"}
-                        alt={category.name}
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-125 group-hover:rotate-2"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      <p className="absolute bottom-4 left-0 right-0 text-center text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform translate-y-2 group-hover:translate-y-0">
-                        {category.description}
-                      </p>
-                    </div>
-                    <div className="p-4 text-center">
-                      <h3 className="font-semibold group-hover:text-primary transition-colors duration-300">
-                        {category.name}
-                      </h3>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+        {loading ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            {[...Array(5)].map((_, index) => (
+              <Card key={index} className="overflow-hidden rounded-3xl border-border/60 animate-pulse">
+                <CardContent className="p-0">
+                  <div className="aspect-square bg-muted" />
+                  <div className="p-4 text-center">
+                    <div className="h-4 bg-muted rounded w-3/4 mx-auto" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : categories.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No categories available at the moment.</p>
+            <p className="text-sm text-muted-foreground mt-2">Please check back later or contact support.</p>
+          </div>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 stagger-fade-in">
+            {categories.slice(0, 5).map((category, index) => (
+              <Link key={category.id} href={`/products?category=${category.id}`}>
+                <div className="animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
+                  <Card className="group overflow-hidden rounded-3xl border-border/60 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 hover:border-primary/30 cursor-pointer">
+                    <CardContent className="p-0">
+                      <div className={`relative aspect-square ${category.color || 'bg-gradient-to-br from-blue-100 to-purple-100'} overflow-hidden`}>
+                        {category.icon && (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-6xl opacity-20">{category.icon}</div>
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        <p className="absolute bottom-4 left-0 right-0 text-center text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-500 transform translate-y-2 group-hover:translate-y-0">
+                          {category.description || `Shop ${category.name}`}
+                        </p>
+                      </div>
+                      <div className="p-4 text-center">
+                        <h3 className="font-semibold group-hover:text-primary transition-colors duration-300">
+                          {category.name}
+                        </h3>
+                        {category._count?.products > 0 && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {category._count.products} products
+                          </p>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+        
+        {/* See More Categories Button */}
+        {!loading && categories.length > 5 && (
+          <div className="text-center mt-8">
+            <Link href="/products">
+              <Button variant="outline" className="rounded-full bg-transparent hover:bg-primary/5 hover:scale-105 transition-all duration-300">
+                See All Categories
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
             </Link>
-          ))}
-        </div>
+          </div>
+        )}
       </section>
 
       {/* Featured Products Section */}
@@ -157,54 +210,92 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl text-balance">Featured Products</h2>
             <p className="text-muted-foreground text-pretty">Our most loved items this month</p>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 stagger-fade-in">
-            {featuredProducts.map((product, index) => (
-              <Link key={product.id} href={`/products/${product.id}`}>
-                <div className="animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
-                  <Card className="group overflow-hidden rounded-3xl border-border/60 transition-all duration-500 hover:shadow-2xl hover:-translate-y-3 hover:border-primary/30 relative cursor-pointer">
-                    <CardContent className="p-0">
-                      <div className="relative aspect-square bg-muted/50 overflow-hidden">
-                        {product.badge && (
-                          <Badge className="absolute left-3 top-3 z-10 rounded-full bg-primary text-primary-foreground border-0 animate-bounce-soft">
-                            {product.badge}
-                          </Badge>
-                        )}
-                        {product.originalPrice && (
-                          <Badge className="absolute right-3 top-3 z-10 rounded-full bg-destructive text-destructive-foreground border-0">
-                            {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
-                          </Badge>
-                        )}
-                        <img
-                          src={product.image || "/placeholder.svg"}
-                          alt={product.name}
-                          className="h-full w-full object-cover transition-all duration-700 group-hover:scale-125"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                      </div>
-                      <div className="space-y-3 p-4">
-                        <h3 className="font-semibold group-hover:text-primary transition-colors duration-300 text-balance">
-                          {product.name}
-                        </h3>
-                        <div className="flex items-center gap-2 text-sm">
-                          <div className="flex items-center gap-1">
-                            <Star className="h-4 w-4 fill-primary text-primary" />
-                            <span className="font-medium">{product.rating}</span>
-                          </div>
-                          <span className="text-muted-foreground">({product.reviews})</span>
-                        </div>
-                        <div className="flex items-baseline gap-2">
-                          <p className="text-lg font-bold text-primary">${product.price}</p>
-                          {product.originalPrice && (
-                            <p className="text-sm text-muted-foreground line-through">${product.originalPrice}</p>
+          {loading ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {[...Array(4)].map((_, index) => (
+                <Card key={index} className="overflow-hidden rounded-3xl border-border/60 animate-pulse">
+                  <CardContent className="p-0">
+                    <div className="aspect-square bg-muted" />
+                    <div className="space-y-3 p-4">
+                      <div className="h-4 bg-muted rounded w-3/4" />
+                      <div className="h-3 bg-muted rounded w-1/2" />
+                      <div className="h-4 bg-muted rounded w-1/3" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : featuredProducts.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No featured products available at the moment.</p>
+              <p className="text-sm text-muted-foreground mt-2">Please check back later for our latest featured items.</p>
+            </div>
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 stagger-fade-in">
+              {featuredProducts.map((product, index) => (
+                <Link key={product.id} href={`/products/${product.id}`}>
+                  <div className="animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
+                    <Card className="group overflow-hidden rounded-3xl border-border/60 transition-all duration-500 hover:shadow-2xl hover:-translate-y-3 hover:border-primary/30 relative cursor-pointer">
+                      <CardContent className="p-0">
+                        <div className="relative aspect-square bg-muted/50 overflow-hidden">
+                          {product.featured && (
+                            <Badge className="absolute left-3 top-3 z-10 rounded-full bg-primary text-primary-foreground border-0 animate-bounce-soft">
+                              Featured
+                            </Badge>
                           )}
+                          {product.salePrice && product.salePrice < product.price && (
+                            <Badge className="absolute right-3 top-3 z-10 rounded-full bg-destructive text-destructive-foreground border-0">
+                              {Math.round(((product.price - product.salePrice) / product.price) * 100)}% OFF
+                            </Badge>
+                          )}
+                          <img
+                            src={product.images?.[0] || "/placeholder.svg"}
+                            alt={product.name}
+                            className="h-full w-full object-cover transition-all duration-700 group-hover:scale-125"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
+                        <div className="space-y-3 p-4">
+                          <h3 className="font-semibold group-hover:text-primary transition-colors duration-300 text-balance">
+                            {product.name}
+                          </h3>
+                          <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-1">
+                              <Star className="h-4 w-4 fill-primary text-primary" />
+                              <span className="font-medium">{product.rating || '4.5'}</span>
+                            </div>
+                            <span className="text-muted-foreground">({product.reviewCount || '0'})</span>
+                          </div>
+                          <div className="flex items-baseline gap-2">
+                            <p className="text-lg font-bold text-primary">
+                              ₹{product.salePrice || product.price}
+                            </p>
+                            {product.salePrice && product.salePrice < product.price && (
+                              <p className="text-sm text-muted-foreground line-through">
+                                ₹{product.price}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+          
+          {/* See More Products Button */}
+          {!loading && (
+            <div className="text-center mt-8">
+              <Link href="/products">
+                <Button className="rounded-full bg-primary hover:bg-primary/90 hover:scale-105 transition-all duration-300 hover:shadow-lg group">
+                  View All Products
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
               </Link>
-            ))}
-          </div>
+            </div>
+          )}
         </div>
       </section>
 

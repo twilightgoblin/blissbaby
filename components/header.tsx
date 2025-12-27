@@ -8,14 +8,15 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
+import { useCart } from "@/contexts/cart-context"
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [cartCount] = useState(3)
   const [wishlistCount] = useState(5)
   const pathname = usePathname()
   const router = useRouter()
   const { user, isAuthenticated, signOut } = useAuth()
+  const { cartCount } = useCart()
 
   const isActive = (path: string) => pathname === path
 

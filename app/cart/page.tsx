@@ -11,27 +11,25 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import { Minus, Plus, X, ShoppingBag, Tag, ArrowRight } from "lucide-react"
+import { useCart } from "@/contexts/cart-context"
 
 export default function CartPage() {
-  // TODO: Replace with API call to fetch real cart items
-  const [cartItems, setCartItems] = useState([])
-
-  // TODO: Add useEffect to fetch real cart items from API
-  useEffect(() => {
-    // fetchCartItems().then(setCartItems)
-  }, [])
-
+  const { cart, cartCount, updateQuantity, removeFromCart, loading } = useCart()
   const [promoCode, setPromoCode] = useState("")
   const [appliedPromo, setAppliedPromo] = useState<string | null>(null)
 
-  const updateQuantity = (id: number, delta: number) => {
-    setCartItems((items) =>
-      items.map((item) => (item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item)),
-    )
+  const cartItems = cart?.items || []
+
+  const updateItemQuantity = async (cartItemId: string, delta: number) => {
+    const item = cartItems.find(item => item.id === cartItemId)
+    if (item) {
+      const newQuantity = Math.max(1, item.quantity + delta)
+      await updateQuantity(cartItemId, newQuantity)
+    }
   }
 
-  const removeItem = (id: number) => {
-    setCartItems((items) => items.filter((item) => item.id !== id))
+  const removeItem = async (cartItemId: string) => {
+    await removeFromCart(cartItemId)
   }
 
   const applyPromoCode = () => {
@@ -40,10 +38,29 @@ export default function CartPage() {
     }
   }
 
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
   const discount = appliedPromo ? subtotal * 0.1 : 0
   const shipping = subtotal > 50 ? 0 : 5.99
   const total = subtotal - discount + shipping
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <div className="text-center space-y-6 px-4">
+            <div className="flex justify-center">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-muted/50">
+                <ShoppingBag className="h-12 w-12 text-muted-foreground animate-spin" />
+              </div>
+            </div>
+            <p className="text-muted-foreground">Loading your cart...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
 
   if (cartItems.length === 0) {
     return (
@@ -98,8 +115,8 @@ export default function CartPage() {
                   <div className="flex gap-4">
                     <div className="relative h-24 w-24 sm:h-32 sm:w-32 flex-shrink-0 overflow-hidden rounded-2xl bg-muted/50 group">
                       <img
-                        src={item.image || "/placeholder.svg"}
-                        alt={item.name}
+                        src={item.product.images[0] || "/placeholder.svg"}
+                        alt={item.product.name}
                         className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                     </div>
@@ -108,14 +125,16 @@ export default function CartPage() {
                         <div className="flex items-start justify-between gap-4">
                           <div>
                             <Link
-                              href={`/products/${item.id}`}
+                              href={`/products/${item.productId}`}
                               className="font-semibold hover:text-primary transition-colors text-balance"
                             >
-                              {item.name}
+                              {item.product.name}
                             </Link>
-                            <Badge variant="secondary" className="mt-2 rounded-full text-xs">
-                              {item.category}
-                            </Badge>
+                            {item.product.category && (
+                              <Badge variant="secondary" className="mt-2 rounded-full text-xs">
+                                {item.product.category.name}
+                              </Badge>
+                            )}
                           </div>
                           <Button
                             variant="ghost"
@@ -133,7 +152,7 @@ export default function CartPage() {
                             variant="outline"
                             size="icon"
                             className="h-8 w-8 rounded-full bg-transparent hover:scale-110 transition-all duration-300"
-                            onClick={() => updateQuantity(item.id, -1)}
+                            onClick={() => updateItemQuantity(item.id, -1)}
                           >
                             <Minus className="h-3 w-3" />
                           </Button>
@@ -142,12 +161,12 @@ export default function CartPage() {
                             variant="outline"
                             size="icon"
                             className="h-8 w-8 rounded-full bg-transparent hover:scale-110 transition-all duration-300"
-                            onClick={() => updateQuantity(item.id, 1)}
+                            onClick={() => updateItemQuantity(item.id, 1)}
                           >
                             <Plus className="h-3 w-3" />
                           </Button>
                         </div>
-                        <p className="text-lg font-bold text-primary">${(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="text-lg font-bold text-primary">₹{(item.product.price * item.quantity).toFixed(2)}</p>
                       </div>
                     </div>
                   </div>
@@ -208,28 +227,28 @@ export default function CartPage() {
                 <div className="space-y-3 border-t border-border/60 pt-4">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-medium">${subtotal.toFixed(2)}</span>
+                    <span className="font-medium">₹{subtotal.toFixed(2)}</span>
                   </div>
                   {discount > 0 && (
                     <div className="flex items-center justify-between text-sm animate-fade-in">
                       <span className="text-muted-foreground">Discount (10%)</span>
-                      <span className="font-medium text-primary">-${discount.toFixed(2)}</span>
+                      <span className="font-medium text-primary">-₹{discount.toFixed(2)}</span>
                     </div>
                   )}
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
-                    <span className="font-medium">{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
+                    <span className="font-medium">{shipping === 0 ? "Free" : `₹${shipping.toFixed(2)}`}</span>
                   </div>
                   {subtotal < 50 && (
                     <p className="text-xs text-muted-foreground animate-pulse-soft">
-                      Add ${(50 - subtotal).toFixed(2)} more for free shipping!
+                      Add ₹{(50 - subtotal).toFixed(2)} more for free shipping!
                     </p>
                   )}
                 </div>
 
                 <div className="flex items-center justify-between border-t border-border/60 pt-4">
                   <span className="text-lg font-bold">Total</span>
-                  <span className="text-2xl font-bold text-primary">${total.toFixed(2)}</span>
+                  <span className="text-2xl font-bold text-primary">₹{total.toFixed(2)}</span>
                 </div>
 
                 <Button
