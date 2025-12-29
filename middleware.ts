@@ -4,7 +4,7 @@ import { getUserFromRequest } from '@/lib/auth';
 
 // Define protected routes (removed admin from protected routes)
 const protectedRoutes = ['/account', '/orders', '/profile'];
-const authRoutes = ['/auth/signin', '/auth/signup'];
+const authRoutes = ['/auth/signin', '/auth/signup', '/auth/login'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -30,8 +30,8 @@ export function middleware(request: NextRequest) {
 
   // Redirect unauthenticated users from protected routes to signin
   if (isProtectedRoute && !isAuthenticated) {
-    const signInUrl = new URL('/auth/signin', request.url);
-    signInUrl.searchParams.set('callbackUrl', pathname);
+    const signInUrl = new URL('/auth/login', request.url);
+    signInUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(signInUrl);
   }
 

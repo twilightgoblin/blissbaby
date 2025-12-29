@@ -37,10 +37,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const token = localStorage.getItem('auth-token');
       if (!token) {
+        console.log('No auth token found');
         setIsLoading(false);
         return;
       }
 
+      console.log('Fetching user with token...');
       const response = await fetch('/api/auth/me', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -49,8 +51,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const data = await response.json();
+        console.log('User fetched successfully:', data.user.email);
         setUser(data.user);
       } else {
+        console.log('Failed to fetch user, status:', response.status);
         // Token is invalid, remove it
         localStorage.removeItem('auth-token');
         setUser(null);

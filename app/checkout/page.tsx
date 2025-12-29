@@ -28,7 +28,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 export default function CheckoutPage() {
   const router = useRouter()
   const { cart, clearCart } = useCart()
-  const { user, isAuthenticated } = useAuth()
+  const { user, isAuthenticated, isLoading } = useAuth()
   const { toast } = useToast()
   
   const [step, setStep] = useState<"checkout" | "success">("checkout")
@@ -36,14 +36,6 @@ export default function CheckoutPage() {
   const [paymentIntentId, setPaymentIntentId] = useState<string>("")
   const [loading, setLoading] = useState(false)
   const [orderNumber, setOrderNumber] = useState<string>("")
-
-  // Redirect if not authenticated
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/auth/login?redirect=/checkout')
-      return
-    }
-  }, [isAuthenticated, router])
 
   // Calculate totals
   const subtotal = cart?.items?.reduce((sum, item) => sum + (item.product.price * item.quantity), 0) || 0
@@ -67,9 +59,10 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           amount: total,
           metadata: {
-            userId: user?.id,
-            cartId: cart?.id,
-            itemCount: cart?.items?.length || 0
+            userId: user?.id || 'guest',
+            cartId: cart?.id || 'guest-cart',
+            itemCount: cart?.items?.length || 0,
+            isGuest: !isAuthenticated
           }
         })
       })
@@ -115,8 +108,8 @@ export default function CheckoutPage() {
     })
   }
 
-  // Show loading if not authenticated or cart is loading
-  if (!isAuthenticated || loading) {
+  // Show loading if auth is still loading or processing payment
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -212,6 +205,28 @@ export default function CheckoutPage() {
             <Lock className="h-4 w-4 text-primary" />
             <span className="text-muted-foreground">Secure checkout powered by Stripe</span>
           </div>
+          {!isAuthenticated && (
+            <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border/60">
+              <p className="text-sm text-muted-foreground">
+                Checking out as a guest. 
+                <Link href="/auth/login?redirect=/checkout" className="ml-1 text-primary hover:underline">
+                  Sign in
+                </Link> 
+                {" "}or{" "}
+                <Link href="/auth/signup?redirect=/checkout" className="text-primary hover:underline">
+                  create an account
+                </Link> 
+                {" "}to save your information and track orders.
+              </p>
+            </div>
+          )}
+          {isAuthenticated && user && (
+            <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+              <p className="text-sm text-primary">
+                Welcome back, {user.name || user.email}! Your order will be saved to your account.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[1fr_400px]">

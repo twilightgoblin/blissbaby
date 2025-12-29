@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   PaymentElement,
   AddressElement,
@@ -15,6 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { CreditCard, Lock, Package, Loader2 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 import { useToast } from '@/hooks/use-toast'
+import Link from 'next/link'
 
 interface StripeCheckoutFormProps {
   clientSecret: string
@@ -41,6 +42,16 @@ export default function StripeCheckoutForm({
     phone: ''
   })
 
+  // Update email when user changes (for authenticated users)
+  useEffect(() => {
+    if (user?.email && !shippingInfo.email) {
+      setShippingInfo(prev => ({
+        ...prev,
+        email: user.email
+      }))
+    }
+  }, [user?.email, shippingInfo.email])
+
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
 
@@ -51,6 +62,17 @@ export default function StripeCheckoutForm({
     setIsProcessing(true)
 
     try {
+      // Validate required fields
+      if (!shippingInfo.firstName || !shippingInfo.lastName || !shippingInfo.email || !shippingInfo.phone) {
+        toast({
+          title: "Missing Information",
+          description: "Please fill in all required shipping information",
+          variant: "destructive"
+        })
+        setIsProcessing(false)
+        return
+      }
+
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
@@ -62,20 +84,38 @@ export default function StripeCheckoutForm({
 
       if (error) {
         console.error('Payment failed:', error)
+        
+        // More detailed error handling
+        let errorMessage = "An error occurred during payment"
+        
+        if (error.type === 'card_error') {
+          errorMessage = error.message || "Your card was declined"
+        } else if (error.type === 'validation_error') {
+          errorMessage = "Please check your payment information"
+        } else if (error.message) {
+          errorMessage = error.message
+        }
+        
         toast({
           title: "Payment Failed",
-          description: error.message || "An error occurred during payment",
+          description: errorMessage,
           variant: "destructive"
         })
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         console.log('Payment succeeded:', paymentIntent)
         onSuccess()
+      } else {
+        console.log('Payment status:', paymentIntent?.status)
+        toast({
+          title: "Payment Processing",
+          description: "Your payment is being processed. Please wait...",
+        })
       }
     } catch (error) {
       console.error('Payment error:', error)
       toast({
         title: "Payment Error",
-        description: "An unexpected error occurred",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive"
       })
     } finally {
@@ -135,7 +175,13 @@ export default function StripeCheckoutForm({
               className="rounded-full"
               value={shippingInfo.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
+              disabled={!!user?.email} // Disable if user is logged in
             />
+            {user?.email && (
+              <p className="text-xs text-muted-foreground">
+                Using your account email. <Link href="/auth/login" className="text-primary hover:underline">Not you?</Link>
+              </p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="phone">Phone Number</Label>

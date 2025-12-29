@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
+import Stripe from 'stripe'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-12-18.acacia',
+})
 
 export async function POST(request: NextRequest) {
   try {
-    const { amount, currency = 'inr', metadata = {} } = await request.json()
+    const { amount, metadata } = await request.json()
 
+    // Validate amount
     if (!amount || amount <= 0) {
       return NextResponse.json(
         { error: 'Invalid amount' },
@@ -12,11 +17,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Convert amount to cents (Stripe expects amounts in smallest currency unit)
+    const amountInCents = Math.round(amount * 100)
+
     // Create payment intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to paise (smallest unit for INR)
-      currency: currency || 'inr',
-      metadata,
+      amount: amountInCents,
+      currency: 'inr',
+      metadata: metadata || {},
       automatic_payment_methods: {
         enabled: true,
       },
@@ -28,8 +36,16 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error creating payment intent:', error)
+    
+    if (error instanceof Stripe.errors.StripeError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
-      { error: 'Failed to create payment intent' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }
