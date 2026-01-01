@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { headers } from 'next/headers'
+import { db } from '@/lib/db'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-12-18.acacia',
@@ -39,8 +40,42 @@ export async function POST(request: NextRequest) {
         const paymentIntent = event.data.object as Stripe.PaymentIntent
         console.log('Payment succeeded:', paymentIntent.id)
         
-        // Here you can update your database, send confirmation emails, etc.
-        // Example: Update order status, create order record, etc.
+        try {
+          // Update payment status in database
+          await db.payment.updateMany({
+            where: {
+              providerPaymentId: paymentIntent.id
+            },
+            data: {
+              status: 'COMPLETED',
+              processedAt: new Date()
+            }
+          })
+
+          // Update order status to CONFIRMED
+          const payment = await db.payment.findFirst({
+            where: {
+              providerPaymentId: paymentIntent.id
+            },
+            include: {
+              order: true
+            }
+          })
+
+          if (payment) {
+            await db.order.update({
+              where: {
+                id: payment.orderId
+              },
+              data: {
+                status: 'CONFIRMED'
+              }
+            })
+            console.log(`Order ${payment.order.orderNumber} confirmed after successful payment`)
+          }
+        } catch (dbError) {
+          console.error('Database update error:', dbError)
+        }
         
         break
 
@@ -48,7 +83,42 @@ export async function POST(request: NextRequest) {
         const failedPayment = event.data.object as Stripe.PaymentIntent
         console.log('Payment failed:', failedPayment.id)
         
-        // Handle failed payment
+        try {
+          // Update payment status to FAILED
+          await db.payment.updateMany({
+            where: {
+              providerPaymentId: failedPayment.id
+            },
+            data: {
+              status: 'FAILED',
+              failureReason: failedPayment.last_payment_error?.message || 'Payment failed'
+            }
+          })
+
+          // Update order status to CANCELLED
+          const payment = await db.payment.findFirst({
+            where: {
+              providerPaymentId: failedPayment.id
+            },
+            include: {
+              order: true
+            }
+          })
+
+          if (payment) {
+            await db.order.update({
+              where: {
+                id: payment.orderId
+              },
+              data: {
+                status: 'CANCELLED'
+              }
+            })
+            console.log(`Order ${payment.order.orderNumber} cancelled due to payment failure`)
+          }
+        } catch (dbError) {
+          console.error('Database update error for failed payment:', dbError)
+        }
         
         break
 

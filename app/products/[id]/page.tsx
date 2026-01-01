@@ -12,13 +12,13 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Star, Heart, Share2, Truck, Shield, ArrowLeft, Minus, Plus, Check, ShoppingCart } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
-import { useAuth } from "@/contexts/auth-context"
+import { useUser } from "@clerk/nextjs"
 import { useCart } from "@/contexts/cart-context"
 import { toast } from "sonner"
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
-  const { user, isAuthenticated } = useAuth()
+  const { user, isSignedIn } = useUser()
   const { addToCart, loading: cartLoading } = useCart()
   
   const [quantity, setQuantity] = useState(1)
@@ -66,9 +66,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   const handleAddToCart = async () => {
     // Check if user is authenticated
-    if (!isAuthenticated || !user) {
+    if (!isSignedIn || !user) {
       toast.error("Please sign in to add items to your cart")
-      router.push('/auth/signin')
       return
     }
 

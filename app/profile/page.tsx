@@ -1,14 +1,14 @@
 'use client';
 
-import { useAuth } from '@/contexts/auth-context';
+import { useUser } from '@clerk/nextjs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ProfilePage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoaded } = useUser();
 
-  if (isLoading) {
+  if (!isLoaded) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">

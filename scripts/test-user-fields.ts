@@ -5,22 +5,17 @@ import { db } from '../lib/db'
 import { createAddress, createOrder, createPayment } from '../lib/db-helpers'
 
 async function testUserFields() {
-  console.log('Testing user email and name fields...')
+  console.log('Testing user email and name fields with Clerk user ID...')
 
   try {
-    // Get a test user
-    const user = await db.user.findFirst()
-    if (!user) {
-      console.log('No users found in database')
-      return
-    }
-
-    console.log(`Testing with user: ${user.email} (${user.name})`)
+    // Use a test Clerk user ID (you would replace this with an actual Clerk user ID)
+    const testClerkUserId = 'user_test123'
+    console.log(`Testing with Clerk user ID: ${testClerkUserId}`)
 
     // Test creating an address
     console.log('\n1. Testing address creation...')
     const address = await createAddress({
-      userId: user.id,
+      clerkUserId: testClerkUserId,
       firstName: 'John',
       lastName: 'Doe',
       addressLine1: '123 Test St',
@@ -35,7 +30,7 @@ async function testUserFields() {
     const product = await db.product.findFirst()
     if (product) {
       const order = await createOrder({
-        userId: user.id,
+        clerkUserId: testClerkUserId,
         items: [{
           productId: product.id,
           quantity: 1,
@@ -60,7 +55,7 @@ async function testUserFields() {
     // Check existing cart
     console.log('\n4. Checking existing cart...')
     const cart = await db.cart.findFirst({
-      where: { userId: user.id }
+      where: { clerkUserId: testClerkUserId }
     })
     if (cart) {
       console.log(`✅ Cart found with userEmail: ${cart.userEmail}, userName: ${cart.userName}`)

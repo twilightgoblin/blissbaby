@@ -14,7 +14,7 @@ import Link from "next/link"
 import { Star, SlidersHorizontal, X, ShoppingCart, Eye } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { useSearchParams, useRouter, usePathname } from "next/navigation"
-import { useAuth } from "@/contexts/auth-context"
+import { useUser } from "@clerk/nextjs"
 import { useCart } from "@/contexts/cart-context"
 import { toast } from "sonner"
 
@@ -48,7 +48,7 @@ interface Category {
 export default function ProductsPage({ searchParams }: { searchParams: Promise<{ [key: string]: string | string[] | undefined }> }) {
   const router = useRouter()
   const pathname = usePathname()
-  const { user, isAuthenticated } = useAuth()
+  const { user, isSignedIn } = useUser()
   const { addToCart, loading: cartLoading } = useCart()
   
   const [priceRange, setPriceRange] = useState([0, 10000])
@@ -74,9 +74,8 @@ export default function ProductsPage({ searchParams }: { searchParams: Promise<{
     event.stopPropagation()
 
     // Check if user is authenticated
-    if (!isAuthenticated || !user) {
+    if (!isSignedIn || !user) {
       toast.error("Please sign in to add items to your cart")
-      router.push('/auth/signin')
       return
     }
 

@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { useAuth } from "@/contexts/auth-context"
+import { useUser, useClerk, SignInButton, SignUpButton } from "@clerk/nextjs"
 import { useCart } from "@/contexts/cart-context"
 
 export function Header() {
@@ -15,7 +15,8 @@ export function Header() {
   const [wishlistCount] = useState(5)
   const pathname = usePathname()
   const router = useRouter()
-  const { user, isAuthenticated, signOut } = useAuth()
+  const { user, isSignedIn } = useUser()
+  const { signOut } = useClerk()
   const { cartCount } = useCart()
 
   const isActive = (path: string) => pathname === path
@@ -97,7 +98,7 @@ export function Header() {
           {/* Actions - Icons only */}
           <div className="flex items-center gap-2">
             {/* User Authentication */}
-            {isAuthenticated ? (
+            {isSignedIn ? (
               <>
                 {/* Account Profile Dropdown */}
                 <DropdownMenu>
@@ -112,8 +113,8 @@ export function Header() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <div className="px-2 py-1.5">
-                      <p className="text-sm font-medium">{user?.name}</p>
-                      <p className="text-xs text-muted-foreground">{user?.email}</p>
+                      <p className="text-sm font-medium">{user?.fullName || user?.firstName}</p>
+                      <p className="text-xs text-muted-foreground">{user?.primaryEmailAddress?.emailAddress}</p>
                     </div>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
@@ -149,7 +150,7 @@ export function Header() {
             ) : (
               <>
                 {/* Sign In Button */}
-                <Link href="/auth/signin">
+                <SignInButton mode="modal">
                   <Button
                     variant="outline"
                     size="sm"
@@ -157,17 +158,17 @@ export function Header() {
                   >
                     Sign In
                   </Button>
-                </Link>
+                </SignInButton>
                 
                 {/* Sign Up Button */}
-                <Link href="/auth/signup">
+                <SignUpButton mode="modal">
                   <Button
                     size="sm"
                     className="rounded-full bg-primary hover:bg-primary/90 hover:scale-105 transition-all duration-300"
                   >
                     Sign Up
                   </Button>
-                </Link>
+                </SignUpButton>
               </>
             )}
             
@@ -223,7 +224,7 @@ export function Header() {
             </Link>
             
             {/* Mobile Auth Links */}
-            {isAuthenticated ? (
+            {isSignedIn ? (
               <>
                 <Link
                   href="/account"
@@ -251,20 +252,22 @@ export function Header() {
               </>
             ) : (
               <>
-                <Link
-                  href="/auth/signin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-sm font-medium transition-colors text-left text-foreground/80 hover:text-primary"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/auth/signup"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-sm font-medium transition-colors text-left text-foreground/80 hover:text-primary"
-                >
-                  Sign Up
-                </Link>
+                <SignInButton mode="modal">
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-sm font-medium transition-colors text-left text-foreground/80 hover:text-primary"
+                  >
+                    Sign In
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal">
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-sm font-medium transition-colors text-left text-foreground/80 hover:text-primary"
+                  >
+                    Sign Up
+                  </button>
+                </SignUpButton>
               </>
             )}
             

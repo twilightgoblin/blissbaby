@@ -18,17 +18,20 @@ import Link from "next/link"
 import { CreditCard, Lock, Package, CheckCircle2, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/contexts/cart-context"
-import { useAuth } from "@/contexts/auth-context"
+import { useUser, SignInButton, SignUpButton } from "@clerk/nextjs"
 import { useToast } from "@/hooks/use-toast"
 import StripeCheckoutForm from "./stripe-checkout-form"
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
+// Debug: Log the Stripe key (first few characters only for security)
+console.log('Stripe publishable key loaded:', process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.substring(0, 10) + '...')
+
 export default function CheckoutPage() {
   const router = useRouter()
   const { cart, clearCart } = useCart()
-  const { user, isAuthenticated, isLoading } = useAuth()
+  const { user, isSignedIn, isLoaded } = useUser()
   const { toast } = useToast()
   
   const [step, setStep] = useState<"checkout" | "success">("checkout")
@@ -53,6 +56,8 @@ export default function CheckoutPage() {
   const createPaymentIntent = async () => {
     try {
       setLoading(true)
+      console.log('Creating payment intent with total:', total)
+      
       const response = await fetch('/api/stripe/create-payment-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -62,17 +67,20 @@ export default function CheckoutPage() {
             userId: user?.id || 'guest',
             cartId: cart?.id || 'guest-cart',
             itemCount: cart?.items?.length || 0,
-            isGuest: !isAuthenticated
+            isGuest: !isSignedIn
           }
         })
       })
 
       const data = await response.json()
+      console.log('Payment intent response:', data)
       
       if (response.ok) {
         setClientSecret(data.clientSecret)
         setPaymentIntentId(data.paymentIntentId)
+        console.log('Payment intent created successfully')
       } else {
+        console.error('Payment intent creation failed:', data)
         toast({
           title: "Error",
           description: data.error || "Failed to initialize payment",
@@ -91,21 +99,70 @@ export default function CheckoutPage() {
     }
   }
 
-  const handlePaymentSuccess = async () => {
-    // Generate order number
-    const orderNum = `BB-${Math.floor(Math.random() * 100000)}`
-    setOrderNumber(orderNum)
-    
-    // Clear cart after successful payment
-    await clearCart()
-    
-    // Show success step
-    setStep("success")
-    
-    toast({
-      title: "Payment Successful!",
-      description: `Your order ${orderNum} has been confirmed.`,
-    })
+  const handlePaymentSuccess = async (paymentIntentId: string, shippingInfo: any, addressData: any) => {
+    try {
+      // Generate order number
+      const orderNum = `BB-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+      setOrderNumber(orderNum)
+      
+      // Prepare cart items for order creation
+      const cartItems = cart.items.map(item => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+        unitPrice: item.product.price,
+      }))
+
+      // Create order in database
+      const orderResponse = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clerkUserId: user?.id || null,
+          userEmail: shippingInfo.email,
+          userName: user?.fullName || `${shippingInfo.firstName} ${shippingInfo.lastName}`,
+          cartItems,
+          shippingAddress: addressData.shippingAddress,
+          billingAddress: addressData.billingAddress,
+          paymentIntentId,
+          subtotal,
+          taxAmount: tax,
+          shippingAmount: shipping,
+          totalAmount: total,
+          currency: 'INR'
+        })
+      })
+
+      const orderData = await orderResponse.json()
+      
+      if (orderResponse.ok) {
+        console.log('Order created successfully:', orderData.order)
+        
+        // Clear cart after successful order creation
+        await clearCart()
+        
+        // Show success step
+        setStep("success")
+        
+        toast({
+          title: "Order Confirmed!",
+          description: `Your order ${orderNum} has been confirmed and saved.`,
+        })
+      } else {
+        console.error('Failed to create order:', orderData)
+        toast({
+          title: "Order Creation Failed",
+          description: "Payment was successful but order creation failed. Please contact support.",
+          variant: "destructive"
+        })
+      }
+    } catch (error) {
+      console.error('Error creating order:', error)
+      toast({
+        title: "Order Creation Error",
+        description: "Payment was successful but order creation failed. Please contact support.",
+        variant: "destructive"
+      })
+    }
   }
 
   // Show loading if auth is still loading or processing payment
@@ -205,22 +262,26 @@ export default function CheckoutPage() {
             <Lock className="h-4 w-4 text-primary" />
             <span className="text-muted-foreground">Secure checkout powered by Stripe</span>
           </div>
-          {!isAuthenticated && (
+          {!isSignedIn && (
             <div className="mt-4 p-4 bg-muted/50 rounded-lg border border-border/60">
               <p className="text-sm text-muted-foreground">
                 Checking out as a guest. 
-                <Link href="/auth/login?redirect=/checkout" className="ml-1 text-primary hover:underline">
-                  Sign in
-                </Link> 
+                <SignInButton mode="modal">
+                  <button className="ml-1 text-primary hover:underline">
+                    Sign in
+                  </button>
+                </SignInButton>
                 {" "}or{" "}
-                <Link href="/auth/signup?redirect=/checkout" className="text-primary hover:underline">
-                  create an account
-                </Link> 
+                <SignUpButton mode="modal">
+                  <button className="text-primary hover:underline">
+                    create an account
+                  </button>
+                </SignUpButton>
                 {" "}to save your information and track orders.
               </p>
             </div>
           )}
-          {isAuthenticated && user && (
+          {isSignedIn && user && (
             <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
               <p className="text-sm text-primary">
                 Welcome back, {user.name || user.email}! Your order will be saved to your account.
@@ -232,7 +293,31 @@ export default function CheckoutPage() {
         <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
           {/* Checkout Form */}
           <div className="space-y-6">
-            {clientSecret && (
+            {loading && (
+              <Card className="rounded-3xl border-border/60">
+                <CardContent className="p-8 text-center">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+                  <p className="text-muted-foreground">Initializing secure checkout...</p>
+                </CardContent>
+              </Card>
+            )}
+            
+            {!loading && !clientSecret && (
+              <Card className="rounded-3xl border-border/60">
+                <CardContent className="p-8 text-center">
+                  <p className="text-muted-foreground">Unable to initialize payment. Please refresh the page.</p>
+                  <Button 
+                    onClick={createPaymentIntent} 
+                    className="mt-4"
+                    variant="outline"
+                  >
+                    Retry
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+            
+            {clientSecret && !loading && (
               <Elements stripe={stripePromise} options={{ clientSecret }}>
                 <StripeCheckoutForm 
                   clientSecret={clientSecret}

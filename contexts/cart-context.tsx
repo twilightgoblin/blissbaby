@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
-import { useAuth } from './auth-context'
+import { useUser } from '@clerk/nextjs'
 
 interface CartItem {
   id: string
@@ -39,7 +39,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<Cart | null>(null)
   const [loading, setLoading] = useState(false)
-  const { user, isAuthenticated } = useAuth()
+  const { user, isSignedIn } = useUser()
 
   const cartCount = cart?.items?.reduce((total, item) => total + item.quantity, 0) || 0
 
@@ -148,12 +148,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   // Fetch cart when user changes or component mounts
   useEffect(() => {
-    if (isAuthenticated && user?.id) {
+    if (isSignedIn && user?.id) {
       fetchCart()
     } else {
       setCart(null)
     }
-  }, [user?.id, isAuthenticated])
+  }, [user?.id, isSignedIn])
 
   return (
     <CartContext.Provider

@@ -1,21 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getUserFromRequest } from '@/lib/auth';
+import { auth } from '@clerk/nextjs/server';
 
 export async function GET(request: NextRequest) {
   try {
-    const userPayload = getUserFromRequest(request);
+    // Try to get user ID from Clerk, but don't fail if not available
+    let userId = null
+    try {
+      const authResult = await auth()
+      userId = authResult.userId
+    } catch (authError) {
+      console.log('Auth not available for addresses API')
+    }
     
-    if (!userPayload) {
+    if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    // Get user addresses
+    // Get user addresses using Clerk user ID
     const addresses = await db.address.findMany({
-      where: { userId: userPayload.userId },
+      where: { clerkUserId: userId },
       orderBy: [
         { isDefault: 'desc' },
         { createdAt: 'desc' }

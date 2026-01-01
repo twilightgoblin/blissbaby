@@ -182,20 +182,7 @@ async function main() {
     })
   ])
 
-  // Only create admin user if it doesn't exist
-  const adminUser = await prisma.user.upsert({
-    where: { email: 'admin@yourdomain.com' }, // Change this to your actual admin email
-    update: {},
-    create: {
-      email: 'admin@yourdomain.com', // Change this to your actual admin email
-      name: 'Admin User',
-      role: UserRole.ADMIN,
-      password: 'hashed_password_here' // You'll need to hash this properly
-    },
-  })
-
   console.log('✅ Categories created:', categories.length)
-  console.log('✅ Admin user created/updated:', adminUser.email)
 
   // Create sample products with Indian pricing
   const sampleProducts = [

@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@/contexts/auth-context';
+import { useUser } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +23,7 @@ import {
   Clock,
   XCircle
 } from 'lucide-react';
+import { SignInButton } from '@clerk/nextjs';
 import Link from 'next/link';
 
 interface Order {
@@ -59,27 +60,39 @@ interface Address {
 }
 
 export default function AccountPage() {
-  const { user, isLoading } = useAuth();
+  const { user: clerkUser, isLoaded } = useUser();
+  const [user, setUser] = useState<any>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
+  const [loadingUser, setLoadingUser] = useState(true);
 
   useEffect(() => {
-    if (user) {
+    if (clerkUser) {
+      fetchUserData();
       fetchOrders();
       fetchAddresses();
     }
-  }, [user]);
+  }, [clerkUser]);
+
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch('/api/user/profile');
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user);
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+    } finally {
+      setLoadingUser(false);
+    }
+  };
 
   const fetchOrders = async () => {
     try {
-      const token = localStorage.getItem('auth-token');
-      const response = await fetch('/api/user/orders', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await fetch('/api/user/orders');
       
       if (response.ok) {
         const data = await response.json();
@@ -94,12 +107,7 @@ export default function AccountPage() {
 
   const fetchAddresses = async () => {
     try {
-      const token = localStorage.getItem('auth-token');
-      const response = await fetch('/api/user/addresses', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const response = await fetch('/api/user/addresses');
       
       if (response.ok) {
         const data = await response.json();
@@ -148,7 +156,7 @@ export default function AccountPage() {
     }
   };
 
-  if (isLoading) {
+  if (!isLoaded || loadingUser) {
     return (
       <div className="min-h-screen">
         <Header />
@@ -166,7 +174,7 @@ export default function AccountPage() {
     );
   }
 
-  if (!user) {
+  if (!clerkUser) {
     return (
       <div className="min-h-screen">
         <Header />
@@ -174,9 +182,9 @@ export default function AccountPage() {
           <div className="max-w-2xl mx-auto text-center">
             <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
             <p className="text-muted-foreground mb-6">You need to be signed in to view your account.</p>
-            <Link href="/auth/signin">
+            <SignInButton mode="modal">
               <Button>Sign In</Button>
-            </Link>
+            </SignInButton>
           </div>
         </div>
       </div>
@@ -192,7 +200,7 @@ export default function AccountPage() {
           {/* Welcome Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              Welcome back, {user.name}!
+              Welcome back, {clerkUser?.fullName || clerkUser?.firstName || 'User'}!
             </h1>
             <p className="text-muted-foreground">
               Manage your orders, addresses, and account settings
@@ -237,8 +245,8 @@ export default function AccountPage() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold text-foreground">
-                      <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
-                        {user.role}
+                      <Badge variant={user?.role === 'ADMIN' ? 'default' : 'secondary'}>
+                        {user?.role || 'USER'}
                       </Badge>
                     </p>
                     <p className="text-sm text-muted-foreground">Account Type</p>
@@ -399,19 +407,19 @@ export default function AccountPage() {
                   <div className="grid gap-6 md:grid-cols-2">
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">Full Name</label>
-                      <p className="text-lg font-semibold">{user.name || 'Not provided'}</p>
+                      <p className="text-lg font-semibold">{clerkUser?.fullName || clerkUser?.firstName || 'Not provided'}</p>
                     </div>
                     
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">Email Address</label>
-                      <p className="text-lg font-semibold">{user.email}</p>
+                      <p className="text-lg font-semibold">{clerkUser?.primaryEmailAddress?.emailAddress}</p>
                     </div>
                     
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">Account Type</label>
                       <div className="mt-1">
-                        <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
-                          {user.role}
+                        <Badge variant={user?.role === 'ADMIN' ? 'default' : 'secondary'}>
+                          {user?.role || 'USER'}
                         </Badge>
                       </div>
                     </div>
@@ -419,11 +427,11 @@ export default function AccountPage() {
                     <div>
                       <label className="text-sm font-medium text-muted-foreground">Member Since</label>
                       <p className="text-lg font-semibold">
-                        {new Date(user.createdAt).toLocaleDateString('en-US', {
+                        {clerkUser?.createdAt ? new Date(clerkUser.createdAt).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric'
-                        })}
+                        }) : 'Unknown'}
                       </p>
                     </div>
                   </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from '@/contexts/auth-context';
+import { useUser } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -56,7 +56,7 @@ interface OrderDetails {
 }
 
 export default function OrderDetailsPage() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoaded } = useUser();
   const params = useParams();
   const router = useRouter();
   const [order, setOrder] = useState<OrderDetails | null>(null);
@@ -70,10 +70,9 @@ export default function OrderDetailsPage() {
 
   const fetchOrderDetails = async () => {
     try {
-      const token = localStorage.getItem('auth-token');
-      const response = await fetch(`/api/user/orders/${params.id}`, {
+      const response = await fetch(`/api/orders/${params.id}`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
       });
       
@@ -81,11 +80,11 @@ export default function OrderDetailsPage() {
         const data = await response.json();
         setOrder(data.order);
       } else {
-        router.push('/account');
+        router.push('/orders');
       }
     } catch (error) {
       console.error('Error fetching order details:', error);
-      router.push('/account');
+      router.push('/orders');
     } finally {
       setLoading(false);
     }
@@ -155,8 +154,8 @@ export default function OrderDetailsPage() {
             <p className="text-muted-foreground mb-6">
               The order you're looking for doesn't exist or you don't have permission to view it.
             </p>
-            <Link href="/account">
-              <Button>Back to Account</Button>
+            <Link href="/orders">
+              <Button>Back to Orders</Button>
             </Link>
           </div>
         </div>
@@ -171,10 +170,10 @@ export default function OrderDetailsPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Back Button */}
-          <Link href="/account">
+          <Link href="/orders">
             <Button variant="ghost" className="mb-6">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Account
+              Back to Orders
             </Button>
           </Link>
 
@@ -237,12 +236,12 @@ export default function OrderDetailsPage() {
                             Quantity: {item.quantity}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Unit Price: ${item.unitPrice.toFixed(2)}
+                            Unit Price: ₹{item.unitPrice.toFixed(2)}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="font-semibold text-primary">
-                            ${item.totalPrice.toFixed(2)}
+                            ₹{item.totalPrice.toFixed(2)}
                           </p>
                         </div>
                       </div>
@@ -262,20 +261,20 @@ export default function OrderDetailsPage() {
                 <CardContent className="space-y-3">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>${order.subtotal.toFixed(2)}</span>
+                    <span>₹{order.subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Shipping</span>
-                    <span>${order.shippingAmount.toFixed(2)}</span>
+                    <span>₹{order.shippingAmount.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Tax</span>
-                    <span>${order.taxAmount.toFixed(2)}</span>
+                    <span>₹{order.taxAmount.toFixed(2)}</span>
                   </div>
                   <div className="border-t pt-3">
                     <div className="flex justify-between font-semibold text-lg">
                       <span>Total</span>
-                      <span className="text-primary">${order.totalAmount.toFixed(2)}</span>
+                      <span className="text-primary">₹{order.totalAmount.toFixed(2)}</span>
                     </div>
                   </div>
                 </CardContent>

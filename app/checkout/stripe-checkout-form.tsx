@@ -12,14 +12,31 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { CreditCard, Lock, Package, Loader2 } from 'lucide-react'
-import { useAuth } from '@/contexts/auth-context'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { CreditCard, Lock, Package, Loader2, MapPin, User } from 'lucide-react'
+import { useUser, SignInButton } from '@clerk/nextjs'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
 
+interface SavedAddress {
+  id: string
+  type: string
+  firstName: string
+  lastName: string
+  company?: string
+  addressLine1: string
+  addressLine2?: string
+  city: string
+  state: string
+  postalCode: string
+  country: string
+  phone?: string
+  isDefault: boolean
+}
+
 interface StripeCheckoutFormProps {
   clientSecret: string
-  onSuccess: () => void
+  onSuccess: (paymentIntentId: string, shippingInfo: any, addressData: any) => void
   total: number
 }
 
@@ -30,27 +47,101 @@ export default function StripeCheckoutForm({
 }: StripeCheckoutFormProps) {
   const stripe = useStripe()
   const elements = useElements()
-  const { user } = useAuth()
+  const { user } = useUser()
   const { toast } = useToast()
   
   const [isProcessing, setIsProcessing] = useState(false)
   const [sameAsShipping, setSameAsShipping] = useState(true)
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([])
+  const [loadingAddresses, setLoadingAddresses] = useState(false)
+  const [selectedAddress, setSelectedAddress] = useState<SavedAddress | null>(null)
+  const [addressData, setAddressData] = useState({
+    shippingAddress: null,
+    billingAddress: null
+  })
   const [shippingInfo, setShippingInfo] = useState({
-    firstName: '',
-    lastName: '',
-    email: user?.email || '',
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    email: user?.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress || '',
     phone: ''
   })
 
-  // Update email when user changes (for authenticated users)
+  // Update email and name when user changes (for authenticated users)
   useEffect(() => {
-    if (user?.email && !shippingInfo.email) {
+    const userEmail = user?.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress
+    if (user && (!shippingInfo.email || !shippingInfo.firstName)) {
       setShippingInfo(prev => ({
         ...prev,
-        email: user.email
+        email: userEmail || prev.email,
+        firstName: user.firstName || prev.firstName,
+        lastName: user.lastName || prev.lastName,
       }))
     }
-  }, [user?.email, shippingInfo.email])
+  }, [user, shippingInfo.email, shippingInfo.firstName])
+
+  // Fetch saved addresses when user is available
+  useEffect(() => {
+    if (user) {
+      fetchSavedAddresses()
+    }
+  }, [user])
+
+  const fetchSavedAddresses = async () => {
+    try {
+      setLoadingAddresses(true)
+      const response = await fetch('/api/user/addresses')
+      if (response.ok) {
+        const data = await response.json()
+        setSavedAddresses(data.addresses || [])
+        
+        // Auto-fill with default address if available
+        const defaultAddress = data.addresses?.find((addr: SavedAddress) => addr.isDefault)
+        if (defaultAddress && !shippingInfo.firstName) {
+          autofillFromAddress(defaultAddress)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching saved addresses:', error)
+    } finally {
+      setLoadingAddresses(false)
+    }
+  }
+
+  const autofillFromAddress = (address: SavedAddress) => {
+    setShippingInfo(prev => ({
+      ...prev,
+      firstName: address.firstName,
+      lastName: address.lastName,
+      phone: address.phone || prev.phone
+    }))
+    
+    // Store the selected address for order creation
+    const addressForOrder = {
+      firstName: address.firstName,
+      lastName: address.lastName,
+      company: address.company || '',
+      addressLine1: address.addressLine1,
+      addressLine2: address.addressLine2 || '',
+      city: address.city,
+      state: address.state,
+      postalCode: address.postalCode,
+      country: address.country,
+      phone: address.phone || ''
+    }
+    
+    setAddressData(prev => ({
+      ...prev,
+      shippingAddress: addressForOrder,
+      billingAddress: sameAsShipping ? addressForOrder : prev.billingAddress
+    }))
+    
+    setSelectedAddress(address)
+    
+    toast({
+      title: "Address Auto-filled",
+      description: `Using your saved address: ${address.firstName} ${address.lastName}`,
+    })
+  }
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -73,12 +164,34 @@ export default function StripeCheckoutForm({
         return
       }
 
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      const isValidEmail = emailRegex.test(shippingInfo.email.trim())
+      
+      if (!isValidEmail) {
+        toast({
+          title: "Invalid Email",
+          description: "Please enter a valid email address",
+          variant: "destructive"
+        })
+        setIsProcessing(false)
+        return
+      }
+
+      console.log('Payment confirmation with email:', shippingInfo.email)
+
+      // Prepare confirm params - only include receipt_email if valid
+      const confirmParams: any = {
+        return_url: `${window.location.origin}/checkout`,
+      }
+      
+      if (isValidEmail) {
+        confirmParams.receipt_email = shippingInfo.email.trim()
+      }
+
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
-        confirmParams: {
-          return_url: `${window.location.origin}/checkout`,
-          receipt_email: shippingInfo.email,
-        },
+        confirmParams,
         redirect: 'if_required'
       })
 
@@ -103,7 +216,37 @@ export default function StripeCheckoutForm({
         })
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         console.log('Payment succeeded:', paymentIntent)
-        onSuccess()
+        
+        // Get address data from Stripe Elements or use pre-filled data
+        const addressElement = elements.getElement('address')
+        let shippingAddress = addressData.shippingAddress // Use pre-filled address if available
+        let billingAddress = addressData.billingAddress
+        
+        // If no pre-filled address, try to get from Stripe Elements
+        if (!shippingAddress && addressElement) {
+          const addressValue = await addressElement.getValue()
+          if (addressValue.complete) {
+            shippingAddress = {
+              firstName: shippingInfo.firstName,
+              lastName: shippingInfo.lastName,
+              company: '', // Company field not collected in this form
+              addressLine1: addressValue.value.address?.line1 || '',
+              addressLine2: addressValue.value.address?.line2 || '',
+              city: addressValue.value.address?.city || '',
+              state: addressValue.value.address?.state || '',
+              postalCode: addressValue.value.address?.postal_code || '',
+              country: addressValue.value.address?.country || 'IN',
+              phone: shippingInfo.phone,
+            }
+            
+            billingAddress = sameAsShipping ? shippingAddress : billingAddress
+          }
+        }
+        
+        onSuccess(paymentIntent.id, shippingInfo, {
+          shippingAddress,
+          billingAddress
+        })
       } else {
         console.log('Payment status:', paymentIntent?.status)
         toast({
@@ -141,6 +284,119 @@ export default function StripeCheckoutForm({
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Saved Addresses Section */}
+          {user && savedAddresses.length > 0 && (
+            <div className="space-y-3 p-4 bg-muted/20 rounded-xl border border-border/40">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-primary" />
+                <Label className="text-sm font-medium">Use Saved Address</Label>
+              </div>
+              <div className="grid gap-2">
+                {savedAddresses.map((address) => (
+                  <div
+                    key={address.id}
+                    className={`flex items-start justify-between p-3 rounded-lg border transition-colors cursor-pointer ${
+                      selectedAddress?.id === address.id 
+                        ? 'bg-primary/10 border-primary/50' 
+                        : 'bg-background border-border/60 hover:border-primary/50'
+                    }`}
+                    onClick={() => autofillFromAddress(address)}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium text-sm">
+                          {address.firstName} {address.lastName}
+                        </p>
+                        {address.isDefault && (
+                          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                            Default
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {address.addressLine1}
+                        {address.addressLine2 && `, ${address.addressLine2}`}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {address.city}, {address.state} {address.postalCode}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant={selectedAddress?.id === address.id ? "default" : "outline"}
+                      size="sm"
+                      className="ml-2"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        autofillFromAddress(address)
+                      }}
+                    >
+                      {selectedAddress?.id === address.id ? 'Selected' : 'Use'}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  Click on an address to auto-fill the form below. 
+                  <Link href="/account" className="text-primary hover:underline ml-1">
+                    Manage addresses
+                  </Link>
+                </p>
+                {selectedAddress && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSelectedAddress(null)
+                      setAddressData({ shippingAddress: null, billingAddress: null })
+                      toast({
+                        title: "Selection Cleared",
+                        description: "Please fill in the address manually below",
+                      })
+                    }}
+                    className="text-xs"
+                  >
+                    Clear Selection
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Loading state for addresses */}
+          {user && loadingAddresses && (
+            <div className="flex items-center gap-2 p-4 bg-muted/20 rounded-xl">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm text-muted-foreground">Loading saved addresses...</span>
+            </div>
+          )}
+
+          {/* No saved addresses message */}
+          {user && !loadingAddresses && savedAddresses.length === 0 && (
+            <div className="p-4 bg-muted/20 rounded-xl border border-border/40">
+              <div className="flex items-center gap-2 mb-2">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium text-muted-foreground">No saved addresses</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Your address will be saved automatically after this order. 
+                <Link href="/account" className="text-primary hover:underline ml-1">
+                  Manage addresses
+                </Link>
+              </p>
+            </div>
+          )}
+
+          {/* Manual Entry Form */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <User className="h-4 w-4 text-primary" />
+              <Label className="text-sm font-medium">
+                {savedAddresses.length > 0 ? 'Or Enter Manually' : 'Contact Information'}
+              </Label>
+            </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="firstName">First Name</Label>
@@ -175,11 +431,11 @@ export default function StripeCheckoutForm({
               className="rounded-full"
               value={shippingInfo.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
-              disabled={!!user?.email} // Disable if user is logged in
+              disabled={!!(user?.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress)} // Disable if user is logged in
             />
-            {user?.email && (
+            {(user?.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress) && (
               <p className="text-xs text-muted-foreground">
-                Using your account email. <Link href="/auth/login" className="text-primary hover:underline">Not you?</Link>
+                Using your account email. <SignInButton mode="modal"><button className="text-primary hover:underline">Not you?</button></SignInButton>
               </p>
             )}
           </div>
@@ -208,6 +464,7 @@ export default function StripeCheckoutForm({
               />
             </div>
           </div>
+          </div> {/* Close manual entry div */}
         </CardContent>
       </Card>
 

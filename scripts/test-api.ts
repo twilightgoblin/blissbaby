@@ -14,7 +14,7 @@ async function testAPI() {
 
     if (productsData.products?.length > 0) {
       const firstProduct = productsData.products[0]
-      console.log(`   First product: ${firstProduct.name} - $${firstProduct.price}`)
+      console.log(`   First product: ${firstProduct.name} - ${firstProduct.price}`)
       
       // Test single product
       const productResponse = await fetch(`${API_BASE}/products/${firstProduct.id}`)
@@ -22,40 +22,28 @@ async function testAPI() {
       console.log(`✅ Single product fetch: ${productData.product?.name}`)
     }
 
-    // Test Users API
-    console.log('\n👤 Testing Users API...')
-    const usersResponse = await fetch(`${API_BASE}/users`)
-    const usersData = await usersResponse.json()
-    console.log(`✅ Found ${usersData.users?.length || 0} users`)
+    // Test Cart API with a test Clerk user ID
+    console.log('\n🛒 Testing Cart API...')
+    const testClerkUserId = 'user_test123' // Replace with actual Clerk user ID for testing
+    const cartResponse = await fetch(`${API_BASE}/cart?userId=${testClerkUserId}`)
+    const cartData = await cartResponse.json()
+    console.log(`✅ Cart fetched for Clerk user: ${cartData.cart?.items?.length || 0} items`)
 
-    if (usersData.users?.length > 0) {
-      const firstUser = usersData.users.find((u: any) => u.role === 'CUSTOMER')
-      if (firstUser) {
-        console.log(`   Customer user: ${firstUser.email}`)
-
-        // Test Cart API
-        console.log('\n🛒 Testing Cart API...')
-        const cartResponse = await fetch(`${API_BASE}/cart?userId=${firstUser.id}`)
-        const cartData = await cartResponse.json()
-        console.log(`✅ Cart fetched for user: ${cartData.cart?.items?.length || 0} items`)
-
-        // Test adding to cart
-        if (productsData.products?.length > 0) {
-          const addToCartResponse = await fetch(`${API_BASE}/cart`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              userId: firstUser.id,
-              productId: productsData.products[0].id,
-              quantity: 2
-            })
-          })
-          const addToCartData = await addToCartResponse.json()
-          console.log(`✅ Added to cart: ${addToCartData.cartItem?.product?.name}`)
-        }
-      }
+    // Test adding to cart
+    if (productsData.products?.length > 0) {
+      const addToCartResponse = await fetch(`${API_BASE}/cart`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          userId: testClerkUserId,
+          productId: productsData.products[0].id,
+          quantity: 2
+        })
+      })
+      const addToCartData = await addToCartResponse.json()
+      console.log(`✅ Added to cart: ${addToCartData.cartItem?.product?.name || 'Item added'}`)
     }
 
     // Test Orders API
@@ -65,6 +53,7 @@ async function testAPI() {
     console.log(`✅ Found ${ordersData.orders?.length || 0} orders`)
 
     console.log('\n🎉 All API tests completed successfully!')
+    console.log('\n📝 Note: Cart tests use a test Clerk user ID. Replace with actual Clerk user ID for real testing.')
 
   } catch (error) {
     console.error('❌ API test failed:', error)

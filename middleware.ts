@@ -1,44 +1,16 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { getUserFromRequest } from '@/lib/auth';
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
 // Define protected routes (removed admin from protected routes)
-const protectedRoutes = ['/account', '/orders', '/profile'];
-const authRoutes = ['/auth/signin', '/auth/signup', '/auth/login'];
+const isProtectedRoute = createRouteMatcher(['/account', '/orders', '/profile'])
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  
-  // Check if the current path is a protected route
-  const isProtectedRoute = protectedRoutes.some(route => 
-    pathname.startsWith(route)
-  );
-  
-  // Check if the current path is an auth route
-  const isAuthRoute = authRoutes.some(route => 
-    pathname.startsWith(route)
-  );
-
-  // Get user from request
-  const user = getUserFromRequest(request);
-  const isAuthenticated = !!user;
-
-  // Redirect authenticated users away from auth pages
-  if (isAuthRoute && isAuthenticated) {
-    return NextResponse.redirect(new URL('/', request.url));
+export default clerkMiddleware(async (auth, req) => {
+  // Protect routes that require authentication
+  if (isProtectedRoute(req)) {
+    await auth.protect()
   }
-
-  // Redirect unauthenticated users from protected routes to signin
-  if (isProtectedRoute && !isAuthenticated) {
-    const signInUrl = new URL('/auth/login', request.url);
-    signInUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(signInUrl);
-  }
-
+  
   // Admin routes are now publicly accessible - no authentication required
-
-  return NextResponse.next();
-}
+})
 
 export const config = {
   matcher: [
@@ -52,4 +24,4 @@ export const config = {
      */
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
-};
+}

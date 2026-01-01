@@ -1,50 +1,31 @@
 import { db } from './db'
-import { UserRole, ProductStatus, OrderStatus, PaymentStatus } from './generated/prisma'
+import { ProductStatus, OrderStatus, PaymentStatus } from './generated/prisma'
+import { currentUser } from '@clerk/nextjs/server'
 
-// Utility function to get user email and name
-export const getUserEmailAndName = async (userId: string) => {
-  const user = await db.user.findUnique({
-    where: { id: userId },
-    select: { email: true, name: true }
-  })
-  return {
-    userEmail: user?.email || '',
-    userName: user?.name || null
+// Utility function to get user email and name from Clerk
+export const getClerkUserInfo = async (clerkUserId: string) => {
+  try {
+    const user = await currentUser()
+    if (user && user.id === clerkUserId) {
+      return {
+        userEmail: user.primaryEmailAddress?.emailAddress || '',
+        userName: user.fullName || user.firstName || null
+      }
+    }
+    return {
+      userEmail: '',
+      userName: null
+    }
+  } catch (error) {
+    console.error('Error fetching Clerk user info:', error)
+    return {
+      userEmail: '',
+      userName: null
+    }
   }
 }
 
-// User helpers
-export const createUser = async (data: {
-  email: string
-  name?: string
-  phone?: string
-  role?: UserRole
-}) => {
-  return await db.user.create({
-    data: {
-      ...data,
-      role: data.role || UserRole.CUSTOMER
-    }
-  })
-}
-
-export const getUserByEmail = async (email: string) => {
-  return await db.user.findUnique({
-    where: { email },
-    include: {
-      addresses: true,
-      carts: {
-        include: {
-          items: {
-            include: {
-              product: true
-            }
-          }
-        }
-      }
-    }
-  })
-}
+// User helpers - removed since using Clerk directly
 
 // Product helpers
 export const createProduct = async (data: {
@@ -84,9 +65,9 @@ export const getActiveProducts = async (limit?: number) => {
 }
 
 // Cart helpers
-export const getOrCreateCart = async (userId: string) => {
+export const getOrCreateCart = async (clerkUserId: string) => {
   let cart = await db.cart.findFirst({
-    where: { userId },
+    where: { clerkUserId },
     include: {
       items: {
         include: {
@@ -101,10 +82,10 @@ export const getOrCreateCart = async (userId: string) => {
   })
 
   if (!cart) {
-    const { userEmail, userName } = await getUserEmailAndName(userId)
+    const { userEmail, userName } = await getClerkUserInfo(clerkUserId)
     cart = await db.cart.create({
       data: { 
-        userId,
+        clerkUserId,
         userEmail,
         userName
       },
@@ -125,9 +106,9 @@ export const getOrCreateCart = async (userId: string) => {
   return cart
 }
 
-export const addToCart = async (userId: string, productId: string, quantity: number = 1) => {
-  const cart = await getOrCreateCart(userId)
-  const { userEmail, userName } = await getUserEmailAndName(userId)
+export const addToCart = async (clerkUserId: string, productId: string, quantity: number = 1) => {
+  const cart = await getOrCreateCart(clerkUserId)
+  const { userEmail, userName } = await getClerkUserInfo(clerkUserId)
   
   // Get product info
   const product = await db.product.findUnique({
@@ -184,7 +165,7 @@ export const addToCart = async (userId: string, productId: string, quantity: num
 
 // Order helpers
 export const createOrder = async (data: {
-  userId: string
+  clerkUserId: string
   items: Array<{
     productId: string
     quantity: number
@@ -198,13 +179,13 @@ export const createOrder = async (data: {
   discountAmount?: number
 }) => {
   const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-  const { userEmail, userName } = await getUserEmailAndName(data.userId)
+  const { userEmail, userName } = await getClerkUserInfo(data.clerkUserId)
   
   const totalAmount = data.subtotal + (data.taxAmount || 0) + (data.shippingAmount || 0) - (data.discountAmount || 0)
 
   return await db.order.create({
     data: {
-      userId: data.userId,
+      clerkUserId: data.clerkUserId,
       userEmail,
       userName,
       orderNumber,
@@ -237,9 +218,9 @@ export const createOrder = async (data: {
   })
 }
 
-export const getUserOrders = async (userId: string) => {
+export const getUserOrders = async (clerkUserId: string) => {
   return await db.order.findMany({
-    where: { userId },
+    where: { clerkUserId },
     include: {
       items: {
         include: {
@@ -266,14 +247,14 @@ export const createPayment = async (data: {
   // Get user info from the order
   const order = await db.order.findUnique({
     where: { id: data.orderId },
-    select: { userId: true }
+    select: { clerkUserId: true }
   })
   
   if (!order) {
     throw new Error('Order not found')
   }
   
-  const { userEmail, userName } = await getUserEmailAndName(order.userId)
+  const { userEmail, userName } = await getClerkUserInfo(order.clerkUserId)
   
   return await db.payment.create({
     data: {
@@ -288,7 +269,7 @@ export const createPayment = async (data: {
 
 // Address helpers
 export const createAddress = async (data: {
-  userId: string
+  clerkUserId: string
   firstName: string
   lastName: string
   addressLine1: string
@@ -299,7 +280,7 @@ export const createAddress = async (data: {
   phone?: string
   isDefault?: boolean
 }) => {
-  const { userEmail, userName } = await getUserEmailAndName(data.userId)
+  const { userEmail, userName } = await getClerkUserInfo(data.clerkUserId)
   
   return await db.address.create({
     data: {
@@ -322,14 +303,14 @@ export const createRefund = async (data: {
   // Get user info from the order
   const order = await db.order.findUnique({
     where: { id: data.orderId },
-    select: { userId: true }
+    select: { clerkUserId: true }
   })
   
   if (!order) {
     throw new Error('Order not found')
   }
   
-  const { userEmail, userName } = await getUserEmailAndName(order.userId)
+  const { userEmail, userName } = await getClerkUserInfo(order.clerkUserId)
   
   return await db.refund.create({
     data: {

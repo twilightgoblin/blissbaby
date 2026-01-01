@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { getOrCreateCart, addToCart } from '@/lib/db-helpers'
+import { getOrCreateCart, addToCart, getClerkUserInfo } from '@/lib/db-helpers'
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
+    const clerkUserId = searchParams.get('userId')
 
-    if (!userId) {
+    if (!clerkUserId) {
       return NextResponse.json(
         { error: 'User ID is required' },
         { status: 400 }
       )
     }
 
-    const cart = await getOrCreateCart(userId)
+    const cart = await getOrCreateCart(clerkUserId)
     return NextResponse.json({ cart })
   } catch (error) {
     console.error('Error fetching cart:', error)
@@ -28,16 +28,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { userId, productId, quantity = 1 } = body
+    const { userId: clerkUserId, productId, quantity = 1 } = body
 
-    if (!userId || !productId) {
+    if (!clerkUserId || !productId) {
       return NextResponse.json(
         { error: 'User ID and Product ID are required' },
         { status: 400 }
       )
     }
 
-    const cartItem = await addToCart(userId, productId, quantity)
+    const cartItem = await addToCart(clerkUserId, productId, quantity)
     return NextResponse.json({ cartItem }, { status: 201 })
   } catch (error) {
     console.error('Error adding to cart:', error)
@@ -71,11 +71,7 @@ export async function PUT(request: NextRequest) {
     const existingCartItem = await db.cartItem.findUnique({
       where: { id: cartItemId },
       include: {
-        cart: {
-          include: {
-            user: true
-          }
-        },
+        cart: true,
         product: true
       }
     })
@@ -87,13 +83,16 @@ export async function PUT(request: NextRequest) {
       )
     }
 
+    // Get user info from Clerk
+    const { userEmail, userName } = await getClerkUserInfo(existingCartItem.cart.clerkUserId)
+
     const cartItem = await db.cartItem.update({
       where: { id: cartItemId },
       data: { 
         quantity,
         productName: existingCartItem.product.name,
-        userName: existingCartItem.cart.user.name,
-        userEmail: existingCartItem.cart.user.email
+        userName,
+        userEmail
       },
       include: {
         product: true
@@ -114,7 +113,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const cartItemId = searchParams.get('cartItemId')
-    const userId = searchParams.get('userId')
+    const clerkUserId = searchParams.get('userId')
 
     if (cartItemId) {
       await db.cartItem.delete({
@@ -123,11 +122,11 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ message: 'Item removed from cart' })
     }
 
-    if (userId) {
+    if (clerkUserId) {
       await db.cartItem.deleteMany({
         where: {
           cart: {
-            userId
+            clerkUserId
           }
         }
       })
