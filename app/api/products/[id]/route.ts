@@ -8,7 +8,10 @@ export async function GET(
   try {
     const { id } = await params
 
+    console.log('Product API called with ID:', id)
+
     if (!id) {
+      console.log('Product API: No ID provided')
       return NextResponse.json(
         { error: 'Product ID is required' },
         { status: 400 }
@@ -31,6 +34,8 @@ export async function GET(
         }
       }
     })
+
+    console.log('Product lookup:', { id, found: !!product })
 
     if (!product) {
       return NextResponse.json(

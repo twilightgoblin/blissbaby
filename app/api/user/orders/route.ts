@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { currentUser } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 
 export async function GET(request: NextRequest) {
   try {
-    const user = await currentUser();
+    const { userId } = await auth();
     
-    if (!user) {
+    if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
     // Get user orders with items and products using Clerk user ID
     const orders = await db.order.findMany({
-      where: { clerkUserId: user.id },
+      where: { clerkUserId: userId },
       include: {
         items: {
           include: {

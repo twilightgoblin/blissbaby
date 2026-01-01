@@ -126,7 +126,7 @@ export default function OrderDetailsPage() {
     }
   };
 
-  if (isLoading || loading) {
+  if (!isLoaded || loading) {
     return (
       <div className="min-h-screen">
         <Header />
@@ -236,12 +236,12 @@ export default function OrderDetailsPage() {
                             Quantity: {item.quantity}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Unit Price: ₹{item.unitPrice.toFixed(2)}
+                            Unit Price: ₹{Number(item.unitPrice).toFixed(2)}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="font-semibold text-primary">
-                            ₹{item.totalPrice.toFixed(2)}
+                            ₹{Number(item.totalPrice).toFixed(2)}
                           </p>
                         </div>
                       </div>
@@ -261,20 +261,20 @@ export default function OrderDetailsPage() {
                 <CardContent className="space-y-3">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>₹{order.subtotal.toFixed(2)}</span>
+                    <span>₹{Number(order.subtotal).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Shipping</span>
-                    <span>₹{order.shippingAmount.toFixed(2)}</span>
+                    <span>₹{Number(order.shippingAmount).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Tax</span>
-                    <span>₹{order.taxAmount.toFixed(2)}</span>
+                    <span>₹{Number(order.taxAmount).toFixed(2)}</span>
                   </div>
                   <div className="border-t pt-3">
                     <div className="flex justify-between font-semibold text-lg">
                       <span>Total</span>
-                      <span className="text-primary">₹{order.totalAmount.toFixed(2)}</span>
+                      <span className="text-primary">₹{Number(order.totalAmount).toFixed(2)}</span>
                     </div>
                   </div>
                 </CardContent>

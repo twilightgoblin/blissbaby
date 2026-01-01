@@ -1,11 +1,21 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
-// Define protected routes (removed admin from protected routes)
+// Define protected routes
 const isProtectedRoute = createRouteMatcher(['/account', '/orders', '/profile'])
 
+// Define protected API routes that require authentication
+const isProtectedApiRoute = createRouteMatcher([
+  '/api/user/(.*)',
+])
+
 export default clerkMiddleware(async (auth, req) => {
-  // Protect routes that require authentication
+  // Protect page routes that require authentication
   if (isProtectedRoute(req)) {
+    await auth.protect()
+  }
+  
+  // Protect API routes that require authentication
+  if (isProtectedApiRoute(req)) {
     await auth.protect()
   }
   
@@ -16,12 +26,11 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public folder
      */
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

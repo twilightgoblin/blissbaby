@@ -334,7 +334,7 @@ export default function AccountPage() {
                               </div>
                               <div className="text-right">
                                 <p className="text-lg font-bold text-primary">
-                                  ${order.totalAmount.toFixed(2)}
+                                  ${Number(order.totalAmount).toFixed(2)}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
                                   {order.items.length} item{order.items.length !== 1 ? 's' : ''}
@@ -359,7 +359,7 @@ export default function AccountPage() {
                                   <div className="flex-1">
                                     <p className="font-medium">{item.product.name}</p>
                                     <p className="text-muted-foreground">
-                                      Qty: {item.quantity} × ${item.unitPrice.toFixed(2)}
+                                      Qty: {item.quantity} × ${Number(item.unitPrice).toFixed(2)}
                                     </p>
                                   </div>
                                 </div>

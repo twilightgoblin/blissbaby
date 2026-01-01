@@ -4,14 +4,7 @@ import { auth } from '@clerk/nextjs/server';
 
 export async function GET(request: NextRequest) {
   try {
-    // Try to get user ID from Clerk, but don't fail if not available
-    let userId = null
-    try {
-      const authResult = await auth()
-      userId = authResult.userId
-    } catch (authError) {
-      console.log('Auth not available for addresses API')
-    }
+    const { userId } = await auth();
     
     if (!userId) {
       return NextResponse.json(

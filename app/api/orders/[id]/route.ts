@@ -4,7 +4,7 @@ import { auth } from '@clerk/nextjs/server'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Try to get user ID from Clerk, but don't fail if not available
@@ -17,9 +17,12 @@ export async function GET(
       console.log('Auth not available, allowing order access')
     }
 
-    const orderId = params.id
+    const { id: orderId } = await params
+
+    console.log('Order API called with ID:', orderId, 'User ID:', userId)
 
     if (!orderId) {
+      console.log('Order API: No ID provided')
       return NextResponse.json(
         { error: 'Order ID is required' },
         { status: 400 }
@@ -50,6 +53,8 @@ export async function GET(
         billingAddress: true,
       }
     })
+
+    console.log('Order lookup:', { orderId, userId, found: !!order })
 
     if (!order) {
       return NextResponse.json(

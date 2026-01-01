@@ -1,25 +1,24 @@
 import { NextResponse } from 'next/server'
-import { currentUser } from '@clerk/nextjs/server'
+import { auth } from '@clerk/nextjs/server'
 
 export async function GET() {
   try {
-    const user = await currentUser()
+    const { userId } = await auth()
     
-    if (!user) {
+    if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       )
     }
 
-    // Return user data from Clerk
+    // Since we have the userId from auth, we can construct basic user data
+    // For more detailed user info, we'd need to call Clerk's API or store user data in our DB
     const userData = {
-      id: user.id,
-      email: user.primaryEmailAddress?.emailAddress,
-      name: user.fullName || user.firstName,
-      avatar: user.imageUrl,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt
+      id: userId,
+      // Note: auth() doesn't provide email/name, only userId
+      // You might want to store additional user data in your database
+      // or make a separate call to Clerk's API for full user details
     }
 
     return NextResponse.json({ user: userData })

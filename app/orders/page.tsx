@@ -16,6 +16,9 @@ interface Order {
   orderNumber: string
   status: string
   totalAmount: number
+  subtotal?: number
+  taxAmount?: number
+  shippingAmount?: number
   createdAt: string
   items: Array<{
     id: string
@@ -209,11 +212,11 @@ export default function OrdersPage() {
                       )}
                     </div>
                     <div className="text-right space-y-1">
-                      <p className="text-2xl font-bold text-primary">₹{order.totalAmount.toFixed(2)}</p>
+                      <p className="text-2xl font-bold text-primary">₹{Number(order.totalAmount).toFixed(2)}</p>
                       <Button variant="outline" size="sm" className="rounded-full bg-transparent" asChild>
                         <Link href={`/orders/${order.id}`}>
                           <Eye className="mr-2 h-3 w-3" />
-                          View Details
+                          Order Details
                         </Link>
                       </Button>
                     </div>
@@ -231,28 +234,85 @@ export default function OrdersPage() {
                           />
                         </div>
                         <div className="flex flex-1 items-center justify-between gap-4">
-                          <div>
+                          <div className="flex-1">
                             <p className="font-medium text-balance">{item.product.name}</p>
                             <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
-                            <p className="text-sm text-muted-foreground">Unit Price: ₹{item.unitPrice.toFixed(2)}</p>
+                            <p className="text-sm text-muted-foreground">Unit Price: ₹{Number(item.unitPrice).toFixed(2)}</p>
                           </div>
-                          <p className="font-semibold">₹{item.totalPrice.toFixed(2)}</p>
+                          <div className="text-right space-y-2">
+                            <p className="font-semibold">₹{Number(item.totalPrice).toFixed(2)}</p>
+                            <Button variant="outline" size="sm" className="rounded-full bg-transparent" asChild>
+                              <Link href={`/products/${item.product.id}`}>
+                                <Eye className="mr-1 h-3 w-3" />
+                                View Product
+                              </Link>
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))}
+                    
+                    {/* Order Summary */}
+                    <div className="mt-4 p-4 bg-muted/10 rounded-2xl border border-border/20">
+                      <h4 className="font-semibold mb-3">Order Summary</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Subtotal</span>
+                          <span>₹{order.items.reduce((sum, item) => sum + Number(item.totalPrice), 0).toFixed(2)}</span>
+                        </div>
+                        {order.taxAmount && Number(order.taxAmount) > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Tax</span>
+                            <span>₹{Number(order.taxAmount).toFixed(2)}</span>
+                          </div>
+                        )}
+                        {order.shippingAmount && Number(order.shippingAmount) > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Shipping</span>
+                            <span>₹{Number(order.shippingAmount).toFixed(2)}</span>
+                          </div>
+                        )}
+                        <div className="border-t pt-2 flex justify-between font-semibold">
+                          <span>Total</span>
+                          <span className="text-primary">₹{Number(order.totalAmount).toFixed(2)}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Action Buttons */}
                   <div className="mt-6 flex flex-wrap gap-3">
                     {order.status.toLowerCase() === "delivered" && (
-                      <Button variant="outline" className="rounded-full bg-transparent">
+                      <Button 
+                        variant="outline" 
+                        className="rounded-full bg-transparent"
+                        onClick={() => {
+                          // Add items back to cart logic here
+                          alert('Buy Again functionality coming soon!');
+                        }}
+                      >
                         Buy Again
                       </Button>
                     )}
                     {(order.status.toLowerCase() === "shipped" || order.status.toLowerCase() === "in_transit") && (
-                      <Button className="rounded-full bg-primary hover:bg-primary/90">Track Order</Button>
+                      <Button 
+                        className="rounded-full bg-primary hover:bg-primary/90"
+                        onClick={() => {
+                          // Add tracking logic here
+                          alert('Order tracking functionality coming soon!');
+                        }}
+                      >
+                        Track Order
+                      </Button>
                     )}
-                    <Button variant="outline" className="rounded-full bg-transparent">
+                    <Button 
+                      variant="outline" 
+                      className="rounded-full bg-transparent"
+                      onClick={() => {
+                        // Open support modal or redirect to support page
+                        window.open('mailto:support@babybliss.com?subject=Order Support - ' + order.orderNumber, '_blank');
+                      }}
+                    >
                       Contact Support
                     </Button>
                   </div>

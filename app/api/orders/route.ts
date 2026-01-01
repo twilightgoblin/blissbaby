@@ -90,6 +90,30 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate amount calculations
+    const calculatedSubtotal = cartItems.reduce((sum: number, item: any) => 
+      sum + (parseFloat(item.unitPrice) * item.quantity), 0
+    );
+    
+    const calculatedTotal = calculatedSubtotal + parseFloat(taxAmount.toString()) + parseFloat(shippingAmount.toString());
+    
+    // Allow small floating point differences (within 0.01)
+    if (Math.abs(calculatedSubtotal - parseFloat(subtotal.toString())) > 0.01) {
+      console.error('Subtotal mismatch:', { calculatedSubtotal, providedSubtotal: subtotal });
+      return NextResponse.json(
+        { error: 'Subtotal calculation mismatch' },
+        { status: 400 }
+      )
+    }
+    
+    if (Math.abs(calculatedTotal - parseFloat(totalAmount.toString())) > 0.01) {
+      console.error('Total amount mismatch:', { calculatedTotal, providedTotal: totalAmount });
+      return NextResponse.json(
+        { error: 'Total amount calculation mismatch' },
+        { status: 400 }
+      )
+    }
+
     // Use the provided clerkUserId or fallback to the auth userId or 'guest'
     const finalUserId = clerkUserId || userId || 'guest'
 
