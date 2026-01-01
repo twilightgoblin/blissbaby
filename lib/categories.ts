@@ -4,6 +4,7 @@ export interface CreateCategoryData {
   name: string
   description?: string
   icon?: string
+  image?: string
   color?: string
 }
 

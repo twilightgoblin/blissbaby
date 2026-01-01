@@ -44,6 +44,41 @@ export const productImageUploadOptions = {
   ],
 };
 
+// Cloudinary upload options for category images
+export const categoryImageUploadOptions = {
+  folder: 'categories',
+  allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+  transformation: [
+    {
+      quality: 'auto:good',
+      fetch_format: 'auto',
+    },
+  ],
+  eager: [
+    {
+      width: 400,
+      height: 400,
+      crop: 'fill',
+      quality: 'auto:good',
+      fetch_format: 'auto',
+    },
+    {
+      width: 200,
+      height: 200,
+      crop: 'fill',
+      quality: 'auto:good',
+      fetch_format: 'auto',
+    },
+    {
+      width: 100,
+      height: 100,
+      crop: 'fill',
+      quality: 'auto:good',
+      fetch_format: 'auto',
+    },
+  ],
+};
+
 // Generate signature for secure uploads (server-side only)
 export function generateSignature(params: Record<string, any>): string {
   return cloudinary.utils.api_sign_request(params, process.env.CLOUDINARY_API_SECRET!);

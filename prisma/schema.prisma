@@ -45,6 +45,7 @@ model Category {
   name        String   @unique
   description String?
   icon        String?
+  image       String?  // Category image URL
   color       String?  @default("bg-blue-100")
   isActive    Boolean  @default(true)
   sortOrder   Int      @default(0)

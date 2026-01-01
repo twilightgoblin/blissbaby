@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { ArrowRight, Star, Truck, Shield, HeadphonesIcon, Sparkles } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { useState, useEffect } from "react"
 
 export default function HomePage() {
@@ -20,6 +21,7 @@ export default function HomePage() {
         // Fetch categories
         const categoriesResponse = await fetch('/api/categories')
         const categoriesData = await categoriesResponse.json()
+        console.log('Categories data:', categoriesData) // Debug log
         setCategories(categoriesData.categories || [])
 
         // Fetch featured products
@@ -161,10 +163,20 @@ export default function HomePage() {
                 <div className="animate-scale-in" style={{ animationDelay: `${index * 100}ms` }}>
                   <Card className="group overflow-hidden rounded-3xl border-border/60 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 hover:border-primary/30 cursor-pointer">
                     <CardContent className="p-0">
-                      <div className={`relative aspect-square ${category.color || 'bg-gradient-to-br from-blue-100 to-purple-100'} overflow-hidden`}>
-                        {category.icon && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="text-6xl opacity-20">{category.icon}</div>
+                      <div className="relative aspect-square overflow-hidden">
+                        {category.image ? (
+                          <Image
+                            src={category.image}
+                            alt={category.name}
+                            fill
+                            className="object-cover transition-all duration-700 group-hover:scale-110"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                          />
+                        ) : (
+                          <div className={`h-full w-full ${category.color || 'bg-gradient-to-br from-blue-100 to-purple-100'} flex items-center justify-center`}>
+                            {category.icon && (
+                              <div className="text-6xl opacity-20">{category.icon}</div>
+                            )}
                           </div>
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

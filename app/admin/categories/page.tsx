@@ -28,12 +28,15 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Plus, Edit, Trash2, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { SingleImageUpload } from "@/components/ui/single-image-upload"
+import Image from "next/image"
 
 interface Category {
   id: string
   name: string
   description?: string
   icon?: string
+  image?: string
   color?: string
   isActive: boolean
   _count: {
@@ -56,6 +59,7 @@ export default function CategoriesPage() {
     name: '',
     description: '',
     icon: '',
+    image: '',
     color: 'bg-blue-100'
   })
 
@@ -105,6 +109,7 @@ export default function CategoriesPage() {
       name: '',
       description: '',
       icon: '',
+      image: '',
       color: 'bg-blue-100'
     })
   }
@@ -230,6 +235,7 @@ export default function CategoriesPage() {
       name: category.name,
       description: category.description || '',
       icon: category.icon || '',
+      image: category.image || '',
       color: category.color || 'bg-blue-100'
     })
     setIsEditDialogOpen(true)
@@ -289,6 +295,14 @@ export default function CategoriesPage() {
                   rows={3}
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Category Image</Label>
+                <SingleImageUpload
+                  value={formData.image}
+                  onChange={(url) => setFormData(prev => ({ ...prev, image: url || '' }))}
+                  placeholder="Upload category image"
                 />
               </div>
               <div className="space-y-2">
@@ -363,8 +377,20 @@ export default function CategoriesPage() {
               <CardContent className="p-6">
                 <div className="space-y-4">
                   <div className="flex items-start justify-between">
-                    <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${category.color} text-2xl font-semibold text-gray-600`}>
-                      {category.icon || category.name.charAt(0).toUpperCase()}
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl overflow-hidden">
+                      {category.image ? (
+                        <Image
+                          src={category.image}
+                          alt={category.name}
+                          width={56}
+                          height={56}
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <div className={`flex h-full w-full items-center justify-center ${category.color} text-2xl font-semibold text-gray-600`}>
+                          {category.icon || category.name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                     </div>
                     <Badge className="rounded-full bg-muted text-muted-foreground hover:bg-muted">
                       {category._count.products} products
@@ -430,6 +456,14 @@ export default function CategoriesPage() {
                 rows={3}
                 value={formData.description}
                 onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Category Image</Label>
+              <SingleImageUpload
+                value={formData.image}
+                onChange={(url) => setFormData(prev => ({ ...prev, image: url || '' }))}
+                placeholder="Upload category image"
               />
             </div>
             <div className="space-y-2">

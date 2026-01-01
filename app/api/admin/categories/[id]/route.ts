@@ -35,12 +35,13 @@ export async function PUT(
   try {
     const { id } = await params
     const body = await request.json()
-    const { name, description, icon, color, isActive } = body
+    const { name, description, icon, image, color, isActive } = body
 
     const category = await updateCategory(id, {
       name,
       description,
       icon,
+      image,
       color,
       isActive
     })
