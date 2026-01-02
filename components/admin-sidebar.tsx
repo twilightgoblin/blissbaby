@@ -96,7 +96,7 @@ export function AdminSidebar() {
                   href={item.href}
                   onClick={() => setIsOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all hover:bg-sidebar-accent",
+                    "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all hover:bg-sidebar-accent hover:text-black",
                     isActive ? "bg-primary text-primary-foreground shadow-md" : "text-sidebar-foreground",
                   )}
                 >
@@ -111,7 +111,7 @@ export function AdminSidebar() {
           <div className="border-t border-sidebar-border p-4">
             <Button
               variant="ghost"
-              className="w-full justify-start gap-3 rounded-xl text-sidebar-foreground hover:bg-sidebar-accent"
+              className="w-full justify-start gap-3 rounded-xl text-sidebar-foreground hover:bg-sidebar-accent hover:text-black"
               asChild
             >
               <Link href="/">

@@ -23,6 +23,7 @@ import {
   Clock,
   XCircle
 } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
 import { SignInButton } from '@clerk/nextjs';
 import Link from 'next/link';
 
@@ -334,7 +335,7 @@ export default function AccountPage() {
                               </div>
                               <div className="text-right">
                                 <p className="text-lg font-bold text-primary">
-                                  ${Number(order.totalAmount).toFixed(2)}
+                                  {formatCurrency(Number(order.totalAmount), '$')}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
                                   {order.items.length} item{order.items.length !== 1 ? 's' : ''}
@@ -359,7 +360,7 @@ export default function AccountPage() {
                                   <div className="flex-1">
                                     <p className="font-medium">{item.product.name}</p>
                                     <p className="text-muted-foreground">
-                                      Qty: {item.quantity} × ${Number(item.unitPrice).toFixed(2)}
+                                      Qty: {item.quantity} × {formatCurrency(Number(item.unitPrice), '$')}
                                     </p>
                                   </div>
                                 </div>

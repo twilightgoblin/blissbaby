@@ -6,6 +6,7 @@ import { Heart, ShoppingCart, Trash2, Star } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useState, useEffect } from "react"
+import { formatCurrency } from "@/lib/utils"
 
 interface WishlistItem {
   id: number
@@ -69,7 +70,7 @@ export default function WishlistPage() {
           <Card className="p-6 mb-8 border-primary/20 bg-gradient-to-r from-primary/5 to-accent/5 animate-scale-in">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary mb-1">${totalValue.toFixed(2)}</div>
+                <div className="text-3xl font-bold text-primary mb-1">{formatCurrency(totalValue, '$')}</div>
                 <div className="text-sm text-muted-foreground">Total Value</div>
               </div>
               <div className="text-center">
@@ -162,14 +163,14 @@ export default function WishlistPage() {
                       </div>
 
                       <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold text-primary">${item.price.toFixed(2)}</span>
+                        <span className="text-2xl font-bold text-primary">{formatCurrency(item.price, '$')}</span>
                         {item.originalPrice && (
                           <>
                             <span className="text-lg text-muted-foreground line-through">
-                              ${item.originalPrice.toFixed(2)}
+                              {formatCurrency(item.originalPrice, '$')}
                             </span>
                             <span className="text-sm font-semibold text-destructive">
-                              Save ${(item.originalPrice - item.price).toFixed(2)}
+                              Save {formatCurrency(item.originalPrice - item.price, '$')}
                             </span>
                           </>
                         )}

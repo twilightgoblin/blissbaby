@@ -21,6 +21,7 @@ import {
   XCircle
 } from 'lucide-react';
 import Link from 'next/link';
+import { formatCurrency } from '@/lib/utils';
 
 interface OrderDetails {
   id: string;
@@ -236,12 +237,12 @@ export default function OrderDetailsPage() {
                             Quantity: {item.quantity}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Unit Price: ₹{Number(item.unitPrice).toFixed(2)}
+                            Unit Price: {formatCurrency(Number(item.unitPrice))}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="font-semibold text-primary">
-                            ₹{Number(item.totalPrice).toFixed(2)}
+                            {formatCurrency(Number(item.totalPrice))}
                           </p>
                         </div>
                       </div>
@@ -261,20 +262,20 @@ export default function OrderDetailsPage() {
                 <CardContent className="space-y-3">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
-                    <span>₹{Number(order.subtotal).toFixed(2)}</span>
+                    <span>{formatCurrency(Number(order.subtotal))}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Shipping</span>
-                    <span>₹{Number(order.shippingAmount).toFixed(2)}</span>
+                    <span>{formatCurrency(Number(order.shippingAmount))}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Tax</span>
-                    <span>₹{Number(order.taxAmount).toFixed(2)}</span>
+                    <span>{formatCurrency(Number(order.taxAmount))}</span>
                   </div>
                   <div className="border-t pt-3">
                     <div className="flex justify-between font-semibold text-lg">
                       <span>Total</span>
-                      <span className="text-primary">₹{Number(order.totalAmount).toFixed(2)}</span>
+                      <span className="text-primary">{formatCurrency(Number(order.totalAmount))}</span>
                     </div>
                   </div>
                 </CardContent>

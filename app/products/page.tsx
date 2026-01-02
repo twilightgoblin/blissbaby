@@ -17,6 +17,7 @@ import { useSearchParams, useRouter, usePathname } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
 import { useCart } from "@/contexts/cart-context"
 import { toast } from "sonner"
+import { formatCurrency } from "@/lib/utils"
 
 interface Product {
   id: string
@@ -211,7 +212,7 @@ export default function ProductsPage({ searchParams }: { searchParams: Promise<{
         <div className="flex items-center justify-between">
           <Label className="text-base font-semibold">Price Range</Label>
           <span className="text-sm text-muted-foreground">
-            ₹{priceRange[0]} - ₹{priceRange[1]}
+            {formatCurrency(priceRange[0], '₹', 0)} - {formatCurrency(priceRange[1], '₹', 0)}
           </span>
         </div>
         <Slider 
@@ -421,9 +422,9 @@ export default function ProductsPage({ searchParams }: { searchParams: Promise<{
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-baseline gap-2">
-                          <p className="text-lg font-bold text-primary">₹{product.price}</p>
+                          <p className="text-lg font-bold text-primary">{formatCurrency(parseFloat(product.price))}</p>
                           {product.comparePrice && parseFloat(product.comparePrice) > parseFloat(product.price) && (
-                            <p className="text-sm text-muted-foreground line-through">₹{product.comparePrice}</p>
+                            <p className="text-sm text-muted-foreground line-through">{formatCurrency(parseFloat(product.comparePrice))}</p>
                           )}
                         </div>
                         <div className="flex gap-2">

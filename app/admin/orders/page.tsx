@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Search, Eye, Package, Truck, CheckCircle, XCircle } from "lucide-react"
+import { formatCurrency } from "@/lib/utils"
 
 export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState("all")
@@ -131,7 +132,7 @@ export default function OrdersPage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl font-bold text-primary">${order.total.toFixed(2)}</p>
+                        <p className="text-2xl font-bold text-primary">{formatCurrency(order.total, '$')}</p>
                         <p className="text-xs text-muted-foreground">{order.items} items</p>
                       </div>
                     </div>
@@ -172,7 +173,7 @@ export default function OrdersPage() {
                               </div>
                               <div>
                                 <p className="text-sm font-medium text-muted-foreground">Total Amount</p>
-                                <p className="font-semibold text-primary">${order.total.toFixed(2)}</p>
+                                <p className="font-semibold text-primary">{formatCurrency(order.total, '$')}</p>
                               </div>
                             </div>
                           </div>

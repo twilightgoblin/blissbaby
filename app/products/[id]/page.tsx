@@ -15,6 +15,7 @@ import { useParams, useRouter } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
 import { useCart } from "@/contexts/cart-context"
 import { toast } from "sonner"
+import { formatCurrency } from "@/lib/utils"
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -247,10 +248,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
             </div>
 
             <div className="flex items-baseline gap-3">
-              <span className="text-4xl font-bold text-primary">₹{product.price}</span>
+              <span className="text-4xl font-bold text-primary">{formatCurrency(parseFloat(product.price))}</span>
               {product.comparePrice && parseFloat(product.comparePrice) > parseFloat(product.price) && (
                 <>
-                  <span className="text-xl text-muted-foreground line-through">₹{product.comparePrice}</span>
+                  <span className="text-xl text-muted-foreground line-through">{formatCurrency(parseFloat(product.comparePrice))}</span>
                   <Badge className="rounded-full bg-destructive/10 text-destructive hover:bg-destructive/20 border-0 animate-pulse-soft">
                     Save {Math.round(((parseFloat(product.comparePrice) - parseFloat(product.price)) / parseFloat(product.comparePrice)) * 100)}%
                   </Badge>
@@ -379,7 +380,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 </div>
                 <div>
                   <p className="text-sm font-semibold">Free Shipping</p>
-                  <p className="text-xs text-muted-foreground">On orders over $50</p>
+                  <p className="text-xs text-muted-foreground">On orders over ₹2000</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 rounded-2xl border border-border/60 p-4 bg-card hover:shadow-md transition-all duration-300 hover:scale-105">
@@ -485,7 +486,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                           </div>
                           <span className="text-muted-foreground">(0)</span>
                         </div>
-                        <p className="text-lg font-bold text-primary">₹{relatedProduct.price}</p>
+                        <p className="text-lg font-bold text-primary">{formatCurrency(parseFloat(relatedProduct.price))}</p>
                       </div>
                     </CardContent>
                   </Card>

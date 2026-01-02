@@ -9,7 +9,7 @@ import Link from "next/link"
 import { Package, Truck, CheckCircle2, Clock, Eye, Loader2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useUser } from "@clerk/nextjs"
-import { useToast } from "@/hooks/use-toast"
+import { formatCurrency } from "@/lib/utils"
 
 interface Order {
   id: string
@@ -212,7 +212,7 @@ export default function OrdersPage() {
                       )}
                     </div>
                     <div className="text-right space-y-1">
-                      <p className="text-2xl font-bold text-primary">₹{Number(order.totalAmount).toFixed(2)}</p>
+                      <p className="text-2xl font-bold text-primary">{formatCurrency(Number(order.totalAmount))}</p>
                       <Button variant="outline" size="sm" className="rounded-full bg-transparent" asChild>
                         <Link href={`/orders/${order.id}`}>
                           <Eye className="mr-2 h-3 w-3" />
@@ -237,10 +237,10 @@ export default function OrdersPage() {
                           <div className="flex-1">
                             <p className="font-medium text-balance">{item.product.name}</p>
                             <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
-                            <p className="text-sm text-muted-foreground">Unit Price: ₹{Number(item.unitPrice).toFixed(2)}</p>
+                            <p className="text-sm text-muted-foreground">Unit Price: {formatCurrency(Number(item.unitPrice))}</p>
                           </div>
                           <div className="text-right space-y-2">
-                            <p className="font-semibold">₹{Number(item.totalPrice).toFixed(2)}</p>
+                            <p className="font-semibold">{formatCurrency(Number(item.totalPrice))}</p>
                             <Button variant="outline" size="sm" className="rounded-full bg-transparent" asChild>
                               <Link href={`/products/${item.product.id}`}>
                                 <Eye className="mr-1 h-3 w-3" />
@@ -258,23 +258,23 @@ export default function OrdersPage() {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Subtotal</span>
-                          <span>₹{order.items.reduce((sum, item) => sum + Number(item.totalPrice), 0).toFixed(2)}</span>
+                          <span>{formatCurrency(order.items.reduce((sum, item) => sum + Number(item.totalPrice), 0))}</span>
                         </div>
                         {order.taxAmount && Number(order.taxAmount) > 0 && (
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Tax</span>
-                            <span>₹{Number(order.taxAmount).toFixed(2)}</span>
+                            <span>{formatCurrency(Number(order.taxAmount))}</span>
                           </div>
                         )}
                         {order.shippingAmount && Number(order.shippingAmount) > 0 && (
                           <div className="flex justify-between">
                             <span className="text-muted-foreground">Shipping</span>
-                            <span>₹{Number(order.shippingAmount).toFixed(2)}</span>
+                            <span>{formatCurrency(Number(order.shippingAmount))}</span>
                           </div>
                         )}
                         <div className="border-t pt-2 flex justify-between font-semibold">
                           <span>Total</span>
-                          <span className="text-primary">₹{Number(order.totalAmount).toFixed(2)}</span>
+                          <span className="text-primary">{formatCurrency(Number(order.totalAmount))}</span>
                         </div>
                       </div>
                     </div>

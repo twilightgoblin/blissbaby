@@ -32,6 +32,7 @@ import { Plus, Search, Edit, Trash2, Upload, IndianRupee, Package, AlertCircle }
 import { useToast } from "@/hooks/use-toast"
 import { ProductImageManager } from "@/components/admin/product-image-manager"
 import { ProductImage } from "@/components/ui/optimized-image"
+import { formatCurrency } from "@/lib/utils"
 
 interface Product {
   id: string
@@ -318,13 +319,9 @@ export default function ProductsPage() {
     return { status: 'in-stock', label: 'In Stock', color: 'bg-green-100 text-green-700' }
   }
 
+  // Use centralized currency formatting
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    }).format(price)
+    return formatCurrency(price)
   }
 
   return (

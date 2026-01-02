@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { ShoppingCart, Package, Users, DollarSign, TrendingUp, TrendingDown, ArrowUpRight } from "lucide-react"
 import { Line, LineChart, Bar, BarChart, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts"
 import { useState, useEffect } from "react"
+import { formatCurrency } from "@/lib/utils"
 
 export default function AdminDashboard() {
   // TODO: Replace with API calls to fetch real dashboard data
@@ -126,7 +127,7 @@ export default function AdminDashboard() {
                   <p className="text-sm font-medium leading-none">{product.name}</p>
                   <p className="text-xs text-muted-foreground">{product.sales} sales</p>
                 </div>
-                <p className="text-sm font-bold text-primary">${product.revenue.toFixed(2)}</p>
+                <p className="text-sm font-bold text-primary">{formatCurrency(product.revenue, '$')}</p>
               </div>
             ))}
           </CardContent>
@@ -186,7 +187,7 @@ export default function AdminDashboard() {
                   </Badge>
                 </div>
                 <div className="text-right space-y-1">
-                  <p className="text-sm font-bold text-primary">${order.amount}</p>
+                  <p className="text-sm font-bold text-primary">{formatCurrency(order.amount, '$')}</p>
                   <p className="text-xs text-muted-foreground">{order.date}</p>
                 </div>
               </div>

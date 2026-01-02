@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import { Minus, Plus, X, ShoppingBag, Tag, ArrowRight } from "lucide-react"
 import { useCart } from "@/contexts/cart-context"
+import { formatCurrency } from "@/lib/utils"
 
 export default function CartPage() {
   const { cart, cartCount, updateQuantity, removeFromCart, loading } = useCart()
@@ -166,7 +167,7 @@ export default function CartPage() {
                             <Plus className="h-3 w-3" />
                           </Button>
                         </div>
-                        <p className="text-lg font-bold text-primary">₹{(item.product.price * item.quantity).toFixed(2)}</p>
+                        <p className="text-lg font-bold text-primary">{formatCurrency(item.product.price * item.quantity)}</p>
                       </div>
                     </div>
                   </div>
@@ -227,28 +228,28 @@ export default function CartPage() {
                 <div className="space-y-3 border-t border-border/60 pt-4">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-medium">₹{subtotal.toFixed(2)}</span>
+                    <span className="font-medium">{formatCurrency(subtotal)}</span>
                   </div>
                   {discount > 0 && (
                     <div className="flex items-center justify-between text-sm animate-fade-in">
                       <span className="text-muted-foreground">Discount (10%)</span>
-                      <span className="font-medium text-primary">-₹{discount.toFixed(2)}</span>
+                      <span className="font-medium text-primary">-{formatCurrency(discount)}</span>
                     </div>
                   )}
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
-                    <span className="font-medium">{shipping === 0 ? "Free" : `₹${shipping.toFixed(2)}`}</span>
+                    <span className="font-medium">{shipping === 0 ? "Free" : formatCurrency(shipping)}</span>
                   </div>
                   {subtotal < 50 && (
                     <p className="text-xs text-muted-foreground animate-pulse-soft">
-                      Add ₹{(50 - subtotal).toFixed(2)} more for free shipping!
+                      Add {formatCurrency(50 - subtotal)} more for free shipping!
                     </p>
                   )}
                 </div>
 
                 <div className="flex items-center justify-between border-t border-border/60 pt-4">
                   <span className="text-lg font-bold">Total</span>
-                  <span className="text-2xl font-bold text-primary">₹{total.toFixed(2)}</span>
+                  <span className="text-2xl font-bold text-primary">{formatCurrency(total)}</span>
                 </div>
 
                 <Button

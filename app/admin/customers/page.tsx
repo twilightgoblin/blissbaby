@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Mail, Phone, MapPin, ShoppingBag, Star } from "lucide-react"
 import { useState, useEffect } from "react"
+import { formatCurrency } from "@/lib/utils"
 
 export default function CustomersPage() {
   // TODO: Replace with API call to fetch real customers
@@ -131,7 +132,7 @@ export default function CustomersPage() {
                       <ShoppingBag className="h-4 w-4" />
                       <span className="text-sm">{customer.orders} orders</span>
                     </div>
-                    <p className="text-lg font-bold text-primary mt-1">${customer.totalSpent.toFixed(2)}</p>
+                    <p className="text-lg font-bold text-primary mt-1">{formatCurrency(customer.totalSpent, '$')}</p>
                   </div>
                   <Button variant="outline" size="sm" className="rounded-full bg-transparent">
                     View Profile

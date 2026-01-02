@@ -334,4 +334,55 @@
   .hover-scale:hover {
     transform: scale(1.05);
   }
+
+  /* Grid alignment utilities */
+  .grid-center {
+    place-items: center;
+  }
+
+  .grid-stretch {
+    place-items: stretch;
+  }
+
+  /* Text truncation utilities */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  /* Consistent card heights */
+  .card-equal-height {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-equal-height .card-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-equal-height .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
 }

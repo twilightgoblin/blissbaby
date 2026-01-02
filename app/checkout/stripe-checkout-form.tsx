@@ -17,6 +17,7 @@ import { CreditCard, Lock, Package, Loader2, MapPin, User } from 'lucide-react'
 import { useUser, SignInButton } from '@clerk/nextjs'
 import { useToast } from '@/hooks/use-toast'
 import Link from 'next/link'
+import { formatCurrency } from '@/lib/utils'
 
 interface SavedAddress {
   id: string
@@ -535,7 +536,7 @@ export default function StripeCheckoutForm({
         ) : (
           <>
             <Lock className="mr-2 h-4 w-4" />
-            Pay ₹{total.toFixed(2)}
+            Pay {formatCurrency(total)}
           </>
         )}
       </Button>

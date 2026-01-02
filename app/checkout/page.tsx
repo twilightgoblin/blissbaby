@@ -21,6 +21,7 @@ import { useCart } from "@/contexts/cart-context"
 import { useUser, SignInButton, SignUpButton } from "@clerk/nextjs"
 import { useToast } from "@/hooks/use-toast"
 import StripeCheckoutForm from "./stripe-checkout-form"
+import { formatCurrency } from "@/lib/utils"
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
@@ -219,7 +220,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Total Amount</span>
-                      <span className="font-bold text-primary">₹{total.toFixed(2)}</span>
+                      <span className="font-bold text-primary">{formatCurrency(total)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Payment ID</span>
@@ -352,7 +353,7 @@ export default function CheckoutPage() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">{item.product.name}</p>
                         <p className="text-xs text-muted-foreground">{item.product.category?.name}</p>
-                        <p className="text-sm font-bold text-primary">₹{(item.product.price * item.quantity).toFixed(2)}</p>
+                        <p className="text-sm font-bold text-primary">{formatCurrency(item.product.price * item.quantity)}</p>
                       </div>
                     </div>
                   ))}
@@ -362,7 +363,7 @@ export default function CheckoutPage() {
                 <div className="space-y-3 border-t border-border/60 pt-4">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-medium">₹{subtotal.toFixed(2)}</span>
+                    <span className="font-medium">{formatCurrency(subtotal)}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
@@ -370,13 +371,13 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Tax</span>
-                    <span className="font-medium">₹{tax.toFixed(2)}</span>
+                    <span className="font-medium">{formatCurrency(tax)}</span>
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between border-t border-border/60 pt-4">
                   <span className="text-lg font-bold">Total</span>
-                  <span className="text-2xl font-bold text-primary">₹{total.toFixed(2)}</span>
+                  <span className="text-2xl font-bold text-primary">{formatCurrency(total)}</span>
                 </div>
 
                 <p className="text-xs text-center text-muted-foreground">
