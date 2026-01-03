@@ -19,12 +19,19 @@ export function formatCurrency(
 ): string {
   const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
   
-  if (isNaN(numAmount)) return `${currency}0.00`
+  if (isNaN(numAmount)) return currency === 'INR' ? 'INR 0.00' : `${currency}0.00`
   
-  return `${currency}${numAmount.toLocaleString('en-IN', {
+  const formattedAmount = numAmount.toLocaleString('en-IN', {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals
-  })}`
+  })
+  
+  // Add space after INR
+  if (currency === 'INR') {
+    return `INR ${formattedAmount}`
+  }
+  
+  return `${currency}${formattedAmount}`
 }
 
 /**

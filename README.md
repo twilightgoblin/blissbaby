@@ -69,7 +69,6 @@ A full-stack e-commerce platform built with Next.js 16, featuring modern authent
 - **PostCSS** - CSS processing and optimization
 - **Vercel Analytics** - Performance monitoring
 
-> 📋 **For a complete breakdown of all technologies, dependencies, and architecture decisions, see [TECH_STACK.md](./TECH_STACK.md)**
 
 ##  Installation
 
