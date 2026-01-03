@@ -27,7 +27,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Plus, Edit, Trash2, Loader2 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { SingleImageUpload } from "@/components/ui/single-image-upload"
 import Image from "next/image"
 
@@ -52,7 +52,6 @@ export default function CategoriesPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const { toast } = useToast()
 
   // Form states
   const [formData, setFormData] = useState({
@@ -89,11 +88,7 @@ export default function CategoriesPage() {
       const data = await response.json()
       setCategories(data)
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch categories",
-        variant: "destructive"
-      })
+      toast.error("Failed to fetch categories")
     } finally {
       setLoading(false)
     }
@@ -117,11 +112,7 @@ export default function CategoriesPage() {
   // Handle add category
   const handleAddCategory = async () => {
     if (!formData.name.trim()) {
-      toast({
-        title: "Error",
-        description: "Category name is required",
-        variant: "destructive"
-      })
+      toast.error("Category name is required")
       return
     }
 
@@ -138,20 +129,13 @@ export default function CategoriesPage() {
         throw new Error(error.error || 'Failed to create category')
       }
 
-      toast({
-        title: "Success",
-        description: "Category created successfully"
-      })
+      toast.success("Category created successfully")
 
       setIsAddDialogOpen(false)
       resetForm()
       fetchCategories()
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      })
+      toast.error(error.message)
     } finally {
       setSubmitting(false)
     }
@@ -174,21 +158,14 @@ export default function CategoriesPage() {
         throw new Error(error.error || 'Failed to update category')
       }
 
-      toast({
-        title: "Success",
-        description: "Category updated successfully"
-      })
+      toast.success("Category updated successfully")
 
       setIsEditDialogOpen(false)
       setSelectedCategory(null)
       resetForm()
       fetchCategories()
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      })
+      toast.error(error.message)
     } finally {
       setSubmitting(false)
     }
@@ -209,20 +186,13 @@ export default function CategoriesPage() {
         throw new Error(error.error || 'Failed to delete category')
       }
 
-      toast({
-        title: "Success",
-        description: "Category deleted successfully"
-      })
+      toast.success("Category deleted successfully")
 
       setIsDeleteDialogOpen(false)
       setSelectedCategory(null)
       fetchCategories()
     } catch (error) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      })
+      toast.error(error.message)
     } finally {
       setSubmitting(false)
     }

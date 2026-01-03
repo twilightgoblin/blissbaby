@@ -18,7 +18,8 @@
     "test:cloudinary": "tsx scripts/test-cloudinary.ts",
     "test:upload": "tsx scripts/test-upload-endpoints.ts",
     "test:order-creation": "tsx scripts/test-order-creation.ts",
-    "test:order-api": "tsx scripts/test-order-api.ts"
+    "test:order-api": "tsx scripts/test-order-api.ts",
+    "test:admin-orders": "tsx scripts/test-admin-orders.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.5",

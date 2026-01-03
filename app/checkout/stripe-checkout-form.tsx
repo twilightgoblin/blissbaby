@@ -15,7 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CreditCard, Lock, Package, Loader2, MapPin, User } from 'lucide-react'
 import { useUser, SignInButton } from '@clerk/nextjs'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import Link from 'next/link'
 import { formatCurrency } from '@/lib/utils'
 
@@ -49,7 +49,6 @@ export default function StripeCheckoutForm({
   const stripe = useStripe()
   const elements = useElements()
   const { user } = useUser()
-  const { toast } = useToast()
   
   const [isProcessing, setIsProcessing] = useState(false)
   const [sameAsShipping, setSameAsShipping] = useState(true)
@@ -138,10 +137,7 @@ export default function StripeCheckoutForm({
     
     setSelectedAddress(address)
     
-    toast({
-      title: "Address Auto-filled",
-      description: `Using your saved address: ${address.firstName} ${address.lastName}`,
-    })
+    toast.success(`Address Auto-filled: ${address.firstName} ${address.lastName}`)
   }
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -156,11 +152,7 @@ export default function StripeCheckoutForm({
     try {
       // Validate required fields
       if (!shippingInfo.firstName || !shippingInfo.lastName || !shippingInfo.email || !shippingInfo.phone) {
-        toast({
-          title: "Missing Information",
-          description: "Please fill in all required shipping information",
-          variant: "destructive"
-        })
+        toast.error("Please fill in all required shipping information")
         setIsProcessing(false)
         return
       }
@@ -170,11 +162,7 @@ export default function StripeCheckoutForm({
       const isValidEmail = emailRegex.test(shippingInfo.email.trim())
       
       if (!isValidEmail) {
-        toast({
-          title: "Invalid Email",
-          description: "Please enter a valid email address",
-          variant: "destructive"
-        })
+        toast.error("Please enter a valid email address")
         setIsProcessing(false)
         return
       }
@@ -210,11 +198,7 @@ export default function StripeCheckoutForm({
           errorMessage = error.message
         }
         
-        toast({
-          title: "Payment Failed",
-          description: errorMessage,
-          variant: "destructive"
-        })
+        toast.error(errorMessage)
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         console.log('Payment succeeded:', paymentIntent)
         
@@ -250,18 +234,11 @@ export default function StripeCheckoutForm({
         })
       } else {
         console.log('Payment status:', paymentIntent?.status)
-        toast({
-          title: "Payment Processing",
-          description: "Your payment is being processed. Please wait...",
-        })
+        toast.info("Your payment is being processed. Please wait...")
       }
     } catch (error) {
       console.error('Payment error:', error)
-      toast({
-        title: "Payment Error",
-        description: error instanceof Error ? error.message : "An unexpected error occurred",
-        variant: "destructive"
-      })
+      toast.error(error instanceof Error ? error.message : "An unexpected error occurred")
     } finally {
       setIsProcessing(false)
     }
@@ -352,10 +329,7 @@ export default function StripeCheckoutForm({
                     onClick={() => {
                       setSelectedAddress(null)
                       setAddressData({ shippingAddress: null, billingAddress: null })
-                      toast({
-                        title: "Selection Cleared",
-                        description: "Please fill in the address manually below",
-                      })
+                      toast.info("Please fill in the address manually below")
                     }}
                     className="text-xs"
                   >

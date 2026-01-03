@@ -14,49 +14,175 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { Search, Eye, Package, Truck, CheckCircle, XCircle } from "lucide-react"
+import { Search, Eye, Package, Truck, CheckCircle, XCircle, Clock, AlertCircle } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
+
+interface OrderItem {
+  id: string
+  quantity: number
+  unitPrice: number
+  totalPrice: number
+  product: {
+    id: string
+    name: string
+    images: string[]
+  }
+}
+
+interface Order {
+  id: string
+  orderNumber: string
+  status: string
+  totalAmount: number
+  currency: string
+  userEmail: string | null
+  userName: string | null
+  createdAt: string
+  items: OrderItem[]
+  payments: any[]
+  shippingAddress: any
+  billingAddress: any
+}
 
 export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState("all")
-  // TODO: Replace with API call to fetch real orders
-  const [orders, setOrders] = useState([])
+  const [searchQuery, setSearchQuery] = useState("")
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    pages: 0
+  })
 
-  // TODO: Add useEffect to fetch real orders from API
+  const fetchOrders = async () => {
+    try {
+      setLoading(true)
+      const params = new URLSearchParams({
+        page: pagination.page.toString(),
+        limit: pagination.limit.toString(),
+        ...(statusFilter !== 'all' && { status: statusFilter }),
+        ...(searchQuery && { search: searchQuery })
+      })
+
+      const response = await fetch(`/api/admin/orders?${params}`)
+      const data = await response.json()
+
+      if (response.ok) {
+        setOrders(data.orders)
+        setPagination(data.pagination)
+      } else {
+        console.error('Failed to fetch orders:', data.error)
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    // fetchAdminOrders().then(setOrders)
-  }, [])
+    fetchOrders()
+  }, [statusFilter, pagination.page])
+
+  const handleSearch = () => {
+    setPagination(prev => ({ ...prev, page: 1 }))
+    fetchOrders()
+  }
+
+  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
+    try {
+      const response = await fetch('/api/admin/orders', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderId,
+          status: newStatus
+        })
+      })
+
+      if (response.ok) {
+        fetchOrders() // Refresh the orders list
+      } else {
+        console.error('Failed to update order status')
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error)
+    }
+  }
 
   const getStatusConfig = (status: string) => {
     const configs = {
-      completed: {
+      COMPLETED: {
         badge: "bg-green-100 text-green-700 hover:bg-green-100",
         icon: CheckCircle,
         iconColor: "text-green-600",
+        label: "Completed"
       },
-      processing: {
+      PROCESSING: {
         badge: "bg-blue-100 text-blue-700 hover:bg-blue-100",
         icon: Package,
         iconColor: "text-blue-600",
+        label: "Processing"
       },
-      shipped: {
+      SHIPPED: {
         badge: "bg-purple-100 text-purple-700 hover:bg-purple-100",
         icon: Truck,
         iconColor: "text-purple-600",
+        label: "Shipped"
       },
-      pending: {
+      DELIVERED: {
+        badge: "bg-green-100 text-green-700 hover:bg-green-100",
+        icon: CheckCircle,
+        iconColor: "text-green-600",
+        label: "Delivered"
+      },
+      PENDING: {
         badge: "bg-yellow-100 text-yellow-700 hover:bg-yellow-100",
-        icon: Package,
+        icon: Clock,
         iconColor: "text-yellow-600",
+        label: "Pending"
       },
-      cancelled: {
+      CONFIRMED: {
+        badge: "bg-blue-100 text-blue-700 hover:bg-blue-100",
+        icon: CheckCircle,
+        iconColor: "text-blue-600",
+        label: "Confirmed"
+      },
+      CANCELLED: {
         badge: "bg-red-100 text-red-700 hover:bg-red-100",
         icon: XCircle,
         iconColor: "text-red-600",
+        label: "Cancelled"
       },
+      REFUNDED: {
+        badge: "bg-gray-100 text-gray-700 hover:bg-gray-100",
+        icon: AlertCircle,
+        iconColor: "text-gray-600",
+        label: "Refunded"
+      }
     }
-    return configs[status as keyof typeof configs] || configs.pending
+    return configs[status as keyof typeof configs] || configs.PENDING
   }
+
+  const getStatusCounts = () => {
+    const counts = orders.reduce((acc, order) => {
+      acc[order.status] = (acc[order.status] || 0) + 1
+      return acc
+    }, {} as Record<string, number>)
+    
+    return {
+      processing: counts.PROCESSING || 0,
+      shipped: counts.SHIPPED || 0,
+      pending: counts.PENDING || 0,
+      completed: counts.COMPLETED || 0
+    }
+  }
+
+  const statusCounts = getStatusCounts()
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -67,8 +193,15 @@ export default function OrdersPage() {
           <p className="text-muted-foreground mt-2">Manage and track customer orders</p>
         </div>
         <div className="flex gap-2">
-          <Badge className="rounded-full bg-blue-100 text-blue-700 hover:bg-blue-100">12 Processing</Badge>
-          <Badge className="rounded-full bg-purple-100 text-purple-700 hover:bg-purple-100">8 Shipped</Badge>
+          <Badge className="rounded-full bg-blue-100 text-blue-700 hover:bg-blue-100">
+            {statusCounts.processing} Processing
+          </Badge>
+          <Badge className="rounded-full bg-purple-100 text-purple-700 hover:bg-purple-100">
+            {statusCounts.shipped} Shipped
+          </Badge>
+          <Badge className="rounded-full bg-yellow-100 text-yellow-700 hover:bg-yellow-100">
+            {statusCounts.pending} Pending
+          </Badge>
         </div>
       </div>
 
@@ -78,129 +211,230 @@ export default function OrdersPage() {
           <div className="flex flex-wrap gap-4">
             <div className="relative flex-1 min-w-[250px]">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Search orders or customers..." className="pl-10 rounded-full" />
+              <Input
+                placeholder="Search by order number, customer email, or name..."
+                className="pl-10 rounded-2xl border-border/60"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[180px] rounded-full">
-                <SelectValue placeholder="All Status" />
+              <SelectTrigger className="w-[180px] rounded-2xl border-border/60">
+                <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="all">All Orders</SelectItem>
                 <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="confirmed">Confirmed</SelectItem>
                 <SelectItem value="processing">Processing</SelectItem>
                 <SelectItem value="shipped">Shipped</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="delivered">Delivered</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="refunded">Refunded</SelectItem>
               </SelectContent>
             </Select>
-            <Select defaultValue="newest">
-              <SelectTrigger className="w-[180px] rounded-full">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Newest First</SelectItem>
-                <SelectItem value="oldest">Oldest First</SelectItem>
-                <SelectItem value="highest">Highest Amount</SelectItem>
-                <SelectItem value="lowest">Lowest Amount</SelectItem>
-              </SelectContent>
-            </Select>
+            <Button onClick={handleSearch} className="rounded-2xl">
+              Search
+            </Button>
           </div>
         </CardContent>
       </Card>
 
       {/* Orders List */}
-      <div className="space-y-4">
-        {orders.map((order) => {
-          const statusConfig = getStatusConfig(order.status)
-          const StatusIcon = statusConfig.icon
-          return (
-            <Card key={order.id} className="rounded-3xl border-border/60 hover-lift">
-              <CardContent className="p-6">
-                <div className="flex flex-wrap gap-6">
-                  <div className={`flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-muted`}>
-                    <StatusIcon className={`h-7 w-7 ${statusConfig.iconColor}`} />
-                  </div>
-                  <div className="flex-1 space-y-3">
-                    <div className="flex flex-wrap items-start justify-between gap-4">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-semibold">{order.id}</h3>
-                          <Badge className={`rounded-full border-0 ${statusConfig.badge}`}>{order.status}</Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          {order.customer} • {order.email}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-2xl font-bold text-primary">{formatCurrency(order.total, '$')}</p>
-                        <p className="text-xs text-muted-foreground">{order.items} items</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                      <span>📅 {order.date}</span>
-                      <span>🕐 {order.time}</span>
-                      <span>💳 {order.payment}</span>
-                      <span>📦 {order.shipping}</span>
-                    </div>
-                    <div className="flex gap-2 border-t border-border/40 pt-4">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm" className="rounded-full bg-transparent">
-                            <Eye className="mr-2 h-3 w-3" />
-                            View Details
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl rounded-3xl">
-                          <DialogHeader>
-                            <DialogTitle>Order Details - {order.id}</DialogTitle>
-                            <DialogDescription>Complete order information and status</DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-4 py-4">
-                            <div className="grid gap-4 sm:grid-cols-2">
-                              <div>
-                                <p className="text-sm font-medium text-muted-foreground">Customer</p>
-                                <p className="font-semibold">{order.customer}</p>
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-muted-foreground">Email</p>
-                                <p className="font-semibold">{order.email}</p>
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-muted-foreground">Order Date</p>
-                                <p className="font-semibold">
-                                  {order.date} at {order.time}
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium text-muted-foreground">Total Amount</p>
-                                <p className="font-semibold text-primary">{formatCurrency(order.total, '$')}</p>
-                              </div>
-                            </div>
+      {loading ? (
+        <div className="flex justify-center items-center py-12">
+          <div className="text-muted-foreground">Loading orders...</div>
+        </div>
+      ) : orders.length === 0 ? (
+        <Card className="rounded-3xl border-border/60">
+          <CardContent className="p-12 text-center">
+            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No orders found</h3>
+            <p className="text-muted-foreground">
+              {searchQuery || statusFilter !== 'all' 
+                ? 'Try adjusting your search or filter criteria.' 
+                : 'Orders will appear here once customers start placing them.'}
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {orders.map((order) => {
+            const statusConfig = getStatusConfig(order.status)
+            const StatusIcon = statusConfig.icon
+            
+            return (
+              <Card key={order.id} className="rounded-3xl border-border/60 hover:shadow-md transition-shadow">
+                <CardContent className="p-6">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-3">
+                        <StatusIcon className={`h-5 w-5 ${statusConfig.iconColor}`} />
+                        <div>
+                          <div className="font-semibold text-lg">{order.orderNumber}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {order.userName || 'Guest'} • {order.userEmail}
                           </div>
-                        </DialogContent>
-                      </Dialog>
-                      {order.status !== "completed" && order.status !== "cancelled" && (
-                        <Select defaultValue={order.status}>
-                          <SelectTrigger className="w-[150px] rounded-full">
-                            <SelectValue placeholder="Update status" />
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <div className="font-semibold text-lg">
+                          {formatCurrency(Number(order.totalAmount), order.currency)}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                        </div>
+                      </div>
+                      
+                      <Badge className={statusConfig.badge}>
+                        {statusConfig.label}
+                      </Badge>
+                      
+                      <div className="flex gap-2">
+                        <Select
+                          value={order.status.toLowerCase()}
+                          onValueChange={(value) => handleStatusUpdate(order.id, value)}
+                        >
+                          <SelectTrigger className="w-[140px] rounded-2xl border-border/60">
+                            <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="confirmed">Confirmed</SelectItem>
                             <SelectItem value="processing">Processing</SelectItem>
                             <SelectItem value="shipped">Shipped</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="delivered">Delivered</SelectItem>
                             <SelectItem value="cancelled">Cancelled</SelectItem>
+                            <SelectItem value="refunded">Refunded</SelectItem>
                           </SelectContent>
                         </Select>
-                      )}
+                        
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm" className="rounded-2xl">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle>Order Details - {order.orderNumber}</DialogTitle>
+                              <DialogDescription>
+                                Order placed on {new Date(order.createdAt).toLocaleDateString()}
+                              </DialogDescription>
+                            </DialogHeader>
+                            
+                            <div className="space-y-6">
+                              {/* Customer Info */}
+                              <div>
+                                <h4 className="font-semibold mb-2">Customer Information</h4>
+                                <div className="bg-muted/50 p-4 rounded-lg">
+                                  <p><strong>Name:</strong> {order.userName || 'Guest'}</p>
+                                  <p><strong>Email:</strong> {order.userEmail}</p>
+                                </div>
+                              </div>
+                              
+                              {/* Order Items */}
+                              <div>
+                                <h4 className="font-semibold mb-2">Order Items</h4>
+                                <div className="space-y-2">
+                                  {order.items.map((item) => (
+                                    <div key={item.id} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                                      <div className="flex items-center gap-3">
+                                        {item.product.images?.[0] && (
+                                          <img 
+                                            src={item.product.images[0]} 
+                                            alt={item.product.name}
+                                            className="w-12 h-12 object-cover rounded"
+                                          />
+                                        )}
+                                        <div>
+                                          <p className="font-medium">{item.product.name}</p>
+                                          <p className="text-sm text-muted-foreground">
+                                            Qty: {item.quantity} × {formatCurrency(Number(item.unitPrice), order.currency)}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <div className="font-semibold">
+                                        {formatCurrency(Number(item.totalPrice), order.currency)}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              
+                              {/* Order Summary */}
+                              <div>
+                                <h4 className="font-semibold mb-2">Order Summary</h4>
+                                <div className="bg-muted/50 p-4 rounded-lg">
+                                  <div className="flex justify-between text-lg font-semibold">
+                                    <span>Total Amount:</span>
+                                    <span>{formatCurrency(Number(order.totalAmount), order.currency)}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Addresses */}
+                              {order.shippingAddress && (
+                                <div>
+                                  <h4 className="font-semibold mb-2">Shipping Address</h4>
+                                  <div className="bg-muted/50 p-4 rounded-lg">
+                                    <p>{order.shippingAddress.firstName} {order.shippingAddress.lastName}</p>
+                                    <p>{order.shippingAddress.addressLine1}</p>
+                                    {order.shippingAddress.addressLine2 && <p>{order.shippingAddress.addressLine2}</p>}
+                                    <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}</p>
+                                    <p>{order.shippingAddress.country}</p>
+                                    {order.shippingAddress.phone && <p>Phone: {order.shippingAddress.phone}</p>}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          )
-        })}
-      </div>
+                  
+                  <div className="mt-4 pt-4 border-t border-border/60">
+                    <div className="flex justify-between items-center text-sm text-muted-foreground">
+                      <span>Order placed: {new Date(order.createdAt).toLocaleString()}</span>
+                      <span>Last updated: {new Date(order.createdAt).toLocaleString()}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {pagination.pages > 1 && (
+        <div className="flex justify-center gap-2 mt-6">
+          <Button
+            variant="outline"
+            onClick={() => setPagination(prev => ({ ...prev, page: Math.max(1, prev.page - 1) }))}
+            disabled={pagination.page === 1}
+            className="rounded-2xl"
+          >
+            Previous
+          </Button>
+          <span className="flex items-center px-4 text-sm text-muted-foreground">
+            Page {pagination.page} of {pagination.pages}
+          </span>
+          <Button
+            variant="outline"
+            onClick={() => setPagination(prev => ({ ...prev, page: Math.min(prev.pages, prev.page + 1) }))}
+            disabled={pagination.page === pagination.pages}
+            className="rounded-2xl"
+          >
+            Next
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

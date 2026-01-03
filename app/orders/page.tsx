@@ -10,6 +10,7 @@ import { Package, Truck, CheckCircle2, Clock, Eye, Loader2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useUser } from "@clerk/nextjs"
 import { formatCurrency } from "@/lib/utils"
+import { toast } from "sonner"
 
 interface Order {
   id: string
@@ -42,7 +43,6 @@ interface Order {
 
 export default function OrdersPage() {
   const { user, isSignedIn } = useUser()
-  const { toast } = useToast()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -64,19 +64,11 @@ export default function OrdersPage() {
         setOrders(data.orders || [])
       } else {
         console.error('Failed to fetch orders:', data)
-        toast({
-          title: "Error",
-          description: "Failed to load your orders",
-          variant: "destructive"
-        })
+        toast.error("Failed to load your orders")
       }
     } catch (error) {
       console.error('Error fetching orders:', error)
-      toast({
-        title: "Error",
-        description: "Failed to load your orders",
-        variant: "destructive"
-      })
+      toast.error("Failed to load your orders")
     } finally {
       setLoading(false)
     }

@@ -19,7 +19,7 @@ import { CreditCard, Lock, Package, CheckCircle2, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useCart } from "@/contexts/cart-context"
 import { useUser, SignInButton, SignUpButton } from "@clerk/nextjs"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import StripeCheckoutForm from "./stripe-checkout-form"
 import { formatCurrency } from "@/lib/utils"
 
@@ -33,7 +33,6 @@ export default function CheckoutPage() {
   const router = useRouter()
   const { cart, clearCart } = useCart()
   const { user, isSignedIn, isLoaded } = useUser()
-  const { toast } = useToast()
   
   const [step, setStep] = useState<"checkout" | "success">("checkout")
   const [clientSecret, setClientSecret] = useState<string>("")
@@ -82,19 +81,11 @@ export default function CheckoutPage() {
         console.log('Payment intent created successfully')
       } else {
         console.error('Payment intent creation failed:', data)
-        toast({
-          title: "Error",
-          description: data.error || "Failed to initialize payment",
-          variant: "destructive"
-        })
+        toast.error(data.error || "Failed to initialize payment")
       }
     } catch (error) {
       console.error('Error creating payment intent:', error)
-      toast({
-        title: "Error",
-        description: "Failed to initialize payment",
-        variant: "destructive"
-      })
+      toast.error("Failed to initialize payment")
     } finally {
       setLoading(false)
     }
@@ -144,25 +135,14 @@ export default function CheckoutPage() {
         // Show success step
         setStep("success")
         
-        toast({
-          title: "Order Confirmed!",
-          description: `Your order ${orderNum} has been confirmed and saved.`,
-        })
+        toast.success(`Order Confirmed! Your order ${orderNum} has been confirmed and saved.`)
       } else {
         console.error('Failed to create order:', orderData)
-        toast({
-          title: "Order Creation Failed",
-          description: "Payment was successful but order creation failed. Please contact support.",
-          variant: "destructive"
-        })
+        toast.error("Payment was successful but order creation failed. Please contact support.")
       }
     } catch (error) {
       console.error('Error creating order:', error)
-      toast({
-        title: "Order Creation Error",
-        description: "Payment was successful but order creation failed. Please contact support.",
-        variant: "destructive"
-      })
+      toast.error("Payment was successful but order creation failed. Please contact support.")
     }
   }
 

@@ -29,7 +29,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Plus, Search, Edit, Trash2, Upload, IndianRupee, Package, AlertCircle } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 import { ProductImageManager } from "@/components/admin/product-image-manager"
 import { ProductImage } from "@/components/ui/optimized-image"
 import { formatCurrency } from "@/lib/utils"
@@ -97,7 +97,6 @@ export default function ProductsPage() {
     seoDescription: '',
     images: [] as string[]
   })
-  const { toast } = useToast()
 
   // Fetch products and categories
   useEffect(() => {
@@ -119,18 +118,10 @@ export default function ProductsPage() {
       if (response.ok) {
         setProducts(data.products)
       } else {
-        toast({
-          title: "Error",
-          description: data.error || "Failed to fetch products",
-          variant: "destructive"
-        })
+        toast.error(data.error || "Failed to fetch products")
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch products",
-        variant: "destructive"
-      })
+      toast.error("Failed to fetch products")
     } finally {
       setLoading(false)
     }
@@ -181,26 +172,15 @@ export default function ProductsPage() {
       const data = await response.json()
       
       if (response.ok) {
-        toast({
-          title: "Success",
-          description: "Product added successfully"
-        })
+        toast.success("Product added successfully")
         setIsAddDialogOpen(false)
         resetForm()
         fetchProducts()
       } else {
-        toast({
-          title: "Error",
-          description: data.error || "Failed to add product",
-          variant: "destructive"
-        })
+        toast.error(data.error || "Failed to add product")
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add product",
-        variant: "destructive"
-      })
+      toast.error("Failed to add product")
     }
   }
 
@@ -217,27 +197,16 @@ export default function ProductsPage() {
       const data = await response.json()
       
       if (response.ok) {
-        toast({
-          title: "Success",
-          description: "Product updated successfully"
-        })
+        toast.success("Product updated successfully")
         setIsEditDialogOpen(false)
         setSelectedProduct(null)
         resetForm()
         fetchProducts()
       } else {
-        toast({
-          title: "Error",
-          description: data.error || "Failed to update product",
-          variant: "destructive"
-        })
+        toast.error(data.error || "Failed to update product")
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update product",
-        variant: "destructive"
-      })
+      toast.error("Failed to update product")
     }
   }
 
@@ -252,26 +221,15 @@ export default function ProductsPage() {
       const data = await response.json()
       
       if (response.ok) {
-        toast({
-          title: "Success",
-          description: data.message || "Product deleted successfully"
-        })
+        toast.success(data.message || "Product deleted successfully")
         setIsDeleteDialogOpen(false)
         setSelectedProduct(null)
         fetchProducts()
       } else {
-        toast({
-          title: "Error",
-          description: data.error || "Failed to delete product",
-          variant: "destructive"
-        })
+        toast.error(data.error || "Failed to delete product")
       }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete product",
-        variant: "destructive"
-      })
+      toast.error("Failed to delete product")
     }
   }
 
