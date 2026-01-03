@@ -30,27 +30,46 @@ A full-stack e-commerce platform built with Next.js 16, featuring modern authent
 - **Type Safety** - Full TypeScript implementation
 - **Modern UI** - Radix UI components with custom styling
 
-##  Tech Stack
+## Tech Stack
 
 ### Frontend
 - **Next.js 16** - React framework with App Router
-- **React 19** - Latest React features
-- **TypeScript** - Type-safe development
-- **Tailwind CSS** - Utility-first CSS framework
-- **Radix UI** - Accessible component primitives
-- **Lucide React** - Beautiful icons
+- **React 19** - Latest React features with concurrent rendering
+- **TypeScript 5** - Type-safe development
+- **Tailwind CSS 4** - Utility-first CSS framework
+- **Radix UI** - 20+ accessible component primitives
+- **Lucide React** - Beautiful & consistent icons
 
-### Backend
+### Backend & Database
 - **Next.js API Routes** - Serverless API endpoints
-- **Prisma** - Type-safe database ORM
+- **Prisma 7** - Type-safe database ORM with PostgreSQL adapter
 - **PostgreSQL** - Robust relational database
-- **Clerk** - Authentication and user management
-- **Stripe** - Payment processing
+- **Edge Runtime** - Optimal performance on Vercel
 
-### Services & Integrations
-- **Cloudinary** - Image storage and optimization
+### Authentication & Payments
+- **Clerk 6** - Complete authentication platform with social logins
+- **Stripe 20** - Payment processing with webhooks
+- **Svix** - Webhook infrastructure and verification
+
+### Media & Storage
+- **Cloudinary** - Cloud-based image optimization and CDN
+- **Next.js Image** - Automatic image optimization
+- **Multi-format support** - WebP, AVIF, responsive delivery
+
+### UI/UX & Interactions
+- **React Hook Form** - Performant forms with validation
+- **Zod** - TypeScript-first schema validation
+- **Sonner** - Toast notifications
+- **Embla Carousel** - Touch-friendly carousels
+- **Custom animations** - Smooth transitions and micro-interactions
+
+### Development & Deployment
+- **Vercel** - Serverless deployment with global CDN
+- **ESLint** - Code linting and quality
+- **PostCSS** - CSS processing and optimization
 - **Vercel Analytics** - Performance monitoring
-- **Webhooks** - Real-time data synchronization
+
+> 📋 **For a complete breakdown of all technologies, dependencies, and architecture decisions, see [TECH_STACK.md](./TECH_STACK.md)**
 
 ##  Installation
 
