@@ -2,7 +2,7 @@
 
 A full-stack e-commerce platform built with Next.js 16, featuring modern authentication, secure payments, and comprehensive product management for baby products.
 
-## 🚀 Features
+##  Features
 
 ### Core E-commerce
 - **Product Catalog** - Browse products by categories with advanced filtering
@@ -30,7 +30,7 @@ A full-stack e-commerce platform built with Next.js 16, featuring modern authent
 - **Type Safety** - Full TypeScript implementation
 - **Modern UI** - Radix UI components with custom styling
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 ### Frontend
 - **Next.js 16** - React framework with App Router
@@ -52,7 +52,7 @@ A full-stack e-commerce platform built with Next.js 16, featuring modern authent
 - **Vercel Analytics** - Performance monitoring
 - **Webhooks** - Real-time data synchronization
 
-## 📦 Installation
+##  Installation
 
 ### Prerequisites
 - Node.js 18+ 
@@ -117,7 +117,7 @@ A full-stack e-commerce platform built with Next.js 16, featuring modern authent
 
    Visit [http://localhost:3000](http://localhost:3000) to see the application.
 
-## 🚀 Deployment
+##  Deployment
 
 ### Vercel (Recommended)
 1. Connect your repository to Vercel
@@ -133,7 +133,7 @@ npm run build
 npm start
 ```
 
-## 📝 Available Scripts
+## Available Scripts
 
 ### Development
 - `npm run dev` - Start development server
@@ -152,7 +152,7 @@ npm start
 - `npm run test:cloudinary` - Test image upload
 - `npm run test:order-creation` - Test order processing
 
-## 🏗️ Project Structure
+##  Project Structure
 
 ```
 ├── app/                    # Next.js App Router
@@ -172,7 +172,7 @@ npm start
 └── docs/                 # Documentation
 ```
 
-## 🔧 Configuration
+##  Configuration
 
 ### Clerk Setup
 1. Create a Clerk application
@@ -192,7 +192,7 @@ npm start
 3. Configure upload presets
 4. Set up image transformations
 
-## 📚 API Documentation
+##  API Documentation
 
 ### Products
 - `GET /api/products` - List products with filtering
@@ -213,7 +213,7 @@ npm start
 - `POST /api/upload/images` - Upload product images
 - `DELETE /api/upload/delete` - Delete images
 
-## 🧪 Testing
+##  Testing
 
 ### Test Cards (Stripe)
 - **Success**: `4000 0035 6000 0008` (India Visa)
@@ -222,7 +222,7 @@ npm start
 
 Use any future expiry date and any 3-digit CVC.
 
-## 🔒 Security Features
+##  Security Features
 
 - **Authentication** - Clerk-powered secure authentication
 - **Authorization** - Role-based access control
@@ -231,7 +231,7 @@ Use any future expiry date and any 3-digit CVC.
 - **Secure Headers** - Security headers configuration
 - **Image Validation** - File type and size validation
 
-## 🎨 UI/UX Features
+## UI/UX Features
 
 - **Responsive Design** - Mobile-first approach
 - **Dark/Light Mode** - Theme switching support
@@ -239,7 +239,7 @@ Use any future expiry date and any 3-digit CVC.
 - **Accessibility** - WCAG compliant components
 - **Loading States** - Skeleton loaders and progress indicators
 
-## 📈 Performance
+##  Performance
 
 - **Image Optimization** - Cloudinary CDN with auto-format
 - **Code Splitting** - Automatic code splitting with Next.js
@@ -247,7 +247,7 @@ Use any future expiry date and any 3-digit CVC.
 - **Bundle Analysis** - Built-in bundle analyzer
 - **Core Web Vitals** - Optimized for performance metrics
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -255,18 +255,18 @@ Use any future expiry date and any 3-digit CVC.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## Support
 
 For support and questions:
 - Check the [documentation](./docs/)
 - Open an issue on GitHub
 - Contact the development team
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [Next.js](https://nextjs.org/) - The React framework
 - [Clerk](https://clerk.dev/) - Authentication platform
@@ -277,4 +277,4 @@ For support and questions:
 
 ---
 
-Built with ❤️ for modern e-commerce experiences.
+Built by DiGiLABS for modern e-commerce experiences.
