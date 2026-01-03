@@ -1,0 +1,116 @@
+import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
+import { db } from "@/lib/db"
+import { OfferType, DiscountType } from "@/lib/generated/prisma"
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const {
+      title,
+      description,
+      code,
+      type,
+      discountType,
+      discountValue,
+      minOrderAmount,
+      maxDiscountAmount,
+      usageLimit,
+      startDate,
+      endDate,
+      image,
+      buttonText,
+      buttonLink,
+      priority,
+      isActive
+    } = body
+
+    // Check if offer exists
+    const existingOffer = await db.offer.findUnique({
+      where: { id: params.id }
+    })
+
+    if (!existingOffer) {
+      return NextResponse.json({ error: "Offer not found" }, { status: 404 })
+    }
+
+    // Validate discount code uniqueness if changed
+    if (code && code !== existingOffer.code) {
+      const codeExists = await db.offer.findUnique({
+        where: { code }
+      })
+      if (codeExists) {
+        return NextResponse.json(
+          { error: "Discount code already exists" },
+          { status: 400 }
+        )
+      }
+    }
+
+    const offer = await db.offer.update({
+      where: { id: params.id },
+      data: {
+        title,
+        description,
+        code,
+        type: type as OfferType,
+        discountType: discountType as DiscountType,
+        discountValue: parseFloat(discountValue),
+        minOrderAmount: minOrderAmount ? parseFloat(minOrderAmount) : null,
+        maxDiscountAmount: maxDiscountAmount ? parseFloat(maxDiscountAmount) : null,
+        usageLimit: usageLimit ? parseInt(usageLimit) : null,
+        startDate: new Date(startDate),
+        endDate: endDate ? new Date(endDate) : null,
+        image,
+        buttonText,
+        buttonLink,
+        position: 'home-hero', // Fixed to home page only
+        priority: priority ? parseInt(priority) : 0,
+        isActive: isActive !== false
+      }
+    })
+
+    return NextResponse.json({ offer })
+  } catch (error) {
+    console.error("Error updating offer:", error)
+    return NextResponse.json({ error: "Failed to update offer" }, { status: 500 })
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Check if offer exists
+    const existingOffer = await db.offer.findUnique({
+      where: { id: params.id }
+    })
+
+    if (!existingOffer) {
+      return NextResponse.json({ error: "Offer not found" }, { status: 404 })
+    }
+
+    await db.offer.delete({
+      where: { id: params.id }
+    })
+
+    return NextResponse.json({ message: "Offer deleted successfully" })
+  } catch (error) {
+    console.error("Error deleting offer:", error)
+    return NextResponse.json({ error: "Failed to delete offer" }, { status: 500 })
+  }
+}

@@ -10,10 +10,12 @@ import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect } from "react"
 import { formatCurrency } from "@/lib/utils"
+import { OfferCarousel } from "@/components/offer-carousel"
 
 export default function HomePage() {
   const [categories, setCategories] = useState([])
   const [featuredProducts, setFeaturedProducts] = useState([])
+  const [offers, setOffers] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -29,6 +31,11 @@ export default function HomePage() {
         const productsResponse = await fetch('/api/products?featured=true&limit=4')
         const productsData = await productsResponse.json()
         setFeaturedProducts(productsData.products || [])
+
+        // Fetch active offers for home page
+        const offersResponse = await fetch('/api/offers?type=BANNER')
+        const offersData = await offersResponse.json()
+        setOffers(offersData.offers || [])
       } catch (error) {
         console.error('Error fetching data:', error)
       } finally {
@@ -326,44 +333,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Special Offer Section */}
-      <section className="py-16 md:py-24 container mx-auto px-4 animate-fade-in-up">
-        <Card className="overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 relative hover:shadow-2xl transition-shadow duration-500">
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 animate-shimmer" />
-          <CardContent className="p-0 relative">
-            <div className="grid gap-8 lg:grid-cols-2 items-center">
-              <div className="space-y-6 p-8 md:p-12 animate-slide-in-left">
-                <Badge className="rounded-full bg-primary text-primary-foreground border-0 animate-pulse-soft">
-                  Limited Time Offer
-                </Badge>
-                <h2 className="text-3xl font-bold tracking-tight md:text-4xl text-balance">
-                  Get 20% Off Your First Order
-                </h2>
-                <p className="text-muted-foreground text-pretty leading-relaxed">
-                  Join thousands of happy parents and discover why BabyBliss is the trusted choice for baby essentials.
-                  Use code <strong className="text-primary">WELCOME20</strong> at checkout.
-                </p>
-                <Link href="/products">
-                  <Button
-                    size="lg"
-                    className="rounded-full bg-primary hover:bg-primary/90 hover:scale-105 transition-all duration-300 hover:shadow-lg group"
-                  >
-                    Start Shopping{" "}
-                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-              </div>
-              <div className="relative p-8 md:p-12 animate-slide-in-right">
-                <img
-                  src="/baby-products-collection.jpg"
-                  alt="Baby Products Collection"
-                  className="w-full h-auto rounded-2xl shadow-xl"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+      {/* Offers Carousel Section */}
+      <OfferCarousel offers={offers} />
 
       <Footer />
     </div>

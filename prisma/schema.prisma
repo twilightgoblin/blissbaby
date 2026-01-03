@@ -238,6 +238,32 @@ model Shipment {
   @@map("shipments")
 }
 
+model Offer {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  code        String?     @unique // Discount code (optional for banners)
+  type        OfferType
+  discountType DiscountType
+  discountValue Decimal   @db.Decimal(10, 2)
+  minOrderAmount Decimal? @db.Decimal(10, 2)
+  maxDiscountAmount Decimal? @db.Decimal(10, 2)
+  usageLimit  Int?        // Max number of uses
+  usageCount  Int         @default(0)
+  isActive    Boolean     @default(true)
+  startDate   DateTime
+  endDate     DateTime?
+  image       String?     // Banner image URL
+  buttonText  String?     // CTA button text
+  buttonLink  String?     // CTA button link
+  position    String?     // Banner position (home-hero, products, etc.)
+  priority    Int         @default(0) // Display priority
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("offers")
+}
+
 // Enums
 enum UserRole {
   CUSTOMER
@@ -312,4 +338,16 @@ enum ShipmentStatus {
   DELIVERED
   FAILED_DELIVERY
   RETURNED
+}
+
+enum OfferType {
+  DISCOUNT_CODE
+  BANNER
+  BOTH
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_SHIPPING
 }
