@@ -5,13 +5,16 @@ import { OfferType, DiscountType } from "@/lib/generated/prisma"
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+
+    // Await params in Next.js 15+
+    const { id } = await params
 
     const body = await request.json()
     const {
@@ -35,7 +38,7 @@ export async function PUT(
 
     // Check if offer exists
     const existingOffer = await db.offer.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingOffer) {
@@ -56,7 +59,7 @@ export async function PUT(
     }
 
     const offer = await db.offer.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         title,
         description,
@@ -87,7 +90,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth()
@@ -95,22 +98,48 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
+    // Await params in Next.js 15+
+    const { id } = await params
+    
+    console.log(`Attempting to delete offer with ID: ${id}`)
+
+    if (!id) {
+      console.log('No ID provided in request')
+      return NextResponse.json({ error: "Offer ID is required" }, { status: 400 })
+    }
+
     // Check if offer exists
     const existingOffer = await db.offer.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!existingOffer) {
+      console.log(`Offer not found: ${id}`)
       return NextResponse.json({ error: "Offer not found" }, { status: 404 })
     }
 
+    console.log(`Found offer to delete: ${existingOffer.title} (${existingOffer.type})`)
+
     await db.offer.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
+    console.log(`Successfully deleted offer: ${id}`)
     return NextResponse.json({ message: "Offer deleted successfully" })
   } catch (error) {
     console.error("Error deleting offer:", error)
-    return NextResponse.json({ error: "Failed to delete offer" }, { status: 500 })
+    
+    // Provide more specific error messages
+    if (error.code === 'P2025') {
+      return NextResponse.json({ error: "Offer not found or already deleted" }, { status: 404 })
+    }
+    
+    if (error.code === 'P2003') {
+      return NextResponse.json({ error: "Cannot delete offer due to related records" }, { status: 400 })
+    }
+    
+    return NextResponse.json({ 
+      error: `Failed to delete offer: ${error.message || 'Unknown database error'}` 
+    }, { status: 500 })
   }
 }

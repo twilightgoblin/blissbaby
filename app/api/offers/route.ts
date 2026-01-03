@@ -4,7 +4,7 @@ import { db } from "@/lib/db"
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const type = searchParams.get("type") // 'DISCOUNT_CODE', 'BANNER', or 'BOTH'
+    const type = searchParams.get("type") // 'BANNER' or 'BOTH'
 
     const now = new Date()
     
@@ -18,7 +18,10 @@ export async function GET(request: NextRequest) {
       ]
     }
     
-    if (type) {
+    // Only support BANNER and BOTH types now
+    if (type === 'BANNER') {
+      where.type = { in: ['BANNER', 'BOTH'] }
+    } else if (type) {
       where.type = type
     }
 

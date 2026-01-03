@@ -28,7 +28,7 @@ interface Offer {
   title: string
   description?: string
   code?: string
-  type: 'DISCOUNT_CODE' | 'BANNER' | 'BOTH'
+  type: 'BANNER' | 'BOTH' | 'DISCOUNT_CODE' // Temporarily allow DISCOUNT_CODE for backward compatibility
   discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING'
   discountValue: number
   minOrderAmount?: number
@@ -120,6 +120,20 @@ export default function OffersPage() {
       return
     }
 
+    // Validate that banner fields are provided for BANNER and BOTH types
+    if (formData.type === 'BANNER' || formData.type === 'BOTH') {
+      if (!formData.image || formData.image.length === 0) {
+        toast.error('Banner image is required for banner offers')
+        return
+      }
+    }
+
+    // Validate that discount code is provided for BOTH type
+    if (formData.type === 'BOTH' && !formData.code) {
+      toast.error('Discount code is required for banner + discount code offers')
+      return
+    }
+
     setSubmitting(true)
     try {
       const response = await fetch('/api/admin/offers', {
@@ -177,6 +191,20 @@ export default function OffersPage() {
       return
     }
 
+    // Validate that banner fields are provided for BANNER and BOTH types
+    if (formData.type === 'BANNER' || formData.type === 'BOTH') {
+      if (!formData.image || formData.image.length === 0) {
+        toast.error('Banner image is required for banner offers')
+        return
+      }
+    }
+
+    // Validate that discount code is provided for BOTH type
+    if (formData.type === 'BOTH' && !formData.code) {
+      toast.error('Discount code is required for banner + discount code offers')
+      return
+    }
+
     setSubmitting(true)
     try {
       const response = await fetch(`/api/admin/offers/${selectedOffer.id}`, {
@@ -214,13 +242,16 @@ export default function OffersPage() {
         method: 'DELETE'
       })
 
-      if (!response.ok) throw new Error('Failed to delete offer')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`)
+      }
 
       toast.success('Offer deleted successfully')
       fetchOffers()
     } catch (error) {
       console.error('Error deleting offer:', error)
-      toast.error('Failed to delete offer')
+      toast.error(`Failed to delete offer: ${error.message}`)
     }
   }
 
@@ -239,6 +270,36 @@ export default function OffersPage() {
     } catch (error) {
       console.error('Error updating offer status:', error)
       toast.error('Failed to update offer status')
+    }
+  }
+
+  const migrateOffer = async (offer: Offer) => {
+    if (!confirm(`Migrate "${offer.title}" from Discount Code Only to Banner + Discount Code?`)) return
+
+    try {
+      const response = await fetch(`/api/admin/offers/${offer.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...offer,
+          type: 'BOTH',
+          image: offer.image || '',
+          buttonText: offer.buttonText || 'Shop Now',
+          buttonLink: offer.buttonLink || '/products',
+          position: 'home-hero'
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(errorData.error || 'Failed to migrate offer')
+      }
+
+      toast.success('Offer migrated successfully')
+      fetchOffers()
+    } catch (error) {
+      console.error('Error migrating offer:', error)
+      toast.error(`Failed to migrate offer: ${error.message}`)
     }
   }
 
@@ -353,7 +414,6 @@ export default function OffersPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="BANNER">Banner Only</SelectItem>
-                      <SelectItem value="DISCOUNT_CODE">Discount Code Only</SelectItem>
                       <SelectItem value="BOTH">Banner + Discount Code</SelectItem>
                     </SelectContent>
                   </Select>
@@ -372,7 +432,7 @@ export default function OffersPage() {
                 />
               </div>
 
-              {(formData.type === 'DISCOUNT_CODE' || formData.type === 'BOTH') && (
+              {(formData.type === 'BOTH') && (
                 <div className="space-y-2">
                   <Label htmlFor="code">Discount Code</Label>
                   <Input
@@ -530,6 +590,11 @@ export default function OffersPage() {
                         <Badge variant="outline" className="text-xs">
                           {offer.type.replace('_', ' ')}
                         </Badge>
+                        {offer.type === 'DISCOUNT_CODE' && (
+                          <Badge variant="destructive" className="text-xs">
+                            Legacy - Needs Migration
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -577,6 +642,16 @@ export default function OffersPage() {
                     />
                     <Label className="text-sm">Active</Label>
                   </div>
+                  {offer.type === 'DISCOUNT_CODE' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => migrateOffer(offer)}
+                      className="rounded-full bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200"
+                    >
+                      Migrate
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"
@@ -647,7 +722,6 @@ export default function OffersPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="BANNER">Banner Only</SelectItem>
-                    <SelectItem value="DISCOUNT_CODE">Discount Code Only</SelectItem>
                     <SelectItem value="BOTH">Banner + Discount Code</SelectItem>
                   </SelectContent>
                 </Select>
@@ -666,7 +740,7 @@ export default function OffersPage() {
               />
             </div>
 
-            {(formData.type === 'DISCOUNT_CODE' || formData.type === 'BOTH') && (
+            {(formData.type === 'BOTH') && (
               <div className="space-y-2">
                 <Label htmlFor="edit-code">Discount Code</Label>
                 <Input

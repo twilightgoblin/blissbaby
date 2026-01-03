@@ -4,7 +4,7 @@ import { currentUser } from '@clerk/nextjs/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await currentUser();
@@ -16,10 +16,13 @@ export async function GET(
       );
     }
 
+    // Await params in Next.js 15+
+    const { id } = await params
+
     // Get specific order with full details using Clerk user ID
     const order = await db.order.findFirst({
       where: { 
-        id: params.id,
+        id,
         clerkUserId: user.id 
       },
       include: {

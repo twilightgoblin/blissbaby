@@ -4,18 +4,19 @@ import { useState, useEffect, useCallback } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ArrowRight, Sparkles, ChevronLeft, ChevronRight } from "lucide-react"
+import { ArrowRight, Sparkles, ChevronLeft, ChevronRight, Copy, Check } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { formatCurrency } from "@/lib/utils"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 interface Offer {
   id: string
   title: string
   description?: string
   code?: string
-  type: 'DISCOUNT_CODE' | 'BANNER' | 'BOTH'
+  type: 'BANNER' | 'BOTH'
   discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING'
   discountValue: number
   image?: string
@@ -36,9 +37,7 @@ export function OfferCarousel({
 }: OfferCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
-  const [progress, setProgress] = useState(0)
-  const [touchStart, setTouchStart] = useState<number | null>(null)
-  const [touchEnd, setTouchEnd] = useState<number | null>(null)
+  const [copiedCode, setCopiedCode] = useState<string | null>(null)
 
   const formatDiscountValue = (offer: Offer) => {
     switch (offer.discountType) {
@@ -53,16 +52,14 @@ export function OfferCarousel({
     }
   }
 
-  const getDiscountText = (offer: Offer) => {
-    switch (offer.discountType) {
-      case 'PERCENTAGE':
-        return `Get ${offer.discountValue}% Off`
-      case 'FIXED_AMOUNT':
-        return `Save ${formatCurrency(offer.discountValue)}`
-      case 'FREE_SHIPPING':
-        return 'Free Shipping'
-      default:
-        return `Get ${offer.discountValue}% Off`
+  const copyToClipboard = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopiedCode(code)
+      toast.success(`Discount code "${code}" copied to clipboard!`)
+      setTimeout(() => setCopiedCode(null), 2000)
+    } catch (err) {
+      toast.error('Failed to copy discount code')
     }
   }
 
@@ -82,37 +79,37 @@ export function OfferCarousel({
     setCurrentIndex(index)
   }, [])
 
-  // Auto-play functionality with progress
+  // Auto-play functionality - simplified and working
   useEffect(() => {
-    if (!isAutoPlaying || offers.length <= 1) return
-
-    setProgress(0)
-    const progressInterval = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          return 0
-        }
-        return prev + (100 / (autoPlayInterval / 50))
+    if (!isAutoPlaying || offers.length <= 1) {
+      return
+    }
+    
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => {
+        const nextIndex = prevIndex === offers.length - 1 ? 0 : prevIndex + 1
+        return nextIndex
       })
-    }, 50)
-
-    const slideInterval = setInterval(nextSlide, autoPlayInterval)
+    }, autoPlayInterval)
     
     return () => {
-      clearInterval(progressInterval)
-      clearInterval(slideInterval)
+      clearInterval(interval)
     }
-  }, [isAutoPlaying, nextSlide, autoPlayInterval, offers.length, currentIndex])
+  }, [isAutoPlaying, autoPlayInterval, offers.length])
 
   // Pause auto-play on hover, resume on mouse leave
   const handleMouseEnter = () => {
     setIsAutoPlaying(false)
-    setProgress(0)
   }
-  const handleMouseLeave = () => setIsAutoPlaying(true)
+  
+  const handleMouseLeave = () => {
+    setIsAutoPlaying(true)
+  }
 
   // Touch/swipe support
   const minSwipeDistance = 50
+  const [touchStart, setTouchStart] = useState<number | null>(null)
+  const [touchEnd, setTouchEnd] = useState<number | null>(null)
 
   const onTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null)
@@ -152,7 +149,9 @@ export function OfferCarousel({
   }, [nextSlide, prevSlide])
 
   // Don't render if no offers
-  if (!offers || offers.length === 0) return null
+  if (!offers || offers.length === 0) {
+    return null
+  }
 
   // Single offer - render without carousel
   if (offers.length === 1) {
@@ -174,15 +173,36 @@ export function OfferCarousel({
                 <p className="text-muted-foreground text-pretty leading-relaxed">
                   {offer.description}
                 </p>
+                
+                {/* Discount Code Section - Only for BOTH type offers */}
+                {offer.code && offer.type === 'BOTH' && (
+                  <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl p-4 border border-primary/20">
+                    <div className="text-center space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">Use Discount Code</p>
+                      <div 
+                        className="bg-background rounded-xl px-4 py-3 border-2 border-dashed border-primary/30 cursor-pointer hover:border-primary/50 transition-colors group"
+                        onClick={() => copyToClipboard(offer.code!)}
+                      >
+                        <div className="flex items-center justify-center gap-2">
+                          <p className="text-2xl font-bold font-mono text-primary tracking-wider">
+                            {offer.code}
+                          </p>
+                          {copiedCode === offer.code ? (
+                            <Check className="h-5 w-5 text-green-500" />
+                          ) : (
+                            <Copy className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Click to copy • Use at checkout</p>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                   <div className="text-4xl font-bold text-primary animate-bounce-soft">
                     {formatDiscountValue(offer)}
                   </div>
-                  {offer.code && (
-                    <Badge variant="outline" className="text-sm font-mono bg-background/50 backdrop-blur-sm">
-                      Code: {offer.code}
-                    </Badge>
-                  )}
                 </div>
                 <Button asChild size="lg" className="rounded-full bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 group">
                   <Link href={offer.buttonLink || '/products'}>
@@ -246,15 +266,36 @@ export function OfferCarousel({
                         <p className="text-muted-foreground text-pretty leading-relaxed">
                           {offer.description}
                         </p>
+                        
+                        {/* Discount Code Section - Only for BOTH type offers */}
+                        {offer.code && offer.type === 'BOTH' && (
+                          <div className="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl p-4 border border-primary/20">
+                            <div className="text-center space-y-2">
+                              <p className="text-sm font-medium text-muted-foreground">Use Discount Code</p>
+                              <div 
+                                className="bg-background rounded-xl px-4 py-3 border-2 border-dashed border-primary/30 cursor-pointer hover:border-primary/50 transition-colors group"
+                                onClick={() => copyToClipboard(offer.code!)}
+                              >
+                                <div className="flex items-center justify-center gap-2">
+                                  <p className="text-2xl font-bold font-mono text-primary tracking-wider">
+                                    {offer.code}
+                                  </p>
+                                  {copiedCode === offer.code ? (
+                                    <Check className="h-5 w-5 text-green-500" />
+                                  ) : (
+                                    <Copy className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                  )}
+                                </div>
+                              </div>
+                              <p className="text-xs text-muted-foreground">Click to copy • Use at checkout</p>
+                            </div>
+                          </div>
+                        )}
+                        
                         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                           <div className="text-4xl font-bold text-primary animate-bounce-soft">
                             {formatDiscountValue(offer)}
                           </div>
-                          {offer.code && (
-                            <Badge variant="outline" className="text-sm font-mono bg-background/50 backdrop-blur-sm">
-                              Code: {offer.code}
-                            </Badge>
-                          )}
                         </div>
                         <Button asChild size="lg" className="rounded-full bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 group">
                           <Link href={offer.buttonLink || '/products'}>
@@ -297,30 +338,26 @@ export function OfferCarousel({
             <ChevronRight className="h-5 w-5" />
           </button>
 
-          {/* Dots Indicator with Progress */}
+          {/* Dots Indicator */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-            {offers.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => goToSlide(index)}
-                className={cn(
-                  "relative w-2 h-2 rounded-full transition-all duration-200 overflow-hidden",
-                  index === currentIndex 
-                    ? "bg-primary w-6" 
-                    : "bg-background/50 hover:bg-background/70"
+            {offers.map((offer, index) => (
+              <div key={index} className="relative">
+                <button
+                  onClick={() => goToSlide(index)}
+                  className={cn(
+                    "w-2 h-2 rounded-full transition-all duration-200",
+                    index === currentIndex 
+                      ? "bg-primary w-6" 
+                      : "bg-background/50 hover:bg-background/70"
+                  )}
+                  aria-label={`Go to offer ${index + 1}${offer.code && offer.type === 'BOTH' ? ` (Code: ${offer.code})` : ''}`}
+                  title={offer.code && offer.type === 'BOTH' ? `${offer.title} - Code: ${offer.code}` : offer.title}
+                />
+                {/* Small indicator for BOTH type offers with discount codes */}
+                {offer.code && offer.type === 'BOTH' && (
+                  <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-green-500 rounded-full border border-background"></div>
                 )}
-                aria-label={`Go to offer ${index + 1}`}
-              >
-                {index === currentIndex && isAutoPlaying && offers.length > 1 && (
-                  <div 
-                    className="absolute inset-0 bg-primary-foreground/30 transition-all duration-75 ease-linear"
-                    style={{ 
-                      width: `${progress}%`,
-                      transformOrigin: 'left'
-                    }}
-                  />
-                )}
-              </button>
+              </div>
             ))}
           </div>
         </Card>
