@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import { db } from "@/lib/db"
-import { OfferType, DiscountType } from "@/lib/generated/prisma"
+import { OfferType, DiscountType } from "@prisma/client"
 
 export async function GET(request: NextRequest) {
   try {

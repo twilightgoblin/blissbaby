@@ -1,5 +1,5 @@
 import { db } from './db'
-import { ProductStatus, OrderStatus, PaymentStatus } from './generated/prisma'
+import { ProductStatus, OrderStatus, PaymentStatus } from '@prisma/client'
 import { currentUser } from '@clerk/nextjs/server'
 
 // Utility function to get user email and name from Clerk

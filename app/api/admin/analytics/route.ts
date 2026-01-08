@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { OrderStatus, PaymentStatus } from '@/lib/generated/prisma'
+import { OrderStatus, PaymentStatus } from '@prisma/client'
 import { stripe } from '@/lib/stripe'
 
 export async function GET(request: NextRequest) {
