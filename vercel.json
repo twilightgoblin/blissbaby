@@ -5,6 +5,6 @@
       "maxDuration": 60
     }
   },
-  "buildCommand": "npx prisma generate && next build",
+  "buildCommand": "DATABASE_URL='postgresql://localhost:5432/postgres' npx prisma generate && next build",
   "installCommand": "npm ci"
 }
