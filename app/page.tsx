@@ -12,10 +12,33 @@ import { useState, useEffect } from "react"
 import { formatCurrency } from "@/lib/utils"
 import { OfferCarousel } from "@/components/offer-carousel"
 
+interface Category {
+  id: string
+  name: string
+  image?: string
+  icon?: string
+  color?: string
+  _count?: {
+    products: number
+  }
+}
+
+interface Product {
+  id: string
+  name: string
+  price: string
+  salePrice?: string
+  comparePrice?: string
+  images?: string[]
+  featured?: boolean
+  rating?: string
+  reviewCount?: string
+}
+
 export default function HomePage() {
-  const [categories, setCategories] = useState([])
-  const [featuredProducts, setFeaturedProducts] = useState([])
-  const [offers, setOffers] = useState([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
+  const [offers, setOffers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -199,7 +222,7 @@ export default function HomePage() {
                               <h3 className="font-semibold text-sm group-hover:text-primary transition-colors duration-300 line-clamp-2 leading-tight">
                                 {category.name}
                               </h3>
-                              {category._count?.products > 0 && (
+                              {category._count?.products && category._count.products > 0 && (
                                 <p className="text-xs text-muted-foreground">
                                   {category._count.products} items
                                 </p>
@@ -277,7 +300,7 @@ export default function HomePage() {
                           )}
                           {product.salePrice && product.salePrice < product.price && (
                             <Badge className="absolute right-3 top-3 z-10 rounded-full bg-destructive text-destructive-foreground border-0 text-xs px-3 py-1.5 font-semibold">
-                              {Math.round(((product.price - product.salePrice) / product.price) * 100)}% OFF
+                              {Math.round(((parseFloat(product.price) - parseFloat(product.salePrice)) / parseFloat(product.price)) * 100)}% OFF
                             </Badge>
                           )}
                           <img

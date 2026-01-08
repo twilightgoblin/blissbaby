@@ -30,10 +30,10 @@ export async function POST(request: NextRequest) {
 
     const category = await createCategory({ name, description, icon, image, color })
     return NextResponse.json(category, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating category:', error)
     
-    if (error.code === 'P2002') {
+    if (error?.code === 'P2002') {
       return NextResponse.json(
         { error: 'Category name already exists' },
         { status: 409 }

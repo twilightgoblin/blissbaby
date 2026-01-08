@@ -134,8 +134,8 @@ export default function CategoriesPage() {
       setIsAddDialogOpen(false)
       resetForm()
       fetchCategories()
-    } catch (error) {
-      toast.error(error.message)
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to create category')
     } finally {
       setSubmitting(false)
     }
@@ -164,8 +164,8 @@ export default function CategoriesPage() {
       setSelectedCategory(null)
       resetForm()
       fetchCategories()
-    } catch (error) {
-      toast.error(error.message)
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to update category')
     } finally {
       setSubmitting(false)
     }
@@ -191,8 +191,8 @@ export default function CategoriesPage() {
       setIsDeleteDialogOpen(false)
       setSelectedCategory(null)
       fetchCategories()
-    } catch (error) {
-      toast.error(error.message)
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to delete category')
     } finally {
       setSubmitting(false)
     }
@@ -493,7 +493,7 @@ export default function CategoriesPage() {
             <AlertDialogTitle>Delete Category</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete "{selectedCategory?.name}"? 
-              {selectedCategory?._count.products > 0 && (
+              {selectedCategory?._count?.products && selectedCategory._count.products > 0 && (
                 <span className="text-destructive font-medium">
                   {" "}This category has {selectedCategory._count.products} products and cannot be deleted.
                 </span>
@@ -505,7 +505,7 @@ export default function CategoriesPage() {
             <AlertDialogAction 
               className="rounded-full bg-destructive hover:bg-destructive/90"
               onClick={handleDeleteCategory}
-              disabled={submitting || (selectedCategory?._count.products > 0)}
+              disabled={submitting || Boolean(selectedCategory?._count?.products && selectedCategory._count.products > 0)}
             >
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Delete

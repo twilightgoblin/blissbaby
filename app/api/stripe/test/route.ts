@@ -23,7 +23,7 @@ export async function GET() {
     
     // Test Stripe connection
     const stripe = new Stripe(secretKey, {
-      apiVersion: '2024-12-18.acacia',
+      apiVersion: '2025-12-15.clover',
     })
     
     // Try to retrieve account info (this will fail if keys are invalid)

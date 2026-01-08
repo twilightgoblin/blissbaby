@@ -55,7 +55,32 @@ export default function StripeCheckoutForm({
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([])
   const [loadingAddresses, setLoadingAddresses] = useState(false)
   const [selectedAddress, setSelectedAddress] = useState<SavedAddress | null>(null)
-  const [addressData, setAddressData] = useState({
+  const [addressData, setAddressData] = useState<{
+    shippingAddress: {
+      firstName: string
+      lastName: string
+      company: string
+      addressLine1: string
+      addressLine2: string
+      city: string
+      state: string
+      postalCode: string
+      country: string
+      phone: string
+    } | null
+    billingAddress: {
+      firstName: string
+      lastName: string
+      company: string
+      addressLine1: string
+      addressLine2: string
+      city: string
+      state: string
+      postalCode: string
+      country: string
+      phone: string
+    } | null
+  }>({
     shippingAddress: null,
     billingAddress: null
   })
@@ -204,7 +229,18 @@ export default function StripeCheckoutForm({
         
         // Get address data from Stripe Elements or use pre-filled data
         const addressElement = elements.getElement('address')
-        let shippingAddress = addressData.shippingAddress // Use pre-filled address if available
+        let shippingAddress: {
+          firstName: string
+          lastName: string
+          company: string
+          addressLine1: string
+          addressLine2: string
+          city: string
+          state: string
+          postalCode: string
+          country: string
+          phone: string
+        } | null = addressData.shippingAddress // Use pre-filled address if available
         let billingAddress = addressData.billingAddress
         
         // If no pre-filled address, try to get from Stripe Elements

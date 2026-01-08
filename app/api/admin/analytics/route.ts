@@ -263,9 +263,9 @@ export async function GET(request: NextRequest) {
 
     // Calculate percentage changes
     const orderChange = prevOrders > 0 ? ((currentPeriodOrders - prevOrders) / prevOrders * 100) : (currentPeriodOrders > 0 ? 100 : 0)
-    const revenueChange = (prevRevenue._sum.amount || 0) > 0 
-      ? (((currentPeriodRevenue._sum.amount || 0) - (prevRevenue._sum.amount || 0)) / Number(prevRevenue._sum.amount) * 100) 
-      : ((currentPeriodRevenue._sum.amount || 0) > 0 ? 100 : 0)
+    const revenueChange = Number(prevRevenue._sum.amount || 0) > 0 
+      ? ((Number(currentPeriodRevenue._sum.amount || 0) - Number(prevRevenue._sum.amount || 0)) / Number(prevRevenue._sum.amount) * 100) 
+      : (Number(currentPeriodRevenue._sum.amount || 0) > 0 ? 100 : 0)
 
     // Calculate product and customer changes based on recent activity
     const prevProducts = await db.product.count({

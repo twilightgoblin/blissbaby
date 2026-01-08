@@ -17,6 +17,26 @@ import { useCart } from "@/contexts/cart-context"
 import { toast } from "sonner"
 import { formatCurrency } from "@/lib/utils"
 
+interface Product {
+  id: string
+  name: string
+  price: string
+  comparePrice?: string
+  salePrice?: string
+  images?: string[]
+  description?: string
+  category?: {
+    name: string
+  }
+  brand?: string
+  sku?: string
+  weight?: string
+  inventory: number
+  lowStock?: number
+  featured?: boolean
+  tags?: string[]
+}
+
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
   const { user, isSignedIn } = useUser()
@@ -29,8 +49,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [addingToCart, setAddingToCart] = useState(false)
   const [productId, setProductId] = useState<string | null>(null)
 
-  const [product, setProduct] = useState(null)
-  const [relatedProducts, setRelatedProducts] = useState([])
+  const [product, setProduct] = useState<Product | null>(null)
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([])
 
   useEffect(() => {
     const getParams = async () => {
@@ -361,7 +381,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 <div className="flex items-center gap-2 text-sm text-green-600 animate-fade-in">
                   <Check className="h-4 w-4" />
                   <span className="font-medium">
-                    {product.inventory <= product.lowStock 
+                    {product.inventory <= (product.lowStock || 5)
                       ? `Only ${product.inventory} left in stock!` 
                       : 'In Stock - Ships within 24 hours'
                     }

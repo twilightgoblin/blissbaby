@@ -98,11 +98,11 @@ export default function CheckoutPage() {
       setOrderNumber(orderNum)
       
       // Prepare cart items for order creation
-      const cartItems = cart.items.map(item => ({
+      const cartItems = cart?.items.map(item => ({
         productId: item.product.id,
         quantity: item.quantity,
         unitPrice: item.product.price,
-      }))
+      })) || []
 
       // Create order in database
       const orderResponse = await fetch('/api/orders', {
@@ -265,7 +265,7 @@ export default function CheckoutPage() {
           {isSignedIn && user && (
             <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
               <p className="text-sm text-primary">
-                Welcome back, {user.name || user.email}! Your order will be saved to your account.
+                Welcome back, {user.firstName || user.emailAddresses?.[0]?.emailAddress}! Your order will be saved to your account.
               </p>
             </div>
           )}

@@ -47,17 +47,17 @@ export async function PUT(
     })
 
     return NextResponse.json(category)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating category:', error)
     
-    if (error.code === 'P2002') {
+    if (error?.code === 'P2002') {
       return NextResponse.json(
         { error: 'Category name already exists' },
         { status: 409 }
       )
     }
 
-    if (error.code === 'P2025') {
+    if (error?.code === 'P2025') {
       return NextResponse.json(
         { error: 'Category not found' },
         { status: 404 }
@@ -80,17 +80,17 @@ export async function DELETE(
     const { id } = await params
     await deleteCategory(id)
     return NextResponse.json({ message: 'Category deleted successfully' })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error deleting category:', error)
     
-    if (error.message === 'Category not found') {
+    if (error?.message === 'Category not found') {
       return NextResponse.json(
         { error: 'Category not found' },
         { status: 404 }
       )
     }
 
-    if (error.message.includes('Cannot delete category with products')) {
+    if (error?.message?.includes('Cannot delete category with products')) {
       return NextResponse.json(
         { error: error.message },
         { status: 400 }

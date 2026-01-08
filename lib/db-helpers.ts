@@ -40,11 +40,17 @@ export const createProduct = async (data: {
 }) => {
   return await db.product.create({
     data: {
-      ...data,
+      name: data.name,
+      description: data.description,
       price: data.price,
       status: ProductStatus.ACTIVE,
       inventory: data.inventory || 0,
-      images: data.images || []
+      images: data.images || [],
+      brand: data.brand,
+      sku: data.sku,
+      category: {
+        connect: { id: data.category }
+      }
     }
   })
 }

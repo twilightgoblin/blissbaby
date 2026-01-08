@@ -10,9 +10,22 @@ import { Search, Mail, Phone, MapPin, ShoppingBag, Star } from "lucide-react"
 import { useState, useEffect } from "react"
 import { formatCurrency } from "@/lib/utils"
 
+interface Customer {
+  id: string
+  name: string
+  email: string
+  phone?: string
+  location?: string
+  avatar?: string
+  status: string
+  joinDate: string
+  orders: number
+  totalSpent: number
+}
+
 export default function CustomersPage() {
   // TODO: Replace with API call to fetch real customers
-  const [customers, setCustomers] = useState([])
+  const [customers, setCustomers] = useState<Customer[]>([])
 
   // TODO: Add useEffect to fetch real customers from API
   useEffect(() => {

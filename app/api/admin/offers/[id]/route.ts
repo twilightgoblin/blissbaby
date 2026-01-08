@@ -126,20 +126,20 @@ export async function DELETE(
 
     console.log(`Successfully deleted offer: ${id}`)
     return NextResponse.json({ message: "Offer deleted successfully" })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error deleting offer:", error)
     
     // Provide more specific error messages
-    if (error.code === 'P2025') {
+    if (error?.code === 'P2025') {
       return NextResponse.json({ error: "Offer not found or already deleted" }, { status: 404 })
     }
     
-    if (error.code === 'P2003') {
+    if (error?.code === 'P2003') {
       return NextResponse.json({ error: "Cannot delete offer due to related records" }, { status: 400 })
     }
     
     return NextResponse.json({ 
-      error: `Failed to delete offer: ${error.message || 'Unknown database error'}` 
+      error: `Failed to delete offer: ${error?.message || 'Unknown database error'}` 
     }, { status: 500 })
   }
 }

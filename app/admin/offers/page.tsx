@@ -56,19 +56,36 @@ export default function OffersPage() {
   const [submitting, setSubmitting] = useState(false)
 
   // Form state
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string
+    description: string
+    code: string
+    type: 'BANNER' | 'BOTH' | 'DISCOUNT_CODE'
+    discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING'
+    discountValue: string
+    minOrderAmount: string
+    maxDiscountAmount: string
+    usageLimit: string
+    startDate: string
+    endDate: string
+    image: string[]
+    buttonText: string
+    buttonLink: string
+    priority: string
+    isActive: boolean
+  }>({
     title: '',
     description: '',
     code: '',
-    type: 'BANNER' as const,
-    discountType: 'PERCENTAGE' as const,
+    type: 'BANNER',
+    discountType: 'PERCENTAGE',
     discountValue: '',
     minOrderAmount: '',
     maxDiscountAmount: '',
     usageLimit: '',
     startDate: '',
     endDate: '',
-    image: [] as string[],
+    image: [],
     buttonText: 'Shop Now',
     buttonLink: '/products',
     priority: '0',
@@ -249,9 +266,9 @@ export default function OffersPage() {
 
       toast.success('Offer deleted successfully')
       fetchOffers()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting offer:', error)
-      toast.error(`Failed to delete offer: ${error.message}`)
+      toast.error(`Failed to delete offer: ${error?.message || 'Unknown error'}`)
     }
   }
 
@@ -267,7 +284,7 @@ export default function OffersPage() {
 
       toast.success(`Offer ${!offer.isActive ? 'activated' : 'deactivated'}`)
       fetchOffers()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating offer status:', error)
       toast.error('Failed to update offer status')
     }
@@ -297,9 +314,9 @@ export default function OffersPage() {
 
       toast.success('Offer migrated successfully')
       fetchOffers()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error migrating offer:', error)
-      toast.error(`Failed to migrate offer: ${error.message}`)
+      toast.error(`Failed to migrate offer: ${error?.message || 'Unknown error'}`)
     }
   }
 

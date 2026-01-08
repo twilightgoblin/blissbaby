@@ -78,7 +78,25 @@ export default function ProductsPage() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string
+    description: string
+    price: string
+    comparePrice: string
+    categoryId: string
+    brand: string
+    inventory: string
+    lowStock: string
+    sku: string
+    barcode: string
+    weight: string
+    featured: boolean
+    status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'
+    tags: string[]
+    seoTitle: string
+    seoDescription: string
+    images: string[]
+  }>({
     name: '',
     description: '',
     price: '',
@@ -91,11 +109,11 @@ export default function ProductsPage() {
     barcode: '',
     weight: '',
     featured: false,
-    status: 'ACTIVE' as const,
-    tags: [] as string[],
+    status: 'ACTIVE',
+    tags: [],
     seoTitle: '',
     seoDescription: '',
-    images: [] as string[]
+    images: []
   })
 
   // Fetch products and categories

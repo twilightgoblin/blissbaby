@@ -56,19 +56,19 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Name</label>
-                <p className="text-lg">{user.name || 'Not provided'}</p>
+                <p className="text-lg">{user.firstName || user.lastName ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Not provided'}</p>
               </div>
               
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Email</label>
-                <p className="text-lg">{user.email}</p>
+                <p className="text-lg">{user.primaryEmailAddress?.emailAddress || user.emailAddresses?.[0]?.emailAddress}</p>
               </div>
               
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Role</label>
                 <div className="mt-1">
-                  <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'}>
-                    {user.role}
+                  <Badge variant={(user.publicMetadata?.role as string) === 'ADMIN' ? 'default' : 'secondary'}>
+                    {(user.publicMetadata?.role as string) || 'USER'}
                   </Badge>
                 </div>
               </div>
@@ -79,22 +79,22 @@ export default function ProfilePage() {
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Member Since</label>
                   <p className="text-lg">
-                    {new Date(user.createdAt).toLocaleDateString('en-US', {
+                    {user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric'
-                    })}
+                    }) : 'Not available'}
                   </p>
                 </div>
                 
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Last Updated</label>
                   <p className="text-lg">
-                    {new Date(user.updatedAt).toLocaleDateString('en-US', {
+                    {user.updatedAt ? new Date(user.updatedAt).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric'
-                    })}
+                    }) : 'Not available'}
                   </p>
                 </div>
               </div>
