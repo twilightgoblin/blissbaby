@@ -1,11 +1,8 @@
 {
-  "buildCommand": "prisma generate && next build",
-  "outputDirectory": ".next",
   "framework": "nextjs",
   "functions": {
     "app/api/**/*.ts": {
       "maxDuration": 30
     }
-  },
-  "installCommand": "pnpm install --frozen-lockfile && prisma generate"
+  }
 }
