@@ -5,5 +5,5 @@
       "maxDuration": 30
     }
   },
-  "buildCommand": "npm run build"
+  "buildCommand": "npm run build && npm run db:deploy"
 }
