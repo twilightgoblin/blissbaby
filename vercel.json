@@ -5,5 +5,9 @@
       "maxDuration": 60
     }
   },
-  "buildCommand": "npm run build"
+  "buildCommand": "npx prisma generate && next build",
+  "installCommand": "npm ci",
+  "env": {
+    "SKIP_ENV_VALIDATION": "1"
+  }
 }

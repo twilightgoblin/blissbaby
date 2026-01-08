@@ -1,0 +1,10 @@
+# Ignore database scripts during deployment
+scripts/deploy-db.ts
+scripts/db-*.ts
+prisma/seed.ts
+
+# Ignore local env files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
