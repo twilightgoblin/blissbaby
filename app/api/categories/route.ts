@@ -12,8 +12,14 @@ export async function GET() {
     return NextResponse.json({ categories: activeCategories })
   } catch (error) {
     console.error('Error fetching categories:', error)
+    
+    // Return detailed error in development, generic in production
+    const errorMessage = process.env.NODE_ENV === 'development' 
+      ? `Failed to fetch categories: ${error instanceof Error ? error.message : 'Unknown error'}`
+      : 'Failed to fetch categories'
+    
     return NextResponse.json(
-      { error: 'Failed to fetch categories' },
+      { error: errorMessage },
       { status: 500 }
     )
   }

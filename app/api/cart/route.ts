@@ -18,8 +18,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ cart })
   } catch (error) {
     console.error('Error fetching cart:', error)
+    
+    // Return detailed error in development, generic in production
+    const errorMessage = process.env.NODE_ENV === 'development' 
+      ? `Failed to fetch cart: ${error instanceof Error ? error.message : 'Unknown error'}`
+      : 'Failed to fetch cart'
+    
     return NextResponse.json(
-      { error: 'Failed to fetch cart' },
+      { error: errorMessage },
       { status: 500 }
     )
   }
@@ -41,8 +47,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ cartItem }, { status: 201 })
   } catch (error) {
     console.error('Error adding to cart:', error)
+    
+    // Return detailed error in development, generic in production
+    const errorMessage = process.env.NODE_ENV === 'development' 
+      ? `Failed to add item to cart: ${error instanceof Error ? error.message : 'Unknown error'}`
+      : 'Failed to add item to cart'
+    
     return NextResponse.json(
-      { error: 'Failed to add item to cart' },
+      { error: errorMessage },
       { status: 500 }
     )
   }
