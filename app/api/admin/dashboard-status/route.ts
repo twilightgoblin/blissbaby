@@ -12,7 +12,7 @@ export async function GET() {
     ] = await Promise.all([
       db.product.count(),
       db.order.count(),
-      db.category.count(),
+      db.categories.count(),
       db.order.findFirst({
         include: {
           items: {

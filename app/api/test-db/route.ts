@@ -10,11 +10,11 @@ export async function GET() {
     console.log('Basic query result:', result)
     
     // Test categories table
-    const categoryCount = await db.category.count()
+    const categoryCount = await db.categories.count()
     console.log('Category count:', categoryCount)
     
     // Test a simple category fetch
-    const categories = await db.category.findMany({
+    const categories = await db.categories.findMany({
       take: 1,
       select: { id: true, name: true }
     })

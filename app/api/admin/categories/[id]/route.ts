@@ -79,7 +79,7 @@ export async function PUT(
 
     console.log('Update data prepared:', updateData)
 
-    const category = await db.category.update({
+    const category = await db.categories.update({
       where: { id },
       data: updateData
     })

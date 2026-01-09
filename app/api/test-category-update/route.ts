@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     console.log('Test data:', testData)
     
     // First, check if category exists
-    const existingCategory = await db.category.findUnique({
+    const existingCategory = await db.categories.findUnique({
       where: { id: categoryId }
     })
     
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     
     console.log('Update data:', updateData)
     
-    const updatedCategory = await db.category.update({
+    const updatedCategory = await db.categories.update({
       where: { id: categoryId },
       data: updateData
     })

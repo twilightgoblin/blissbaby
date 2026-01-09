@@ -15,7 +15,7 @@ async function main() {
 
   // Create categories
   const categories = await Promise.all([
-    prisma.category.upsert({
+    prisma.categories.upsert({
       where: { name: 'Baby Feeding' },
       update: {},
       create: {
@@ -26,7 +26,7 @@ async function main() {
         sortOrder: 1
       }
     }),
-    prisma.category.upsert({
+    prisma.categories.upsert({
       where: { name: 'Diapers & Wipes' },
       update: {},
       create: {
@@ -37,7 +37,7 @@ async function main() {
         sortOrder: 2
       }
     }),
-    prisma.category.upsert({
+    prisma.categories.upsert({
       where: { name: 'Baby Clothing' },
       update: {},
       create: {
@@ -48,7 +48,7 @@ async function main() {
         sortOrder: 3
       }
     }),
-    prisma.category.upsert({
+    prisma.categories.upsert({
       where: { name: 'Toys & Development' },
       update: {},
       create: {
@@ -59,7 +59,7 @@ async function main() {
         sortOrder: 4
       }
     }),
-    prisma.category.upsert({
+    prisma.categories.upsert({
       where: { name: 'Baby Care & Health' },
       update: {},
       create: {
@@ -70,7 +70,7 @@ async function main() {
         sortOrder: 5
       }
     }),
-    prisma.category.upsert({
+    prisma.categories.upsert({
       where: { name: 'Strollers & Car Seats' },
       update: {},
       create: {
@@ -81,7 +81,7 @@ async function main() {
         sortOrder: 6
       }
     }),
-    prisma.category.upsert({
+    prisma.categories.upsert({
       where: { name: 'Nursery Furniture' },
       update: {},
       create: {
@@ -92,7 +92,7 @@ async function main() {
         sortOrder: 7
       }
     }),
-    prisma.category.upsert({
+    prisma.categories.upsert({
       where: { name: 'Baby Sleep' },
       update: {},
       create: {
@@ -103,7 +103,7 @@ async function main() {
         sortOrder: 8
       }
     }),
-    prisma.category.upsert({
+    prisma.categories.upsert({
       where: { name: 'Bath Time' },
       update: {},
       create: {
@@ -114,7 +114,7 @@ async function main() {
         sortOrder: 9
       }
     }),
-    prisma.category.upsert({
+    prisma.categories.upsert({
       where: { name: 'Baby Gear' },
       update: {},
       create: {
@@ -125,7 +125,7 @@ async function main() {
         sortOrder: 10
       }
     }),
-    prisma.category.upsert({
+    prisma.categories.upsert({
       where: { name: 'Maternity' },
       update: {},
       create: {
@@ -136,7 +136,7 @@ async function main() {
         sortOrder: 11
       }
     }),
-    prisma.category.upsert({
+    prisma.categories.upsert({
       where: { name: 'Baby Safety' },
       update: {},
       create: {
@@ -147,7 +147,7 @@ async function main() {
         sortOrder: 12
       }
     }),
-    prisma.category.upsert({
+    prisma.categories.upsert({
       where: { name: 'Books & Learning' },
       update: {},
       create: {
@@ -158,7 +158,7 @@ async function main() {
         sortOrder: 13
       }
     }),
-    prisma.category.upsert({
+    prisma.categories.upsert({
       where: { name: 'Baby Monitors' },
       update: {},
       create: {
@@ -169,7 +169,7 @@ async function main() {
         sortOrder: 14
       }
     }),
-    prisma.category.upsert({
+    prisma.categories.upsert({
       where: { name: 'Pacifiers & Teethers' },
       update: {},
       create: {

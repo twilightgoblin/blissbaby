@@ -13,7 +13,7 @@ export interface UpdateCategoryData extends CreateCategoryData {
 }
 
 export async function getCategories() {
-  return await db.category.findMany({
+  return await db.categories.findMany({
     include: {
       _count: {
         select: { products: true }
@@ -24,7 +24,7 @@ export async function getCategories() {
 }
 
 export async function getCategoryById(id: string) {
-  return await db.category.findUnique({
+  return await db.categories.findUnique({
     where: { id },
     include: {
       _count: {
@@ -35,7 +35,7 @@ export async function getCategoryById(id: string) {
 }
 
 export async function createCategory(data: CreateCategoryData) {
-  return await db.category.create({
+  return await db.categories.create({
     data: {
       ...data,
       color: data.color || 'bg-blue-100'
@@ -52,7 +52,7 @@ export async function updateCategory(id: string, data: UpdateCategoryData) {
   // Ensure updatedAt is always set
   updateData.updatedAt = new Date()
   
-  return await db.category.update({
+  return await db.categories.update({
     where: { id },
     data: updateData
   })
@@ -65,7 +65,7 @@ export async function deleteCategory(id: string) {
   }
 
   // Check if category has products
-  const categoryWithProducts = await db.category.findUnique({
+  const categoryWithProducts = await db.categories.findUnique({
     where: { id },
     include: {
       _count: {
@@ -82,14 +82,14 @@ export async function deleteCategory(id: string) {
     throw new Error('Cannot delete category with products. Please move or delete products first.')
   }
 
-  return await db.category.delete({
+  return await db.categories.delete({
     where: { id }
   })
 }
 
 // Utility function to get categories for dropdown/select components
 export async function getCategoriesForSelect() {
-  const categories = await db.category.findMany({
+  const categories = await db.categories.findMany({
     where: { isActive: true },
     select: {
       id: true,
@@ -110,7 +110,7 @@ export async function getCategoriesForSelect() {
 
 // Get category statistics
 export async function getCategoryStats() {
-  const categories = await db.category.findMany({
+  const categories = await db.categories.findMany({
     include: {
       _count: {
         select: { products: true }

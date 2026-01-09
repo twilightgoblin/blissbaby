@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
     // Create categories
     const categories = await Promise.all([
-      db.category.upsert({
+      db.categories.upsert({
         where: { name: 'Baby Feeding' },
         update: {},
         create: {
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
           sortOrder: 1
         }
       }),
-      db.category.upsert({
+      db.categories.upsert({
         where: { name: 'Diapers & Wipes' },
         update: {},
         create: {
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
           sortOrder: 2
         }
       }),
-      db.category.upsert({
+      db.categories.upsert({
         where: { name: 'Baby Clothing' },
         update: {},
         create: {
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
           sortOrder: 3
         }
       }),
-      db.category.upsert({
+      db.categories.upsert({
         where: { name: 'Toys & Development' },
         update: {},
         create: {
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
           sortOrder: 4
         }
       }),
-      db.category.upsert({
+      db.categories.upsert({
         where: { name: 'Baby Care & Health' },
         update: {},
         create: {
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
           sortOrder: 5
         }
       }),
-      db.category.upsert({
+      db.categories.upsert({
         where: { name: 'Strollers & Car Seats' },
         update: {},
         create: {
