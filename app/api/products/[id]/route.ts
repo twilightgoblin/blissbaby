@@ -19,7 +19,7 @@ export async function GET(
     }
 
     // Get the product
-    const product = await db.product.findUnique({
+    const product = await db.products.findUnique({
       where: { 
         id,
         status: 'ACTIVE'
@@ -45,7 +45,7 @@ export async function GET(
     }
 
     // Get related products from the same category
-    const relatedProducts = await db.product.findMany({
+    const relatedProducts = await db.products.findMany({
       where: {
         categoryId: product.categoryId,
         status: 'ACTIVE',

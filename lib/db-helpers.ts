@@ -33,7 +33,7 @@ export const createProduct = async (data: {
   inventory?: number
   sku?: string
 }) => {
-  return await db.product.create({
+  return await db.products.create({
     data: {
       name: data.name,
       description: data.description,
@@ -51,7 +51,7 @@ export const createProduct = async (data: {
 }
 
 export const getActiveProducts = async (limit?: number) => {
-  return await db.product.findMany({
+  return await db.products.findMany({
     where: {
       status: ProductStatus.ACTIVE,
       inventory: {
@@ -112,12 +112,12 @@ export const addToCart = async (clerkUserId: string, productId: string, quantity
   const { userEmail, userName } = await getClerkUserInfo(clerkUserId)
   
   // Get product info
-  const product = await db.product.findUnique({
+  const product = await db.products.findUnique({
     where: { id: productId },
     select: { name: true }
   })
   
-  const existingItem = await db.cartItem.findUnique({
+  const existingItem = await db.cart_items.findUnique({
     where: {
       cartId_productId: {
         cartId: cart.id,
@@ -127,7 +127,7 @@ export const addToCart = async (clerkUserId: string, productId: string, quantity
   })
 
   if (existingItem) {
-    return await db.cartItem.update({
+    return await db.cart_items.update({
       where: { id: existingItem.id },
       data: {
         quantity: existingItem.quantity + quantity,
@@ -144,7 +144,7 @@ export const addToCart = async (clerkUserId: string, productId: string, quantity
       }
     })
   } else {
-    return await db.cartItem.create({
+    return await db.cart_items.create({
       data: {
         cartId: cart.id,
         productId,
@@ -184,7 +184,7 @@ export const createOrder = async (data: {
   
   const totalAmount = data.subtotal + (data.taxAmount || 0) + (data.shippingAmount || 0) - (data.discountAmount || 0)
 
-  return await db.order.create({
+  return await db.orders.create({
     data: {
       clerkUserId: data.clerkUserId,
       userEmail,
@@ -220,7 +220,7 @@ export const createOrder = async (data: {
 }
 
 export const getUserOrders = async (clerkUserId: string) => {
-  return await db.order.findMany({
+  return await db.orders.findMany({
     where: { clerkUserId },
     include: {
       items: {
@@ -246,7 +246,7 @@ export const createPayment = async (data: {
   providerPaymentId?: string
 }) => {
   // Get user info from the order
-  const order = await db.order.findUnique({
+  const order = await db.orders.findUnique({
     where: { id: data.orderId },
     select: { clerkUserId: true }
   })
@@ -283,7 +283,7 @@ export const createAddress = async (data: {
 }) => {
   const { userEmail, userName } = await getClerkUserInfo(data.clerkUserId)
   
-  return await db.address.create({
+  return await db.addresses.create({
     data: {
       ...data,
       userEmail,
@@ -302,7 +302,7 @@ export const createRefund = async (data: {
   description?: string
 }) => {
   // Get user info from the order
-  const order = await db.order.findUnique({
+  const order = await db.orders.findUnique({
     where: { id: data.orderId },
     select: { clerkUserId: true }
   })

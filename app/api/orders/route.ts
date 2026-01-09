@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-      const orders = await db.order.findMany({
+      const orders = await db.orders.findMany({
         where: { clerkUserId: userId },
         include: {
           items: {

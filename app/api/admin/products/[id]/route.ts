@@ -7,10 +7,10 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const product = await db.product.findUnique({
+    const product = await db.products.findUnique({
       where: { id },
       include: {
-        category: true
+        categories: true
       }
     })
 
@@ -61,7 +61,7 @@ export async function PUT(
     } = body
 
     // Check if product exists
-    const existingProduct = await db.product.findUnique({
+    const existingProduct = await db.products.findUnique({
       where: { id }
     })
 
@@ -74,7 +74,7 @@ export async function PUT(
 
     // Check if SKU already exists (excluding current product)
     if (sku && sku !== existingProduct.sku) {
-      const existingSku = await db.product.findUnique({
+      const existingSku = await db.products.findUnique({
         where: { sku }
       })
       if (existingSku) {
@@ -85,7 +85,7 @@ export async function PUT(
       }
     }
 
-    const product = await db.product.update({
+    const product = await db.products.update({
       where: { id },
       data: {
         name,
@@ -108,7 +108,7 @@ export async function PUT(
         seoDescription
       },
       include: {
-        category: true
+        categories: true
       }
     })
 
@@ -130,7 +130,7 @@ export async function DELETE(
     const { id } = await params
     
     // Check if product exists
-    const existingProduct = await db.product.findUnique({
+    const existingProduct = await db.products.findUnique({
       where: { id }
     })
 
@@ -142,13 +142,13 @@ export async function DELETE(
     }
 
     // Check if product is used in any orders
-    const orderItems = await db.orderItem.findFirst({
+    const orderItems = await db.order_items.findFirst({
       where: { productId: id }
     })
 
     if (orderItems) {
       // If product is used in orders, mark as archived instead of deleting
-      await db.product.update({
+      await db.products.update({
         where: { id },
         data: { status: 'ARCHIVED' }
       })
@@ -159,7 +159,7 @@ export async function DELETE(
     }
 
     // Delete the product if no order history
-    await db.product.delete({
+    await db.products.delete({
       where: { id }
     })
 

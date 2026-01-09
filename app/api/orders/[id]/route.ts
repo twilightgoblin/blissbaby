@@ -30,7 +30,7 @@ export async function GET(
     }
 
     // Find the order with all related data
-    const order = await db.order.findFirst({
+    const order = await db.orders.findFirst({
       where: {
         id: orderId,
         // Only allow users to see their own orders if authenticated

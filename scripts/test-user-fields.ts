@@ -27,7 +27,7 @@ async function testUserFields() {
 
     // Test creating an order
     console.log('\n2. Testing order creation...')
-    const product = await db.product.findFirst()
+    const product = await db.products.findFirst()
     if (product) {
       const order = await createOrder({
         clerkUserId: testClerkUserId,

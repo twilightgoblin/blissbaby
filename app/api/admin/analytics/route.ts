@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
           _sum: { amount: true },
           where: { status: PaymentStatus.COMPLETED }
         }).catch(() => ({ _sum: { amount: null } })),
-        db.product.count({
+        db.products.count({
           where: { status: 'ACTIVE' }
         }).catch(() => 0),
       ])

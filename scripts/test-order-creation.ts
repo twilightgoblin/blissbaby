@@ -7,7 +7,7 @@ async function testOrderCreation() {
     
     // Test 1: Check if we can connect to the database
     console.log('1. Testing database connection...')
-    const productCount = await db.product.count()
+    const productCount = await db.products.count()
     console.log(`✅ Database connected. Found ${productCount} products.`)
     
     // Test 2: Check if we can create an address

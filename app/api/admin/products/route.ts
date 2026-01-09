@@ -31,16 +31,16 @@ export async function GET(request: NextRequest) {
 
     try {
       const [products, total] = await Promise.all([
-        db.product.findMany({
+        db.products.findMany({
           where,
           include: {
-            category: true
+            categories: true
           },
           orderBy: { createdAt: 'desc' },
           skip,
           take: limit
         }),
-        db.product.count({ where })
+        db.products.count({ where })
       ])
 
       return NextResponse.json({
@@ -215,7 +215,7 @@ export async function POST(request: NextRequest) {
     try {
       // Check if SKU already exists
       if (sku) {
-        const existingSku = await db.product.findUnique({
+        const existingSku = await db.products.findUnique({
           where: { sku }
         })
         if (existingSku) {
@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const product = await db.product.create({
+      const product = await db.products.create({
         data: {
           name,
           description,

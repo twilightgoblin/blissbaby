@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
 
     const products = await Promise.all(
       sampleProducts.map(product =>
-        db.product.upsert({
+        db.products.upsert({
           where: { sku: product.sku },
           update: {},
           create: product

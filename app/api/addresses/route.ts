@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-      const addresses = await db.address.findMany({
+      const addresses = await db.addresses.findMany({
         where: { clerkUserId: userId },
         orderBy: { createdAt: 'desc' }
       })
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      const address = await db.address.create({
+      const address = await db.addresses.create({
         data: {
           clerkUserId: userId,
           userEmail: `user-${userId}@temp.com`,

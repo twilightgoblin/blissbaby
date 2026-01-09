@@ -10,10 +10,10 @@ export async function GET() {
       sampleOrder,
       sampleProduct
     ] = await Promise.all([
-      db.product.count(),
-      db.order.count(),
+      db.products.count(),
+      db.orders.count(),
       db.categories.count(),
-      db.order.findFirst({
+      db.orders.findFirst({
         include: {
           items: {
             include: {
@@ -22,9 +22,9 @@ export async function GET() {
           }
         }
       }),
-      db.product.findFirst({
+      db.products.findFirst({
         include: {
-          category: true
+          categories: true
         }
       })
     ])

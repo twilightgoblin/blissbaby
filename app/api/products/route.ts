@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-      const products = await db.product.findMany({
+      const products = await db.products.findMany({
         where,
         include: {
           category: {

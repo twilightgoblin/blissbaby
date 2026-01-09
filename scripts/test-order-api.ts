@@ -7,7 +7,7 @@ async function testOrderAPI() {
     
     // First, get a real product from the database
     console.log('Fetching a real product...')
-    const product = await db.product.findFirst()
+    const product = await db.products.findFirst()
     
     if (!product) {
       console.error('❌ No products found in database. Please seed the database first.')
