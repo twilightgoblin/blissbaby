@@ -39,3 +39,33 @@ export async function GET() {
     }, { status: 500 })
   }
 }
+
+export async function POST() {
+  try {
+    console.log('Running migrations via test-db endpoint...')
+    
+    // Import execSync here to avoid build issues
+    const { execSync } = await import('child_process')
+    
+    // Run migrations
+    const output = execSync('npx prisma migrate deploy', { 
+      encoding: 'utf8',
+      env: { ...process.env }
+    })
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Migrations completed successfully',
+      output: output
+    })
+    
+  } catch (error) {
+    console.error('Migration error:', error)
+    
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Migration failed',
+      details: error instanceof Error ? error.stack : undefined
+    }, { status: 500 })
+  }
+}

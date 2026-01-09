@@ -1,50 +1,50 @@
 import { NextResponse } from 'next/server'
-import { execSync } from 'child_process'
 
-// This endpoint should be called once after deployment to run migrations
+export async function GET() {
+  try {
+    return NextResponse.json({ 
+      message: 'Migration endpoint is working',
+      timestamp: new Date().toISOString(),
+      env: {
+        hasDbUrl: !!process.env.DATABASE_URL,
+        nodeEnv: process.env.NODE_ENV
+      }
+    })
+  } catch (error) {
+    return NextResponse.json({
+      error: 'GET failed',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
+  }
+}
+
 export async function POST(request: Request) {
   try {
-    // Simple protection - only allow in development or with correct header
+    console.log('POST /api/migrate called')
+    
     const authHeader = request.headers.get('authorization')
+    console.log('Auth header:', authHeader)
     
     if (process.env.NODE_ENV === 'production' && authHeader !== 'Bearer migrate-now') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     
-    console.log('Running database migrations...')
-    
-    // Test connection first
-    execSync('npx prisma db pull --force', { 
-      stdio: 'pipe',
-      env: { ...process.env }
-    })
-    
-    // Run migrations
-    execSync('npx prisma migrate deploy', { 
-      stdio: 'pipe',
-      env: { ...process.env }
-    })
-    
-    console.log('Migrations completed successfully')
-    
+    // Just return basic info for now
     return NextResponse.json({ 
       success: true, 
-      message: 'Migrations applied successfully' 
+      message: 'POST endpoint working',
+      timestamp: new Date().toISOString(),
+      env: {
+        hasDbUrl: !!process.env.DATABASE_URL,
+        nodeEnv: process.env.NODE_ENV
+      }
     })
     
   } catch (error) {
-    console.error('Migration error:', error)
-    
+    console.error('POST error:', error)
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Migration failed',
-      details: error instanceof Error ? error.stack : undefined
+      error: error instanceof Error ? error.message : 'POST failed'
     }, { status: 500 })
   }
-}
-
-export async function GET() {
-  return NextResponse.json({ 
-    message: 'Migration endpoint ready. Use POST with Authorization: Bearer migrate-now' 
-  })
 }
