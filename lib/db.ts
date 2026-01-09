@@ -19,25 +19,44 @@ const createAdapter = () => {
     }))
   }
   
-  // Configuration for Supabase pooler
+  // Configuration for Supabase pooler with better error handling
   const poolConfig = {
     connectionString,
-    max: 3, // Lower max connections for pooler
+    max: process.env.NODE_ENV === 'production' ? 2 : 3, // Lower for production
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 10000,
+    connectionTimeoutMillis: 15000, // Increased timeout
     acquireTimeoutMillis: 60000,
+    allowExitOnIdle: true, // Allow pool to close when idle
     ssl: {
       rejectUnauthorized: false
     }
   }
   
-  return new PrismaPg(new Pool(poolConfig))
+  const pool = new Pool(poolConfig)
+  
+  // Handle pool errors
+  pool.on('error', (err) => {
+    console.error('Database pool error:', err)
+  })
+  
+  return new PrismaPg(pool)
 }
 
 // Create Prisma client with required adapter for Prisma 7
 export const db = globalForPrisma.prisma ?? new PrismaClient({
   adapter: createAdapter(),
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  errorFormat: 'pretty',
+})
+
+// Handle Prisma client errors
+db.$on('error' as never, (e: any) => {
+  console.error('Prisma client error:', e)
 })
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
+
+// Graceful shutdown
+process.on('beforeExit', async () => {
+  await db.$disconnect()
+})

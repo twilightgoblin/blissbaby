@@ -37,18 +37,42 @@ export async function PUT(
     const body = await request.json()
     const { name, description, icon, image, color, isActive } = body
 
+    // Validate required fields
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return NextResponse.json(
+        { error: 'Category name is required and must be a non-empty string' },
+        { status: 400 }
+      )
+    }
+
+    // Validate ID format
+    if (!id || typeof id !== 'string') {
+      return NextResponse.json(
+        { error: 'Valid category ID is required' },
+        { status: 400 }
+      )
+    }
+
+    console.log(`Updating category ${id} with data:`, { name, description, icon, image, color, isActive })
+
     const category = await updateCategory(id, {
-      name,
-      description,
-      icon,
-      image,
-      color,
-      isActive
+      name: name.trim(),
+      description: description?.trim() || null,
+      icon: icon?.trim() || null,
+      image: image?.trim() || null,
+      color: color || 'bg-blue-100',
+      isActive: isActive !== undefined ? Boolean(isActive) : undefined
     })
 
+    console.log(`Successfully updated category ${id}:`, category)
     return NextResponse.json(category)
   } catch (error: any) {
-    console.error('Error updating category:', error)
+    console.error('Error updating category:', {
+      error: error.message,
+      stack: error.stack,
+      code: error.code,
+      meta: error.meta
+    })
     
     if (error?.code === 'P2002') {
       return NextResponse.json(
@@ -64,8 +88,19 @@ export async function PUT(
       )
     }
 
+    // Database connection errors
+    if (error?.code === 'P1001' || error?.code === 'P1008' || error?.code === 'P1017') {
+      return NextResponse.json(
+        { error: 'Database connection failed. Please try again.' },
+        { status: 503 }
+      )
+    }
+
     return NextResponse.json(
-      { error: 'Failed to update category' },
+      { 
+        error: 'Failed to update category',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      },
       { status: 500 }
     )
   }

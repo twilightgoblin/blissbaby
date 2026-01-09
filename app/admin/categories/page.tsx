@@ -147,15 +147,25 @@ export default function CategoriesPage() {
 
     setSubmitting(true)
     try {
+      console.log('Updating category:', selectedCategory.id, formData)
+      
       const response = await fetch(`/api/admin/categories/${selectedCategory.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          name: formData.name.trim(),
+          description: formData.description.trim() || null,
+          icon: formData.icon.trim() || null,
+          image: formData.image.trim() || null
+        })
       })
 
+      const responseData = await response.json()
+      console.log('Update response:', response.status, responseData)
+
       if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to update category')
+        throw new Error(responseData.error || `Server error: ${response.status}`)
       }
 
       toast.success("Category updated successfully")
@@ -165,7 +175,16 @@ export default function CategoriesPage() {
       resetForm()
       fetchCategories()
     } catch (error: any) {
-      toast.error(error?.message || 'Failed to update category')
+      console.error('Update error:', error)
+      
+      // More specific error messages
+      if (error.message.includes('fetch')) {
+        toast.error('Network error. Please check your connection and try again.')
+      } else if (error.message.includes('500')) {
+        toast.error('Server error. Please try again or contact support.')
+      } else {
+        toast.error(error?.message || 'Failed to update category')
+      }
     } finally {
       setSubmitting(false)
     }
