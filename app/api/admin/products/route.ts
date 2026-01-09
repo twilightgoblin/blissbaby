@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
+import { NextRequest, NextResponse } from 'next/server'
+import { db } from '@/lib/db'
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -29,28 +32,149 @@ export async function GET(request: NextRequest) {
       where.status = status.toUpperCase()
     }
 
-    const [products, total] = await Promise.all([
-      db.product.findMany({
-        where,
-        include: {
-          category: true
-        },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit
-      }),
-      db.product.count({ where })
-    ])
+    try {
+      const [products, total] = await Promise.all([
+        db.product.findMany({
+          where,
+          include: {
+            category: true
+          },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: limit
+        }),
+        db.product.count({ where })
+      ])
 
-    return NextResponse.json({
-      products,
-      pagination: {
-        page,
-        limit,
-        total,
-        pages: Math.ceil(total / limit)
+      return NextResponse.json({
+        products,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      })
+    } catch (prismaError) {
+      console.log('Prisma failed, using raw SQL fallback:', prismaError)
+      
+      // Fallback with raw SQL
+      const { Pool } = await import('pg')
+      const pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        max: 1,
+        ssl: { rejectUnauthorized: false }
+      })
+      
+      const client = await pool.connect()
+      
+      // Build SQL query
+      let sqlQuery = `
+        SELECT p.*, c.name as category_name, c.color as category_color
+        FROM products p
+        LEFT JOIN categories c ON p."categoryId" = c.id
+        WHERE 1=1
+      `
+      const queryParams: any[] = []
+      let paramIndex = 1
+      
+      if (search) {
+        sqlQuery += ` AND (p.name ILIKE $${paramIndex} OR p.description ILIKE $${paramIndex} OR p.sku ILIKE $${paramIndex})`
+        queryParams.push(`%${search}%`)
+        paramIndex++
       }
-    })
+      
+      if (category && category !== 'all') {
+        sqlQuery += ` AND c.name = $${paramIndex}`
+        queryParams.push(category)
+        paramIndex++
+      }
+      
+      if (status && status !== 'all') {
+        sqlQuery += ` AND p.status = $${paramIndex}`
+        queryParams.push(status.toUpperCase())
+        paramIndex++
+      }
+      
+      sqlQuery += ` ORDER BY p."createdAt" DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`
+      queryParams.push(limit, skip)
+      
+      const result = await client.query(sqlQuery, queryParams)
+      
+      // Get total count
+      let countQuery = `
+        SELECT COUNT(*) 
+        FROM products p
+        LEFT JOIN categories c ON p."categoryId" = c.id
+        WHERE 1=1
+      `
+      const countParams: any[] = []
+      let countParamIndex = 1
+      
+      if (search) {
+        countQuery += ` AND (p.name ILIKE $${countParamIndex} OR p.description ILIKE $${countParamIndex} OR p.sku ILIKE $${countParamIndex})`
+        countParams.push(`%${search}%`)
+        countParamIndex++
+      }
+      
+      if (category && category !== 'all') {
+        countQuery += ` AND c.name = $${countParamIndex}`
+        countParams.push(category)
+        countParamIndex++
+      }
+      
+      if (status && status !== 'all') {
+        countQuery += ` AND p.status = $${countParamIndex}`
+        countParams.push(status.toUpperCase())
+        countParamIndex++
+      }
+      
+      const countResult = await client.query(countQuery, countParams)
+      const total = parseInt(countResult.rows[0].count)
+      
+      client.release()
+      await pool.end()
+      
+      // Format products data
+      const products = result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        price: parseFloat(row.price),
+        comparePrice: row.comparePrice ? parseFloat(row.comparePrice) : null,
+        sku: row.sku,
+        barcode: row.barcode,
+        brand: row.brand,
+        images: row.images || [],
+        weight: row.weight ? parseFloat(row.weight) : null,
+        dimensions: row.dimensions,
+        inventory: row.inventory,
+        lowStock: row.lowStock,
+        status: row.status,
+        featured: row.featured,
+        tags: row.tags || [],
+        seoTitle: row.seoTitle,
+        seoDescription: row.seoDescription,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        categoryId: row.categoryId,
+        category: row.category_name ? {
+          id: row.categoryId,
+          name: row.category_name,
+          color: row.category_color
+        } : null
+      }))
+      
+      return NextResponse.json({
+        products,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      })
+    }
   } catch (error) {
     console.error('Error fetching admin products:', error)
     return NextResponse.json(

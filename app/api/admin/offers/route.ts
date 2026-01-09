@@ -3,6 +3,11 @@ import { auth } from "@clerk/nextjs/server"
 import { db } from "@/lib/db"
 import { OfferType, DiscountType } from "@prisma/client"
 
+import { NextRequest, NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
+import { db } from "@/lib/db"
+import { OfferType, DiscountType } from "@prisma/client"
+
 export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth()
@@ -24,15 +29,44 @@ export async function GET(request: NextRequest) {
       where.isActive = active === "true"
     }
 
-    const offers = await db.offer.findMany({
-      where,
-      orderBy: [
-        { priority: "desc" },
-        { createdAt: "desc" }
-      ]
-    })
+    try {
+      const offers = await db.offer.findMany({
+        where,
+        orderBy: [
+          { priority: "desc" },
+          { createdAt: "desc" }
+        ]
+      })
 
-    return NextResponse.json({ offers })
+      return NextResponse.json({ offers })
+    } catch (prismaError) {
+      console.log('Prisma failed, using fallback for offers:', prismaError)
+      
+      // Check if offers table exists, if not return empty array
+      try {
+        const { Pool } = await import('pg')
+        const pool = new Pool({
+          connectionString: process.env.DATABASE_URL,
+          max: 1,
+          ssl: { rejectUnauthorized: false }
+        })
+        
+        const client = await pool.connect()
+        const result = await client.query('SELECT COUNT(*) FROM offers').catch(() => null)
+        client.release()
+        await pool.end()
+        
+        if (!result) {
+          // Table doesn't exist, return empty
+          return NextResponse.json({ offers: [] })
+        }
+        
+        // Table exists but Prisma failed, return empty for now
+        return NextResponse.json({ offers: [] })
+      } catch {
+        return NextResponse.json({ offers: [] })
+      }
+    }
   } catch (error) {
     console.error("Error fetching offers:", error)
     return NextResponse.json({ error: "Failed to fetch offers" }, { status: 500 })

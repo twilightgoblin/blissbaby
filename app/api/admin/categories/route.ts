@@ -8,10 +8,40 @@ export async function GET() {
     return NextResponse.json(categories)
   } catch (error) {
     console.error('Error fetching categories:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch categories' },
-      { status: 500 }
-    )
+    
+    // Fallback with raw SQL
+    try {
+      const { Pool } = await import('pg')
+      const pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        max: 1,
+        ssl: { rejectUnauthorized: false }
+      })
+      
+      const client = await pool.connect()
+      const result = await client.query(`
+        SELECT id, name, description, icon, image, color, "isActive", "sortOrder", "createdAt", "updatedAt",
+               (SELECT COUNT(*) FROM products WHERE "categoryId" = categories.id) as product_count
+        FROM categories 
+        ORDER BY "sortOrder" ASC
+      `)
+      
+      client.release()
+      await pool.end()
+      
+      const categories = result.rows.map(row => ({
+        ...row,
+        _count: { products: parseInt(row.product_count) }
+      }))
+      
+      return NextResponse.json(categories)
+    } catch (fallbackError) {
+      console.error('Fallback error:', fallbackError)
+      return NextResponse.json(
+        { error: 'Failed to fetch categories' },
+        { status: 500 }
+      )
+    }
   }
 }
 
