@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getActiveProducts, createProduct } from '@/lib/db-helpers'
 
+import { NextRequest, NextResponse } from 'next/server'
+import { db } from '@/lib/db'
+import { getActiveProducts, createProduct } from '@/lib/db-helpers'
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -65,22 +69,137 @@ export async function GET(request: NextRequest) {
         orderBy = { [sortBy]: sortOrder }
     }
 
-    const products = await db.product.findMany({
-      where,
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            color: true
+    try {
+      const products = await db.product.findMany({
+        where,
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              color: true
+            }
           }
-        }
-      },
-      take: limit ? parseInt(limit) : undefined,
-      orderBy
-    })
+        },
+        take: limit ? parseInt(limit) : undefined,
+        orderBy
+      })
 
-    return NextResponse.json({ products })
+      return NextResponse.json({ products })
+    } catch (prismaError) {
+      console.log('Prisma failed, using raw SQL fallback for products:', prismaError)
+      
+      // Fallback with raw SQL
+      const { Pool } = await import('pg')
+      const pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        max: 1,
+        ssl: { rejectUnauthorized: false }
+      })
+      
+      const client = await pool.connect()
+      
+      // Build SQL query
+      let sqlQuery = `
+        SELECT p.*, c.name as category_name, c.color as category_color, c.id as category_id
+        FROM products p
+        LEFT JOIN categories c ON p."categoryId" = c.id
+        WHERE p.status = 'ACTIVE'
+      `
+      const queryParams: any[] = []
+      let paramIndex = 1
+      
+      if (category) {
+        sqlQuery += ` AND p."categoryId" = $${paramIndex}`
+        queryParams.push(category)
+        paramIndex++
+      }
+      
+      if (featured === 'true') {
+        sqlQuery += ` AND p.featured = true`
+      }
+      
+      if (minPrice) {
+        sqlQuery += ` AND p.price >= $${paramIndex}`
+        queryParams.push(parseFloat(minPrice))
+        paramIndex++
+      }
+      
+      if (maxPrice) {
+        sqlQuery += ` AND p.price <= $${paramIndex}`
+        queryParams.push(parseFloat(maxPrice))
+        paramIndex++
+      }
+      
+      if (search) {
+        sqlQuery += ` AND (p.name ILIKE $${paramIndex} OR p.description ILIKE $${paramIndex} OR p.brand ILIKE $${paramIndex})`
+        queryParams.push(`%${search}%`)
+        paramIndex++
+      }
+      
+      // Add sorting
+      switch (sortBy) {
+        case 'price-low':
+          sqlQuery += ` ORDER BY p.price ASC`
+          break
+        case 'price-high':
+          sqlQuery += ` ORDER BY p.price DESC`
+          break
+        case 'name':
+          sqlQuery += ` ORDER BY p.name ASC`
+          break
+        case 'newest':
+          sqlQuery += ` ORDER BY p."createdAt" DESC`
+          break
+        case 'popular':
+          sqlQuery += ` ORDER BY p.featured DESC, p."createdAt" DESC`
+          break
+        default:
+          sqlQuery += ` ORDER BY p."createdAt" DESC`
+      }
+      
+      if (limit) {
+        sqlQuery += ` LIMIT $${paramIndex}`
+        queryParams.push(parseInt(limit))
+      }
+      
+      const result = await client.query(sqlQuery, queryParams)
+      
+      client.release()
+      await pool.end()
+      
+      // Format products data
+      const products = result.rows.map(row => ({
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        price: parseFloat(row.price),
+        comparePrice: row.comparePrice ? parseFloat(row.comparePrice) : null,
+        sku: row.sku,
+        barcode: row.barcode,
+        brand: row.brand,
+        images: row.images || [],
+        weight: row.weight ? parseFloat(row.weight) : null,
+        dimensions: row.dimensions,
+        inventory: row.inventory,
+        lowStock: row.lowStock,
+        status: row.status,
+        featured: row.featured,
+        tags: row.tags || [],
+        seoTitle: row.seoTitle,
+        seoDescription: row.seoDescription,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        categoryId: row.categoryId,
+        category: row.category_name ? {
+          id: row.category_id,
+          name: row.category_name,
+          color: row.category_color
+        } : null
+      }))
+      
+      return NextResponse.json({ products })
+    }
   } catch (error) {
     console.error('Error fetching products:', error)
     return NextResponse.json(
