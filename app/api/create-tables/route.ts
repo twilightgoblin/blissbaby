@@ -37,8 +37,8 @@ export async function POST() {
         color TEXT DEFAULT 'bg-blue-100',
         "isActive" BOOLEAN DEFAULT true,
         "sortOrder" INTEGER DEFAULT 0,
-        "createdAt" TIMESTAMP DEFAULT NOW(),
-        "updatedAt" TIMESTAMP DEFAULT NOW()
+        "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
       
       -- Create products table
@@ -62,8 +62,8 @@ export async function POST() {
         tags TEXT[] DEFAULT '{}',
         "seoTitle" TEXT,
         "seoDescription" TEXT,
-        "createdAt" TIMESTAMP DEFAULT NOW(),
-        "updatedAt" TIMESTAMP DEFAULT NOW(),
+        "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         FOREIGN KEY ("categoryId") REFERENCES categories(id)
       );
       
@@ -73,8 +73,8 @@ export async function POST() {
         "clerkUserId" TEXT NOT NULL,
         "userEmail" TEXT,
         "userName" TEXT,
-        "createdAt" TIMESTAMP DEFAULT NOW(),
-        "updatedAt" TIMESTAMP DEFAULT NOW()
+        "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
       
       -- Create cart_items table
@@ -86,8 +86,8 @@ export async function POST() {
         "productName" TEXT,
         "userName" TEXT,
         "userEmail" TEXT,
-        "createdAt" TIMESTAMP DEFAULT NOW(),
-        "updatedAt" TIMESTAMP DEFAULT NOW(),
+        "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        "updatedAt" TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         FOREIGN KEY ("cartId") REFERENCES carts(id) ON DELETE CASCADE,
         FOREIGN KEY ("productId") REFERENCES products(id) ON DELETE CASCADE,
         UNIQUE("cartId", "productId")
@@ -96,18 +96,18 @@ export async function POST() {
     
     await client.query(createTablesSQL)
     
-    // Insert sample data with explicit IDs
+    // Insert sample data with explicit timestamps
     const insertDataSQL = `
-      -- Insert sample categories with explicit UUIDs
-      INSERT INTO categories (id, name, description, icon, color) VALUES 
-        (uuid_generate_v4()::text, 'Baby Care', 'Essential baby care products', '👶', 'bg-pink-100'),
-        (uuid_generate_v4()::text, 'Feeding', 'Bottles, formula, and feeding accessories', '🍼', 'bg-blue-100'),
-        (uuid_generate_v4()::text, 'Toys', 'Educational and fun toys for babies', '🧸', 'bg-yellow-100'),
-        (uuid_generate_v4()::text, 'Clothing', 'Comfortable baby clothes', '👕', 'bg-green-100')
+      -- Insert sample categories with explicit timestamps
+      INSERT INTO categories (id, name, description, icon, color, "createdAt", "updatedAt") VALUES 
+        (uuid_generate_v4()::text, 'Baby Care', 'Essential baby care products', '👶', 'bg-pink-100', NOW(), NOW()),
+        (uuid_generate_v4()::text, 'Feeding', 'Bottles, formula, and feeding accessories', '🍼', 'bg-blue-100', NOW(), NOW()),
+        (uuid_generate_v4()::text, 'Toys', 'Educational and fun toys for babies', '🧸', 'bg-yellow-100', NOW(), NOW()),
+        (uuid_generate_v4()::text, 'Clothing', 'Comfortable baby clothes', '👕', 'bg-green-100', NOW(), NOW())
       ON CONFLICT (name) DO NOTHING;
       
       -- Insert sample product
-      INSERT INTO products (id, name, description, price, "categoryId", inventory, images) 
+      INSERT INTO products (id, name, description, price, "categoryId", inventory, images, "createdAt", "updatedAt") 
       SELECT 
         uuid_generate_v4()::text,
         'Baby Bottle',
@@ -115,7 +115,9 @@ export async function POST() {
         299.99,
         c.id,
         50,
-        ARRAY['https://example.com/bottle.jpg']
+        ARRAY['https://example.com/bottle.jpg'],
+        NOW(),
+        NOW()
       FROM categories c WHERE c.name = 'Feeding' LIMIT 1
       ON CONFLICT (sku) DO NOTHING;
     `
