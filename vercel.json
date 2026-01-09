@@ -5,6 +5,6 @@
       "maxDuration": 60
     }
   },
-  "buildCommand": "npx prisma generate && npx prisma migrate deploy && next build",
+  "buildCommand": "npx prisma generate && next build",
   "installCommand": "npm ci"
 }

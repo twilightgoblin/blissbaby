@@ -2,18 +2,22 @@ import { NextResponse } from 'next/server'
 import { execSync } from 'child_process'
 
 // This endpoint should be called once after deployment to run migrations
-// Remove this file after running migrations for security
-export async function POST() {
+export async function POST(request: Request) {
   try {
-    // Only allow in development or with a secret key
-    const secret = process.env.MIGRATION_SECRET || 'dev-secret'
-    const providedSecret = process.env.NODE_ENV === 'development' ? 'dev-secret' : process.env.MIGRATION_SECRET
+    // Simple protection - only allow in development or with correct header
+    const authHeader = request.headers.get('authorization')
     
-    if (!providedSecret) {
-      return NextResponse.json({ error: 'Migration secret not configured' }, { status: 403 })
+    if (process.env.NODE_ENV === 'production' && authHeader !== 'Bearer migrate-now') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     
     console.log('Running database migrations...')
+    
+    // Test connection first
+    execSync('npx prisma db pull --force', { 
+      stdio: 'pipe',
+      env: { ...process.env }
+    })
     
     // Run migrations
     execSync('npx prisma migrate deploy', { 
@@ -33,7 +37,14 @@ export async function POST() {
     
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Migration failed'
+      error: error instanceof Error ? error.message : 'Migration failed',
+      details: error instanceof Error ? error.stack : undefined
     }, { status: 500 })
   }
+}
+
+export async function GET() {
+  return NextResponse.json({ 
+    message: 'Migration endpoint ready. Use POST with Authorization: Bearer migrate-now' 
+  })
 }
