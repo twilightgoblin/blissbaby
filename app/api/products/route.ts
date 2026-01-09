@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getActiveProducts, createProduct } from '@/lib/db-helpers'
+import { ProductStatus } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
     const sortOrder = searchParams.get('sortOrder') || 'desc'
     const search = searchParams.get('search')
 
-    const where: any = { status: 'ACTIVE' }
+    const where: any = { status: ProductStatus.ACTIVE }
     
     // Category filter
     if (category) {
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
       const products = await db.products.findMany({
         where,
         include: {
-          category: {
+          categories: {
             select: {
               id: true,
               name: true,
@@ -81,7 +82,12 @@ export async function GET(request: NextRequest) {
         orderBy
       })
 
-      return NextResponse.json({ products })
+      return NextResponse.json({ 
+        products: products.map(p => ({
+          ...p,
+          category: p.categories // Map categories to category for frontend compatibility
+        }))
+      })
     } catch (prismaError) {
       console.log('Prisma failed, using raw SQL fallback for products:', prismaError)
       

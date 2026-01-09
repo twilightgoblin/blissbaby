@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { ProductStatus } from '@prisma/client'
 
 export async function GET(
   request: NextRequest,
@@ -103,7 +104,7 @@ export async function PUT(
         dimensions,
         tags: tags || [],
         featured: featured || false,
-        status: status || 'ACTIVE',
+        status: status || ProductStatus.ACTIVE,
         seoTitle,
         seoDescription
       },

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { ProductStatus } from '@prisma/client'
 
 export async function GET(
   request: NextRequest,
@@ -18,14 +19,24 @@ export async function GET(
       )
     }
 
+    // Validate ID format (basic UUID check)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(id)) {
+      console.log('Product API: Invalid ID format:', id)
+      return NextResponse.json(
+        { error: 'Invalid product ID format' },
+        { status: 400 }
+      )
+    }
+
     // Get the product
     const product = await db.products.findUnique({
       where: { 
         id,
-        status: 'ACTIVE'
+        status: ProductStatus.ACTIVE
       },
       include: {
-        category: {
+        categories: {
           select: {
             id: true,
             name: true,
@@ -48,11 +59,11 @@ export async function GET(
     const relatedProducts = await db.products.findMany({
       where: {
         categoryId: product.categoryId,
-        status: 'ACTIVE',
+        status: ProductStatus.ACTIVE,
         id: { not: product.id }
       },
       include: {
-        category: {
+        categories: {
           select: {
             id: true,
             name: true,
@@ -67,8 +78,14 @@ export async function GET(
     })
 
     return NextResponse.json({ 
-      product,
-      relatedProducts
+      product: {
+        ...product,
+        category: product.categories // Map categories to category for frontend compatibility
+      },
+      relatedProducts: relatedProducts.map(p => ({
+        ...p,
+        category: p.categories // Map categories to category for frontend compatibility
+      }))
     })
   } catch (error) {
     console.error('Error fetching product:', error)

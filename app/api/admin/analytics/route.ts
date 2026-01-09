@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
-import { OrderStatus, PaymentStatus } from '@prisma/client'
+import { OrderStatus, PaymentStatus, ProductStatus } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
           where: { status: PaymentStatus.COMPLETED }
         }).catch(() => ({ _sum: { amount: null } })),
         db.products.count({
-          where: { status: 'ACTIVE' }
+          where: { status: ProductStatus.ACTIVE }
         }).catch(() => 0),
       ])
 

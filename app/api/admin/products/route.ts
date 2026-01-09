@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { ProductStatus } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
   try {
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (category && category !== 'all') {
-      where.category = { name: category }
+      where.categories = { name: category }
     }
 
     if (status && status !== 'all') {
@@ -243,7 +244,7 @@ export async function POST(request: NextRequest) {
           dimensions,
           tags: tags || [],
           featured: featured || false,
-          status: status || 'ACTIVE',
+          status: status || ProductStatus.ACTIVE,
           seoTitle,
           seoDescription
         },
@@ -309,7 +310,7 @@ export async function POST(request: NextRequest) {
         dimensions,
         tags || [],
         featured || false,
-        status || 'ACTIVE',
+        status || ProductStatus.ACTIVE,
         seoTitle,
         seoDescription
       ]
