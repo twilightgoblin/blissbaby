@@ -2,10 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getActiveProducts, createProduct } from '@/lib/db-helpers'
 
-import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
-import { getActiveProducts, createProduct } from '@/lib/db-helpers'
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
