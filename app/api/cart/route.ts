@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getOrCreateCart, addToCart, getClerkUserInfo } from '@/lib/db-helpers'
 
+import { NextRequest, NextResponse } from 'next/server'
+import { db } from '@/lib/db'
+import { getOrCreateCart, addToCart, getClerkUserInfo } from '@/lib/db-helpers'
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -19,15 +23,77 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching cart:', error)
     
-    // Return detailed error in development, generic in production
-    const errorMessage = process.env.NODE_ENV === 'development' 
-      ? `Failed to fetch cart: ${error instanceof Error ? error.message : 'Unknown error'}`
-      : 'Failed to fetch cart'
-    
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    )
+    // If Prisma fails, try raw SQL as fallback
+    try {
+      const { searchParams } = new URL(request.url)
+      const clerkUserId = searchParams.get('userId')
+
+      if (!clerkUserId) {
+        return NextResponse.json(
+          { error: 'User ID is required' },
+          { status: 400 }
+        )
+      }
+
+      const { Pool } = await import('pg')
+      const pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        max: 1,
+        ssl: { rejectUnauthorized: false }
+      })
+      
+      const client = await pool.connect()
+      
+      // Get or create cart using raw SQL
+      let cartResult = await client.query(`
+        SELECT * FROM carts WHERE "clerkUserId" = $1
+      `, [clerkUserId])
+      
+      if (cartResult.rows.length === 0) {
+        // Create new cart
+        const { uuid_generate_v4 } = await import('crypto')
+        const cartId = crypto.randomUUID()
+        
+        await client.query(`
+          INSERT INTO carts (id, "clerkUserId", "userEmail", "userName", "createdAt", "updatedAt")
+          VALUES ($1, $2, $3, $4, NOW(), NOW())
+        `, [cartId, clerkUserId, `user-${clerkUserId}@temp.com`, `User ${clerkUserId.slice(-4)}`])
+        
+        cartResult = await client.query(`
+          SELECT * FROM carts WHERE id = $1
+        `, [cartId])
+      }
+      
+      const cart = cartResult.rows[0]
+      
+      // Get cart items
+      const itemsResult = await client.query(`
+        SELECT ci.*, p.name as product_name, p.price, p.images
+        FROM cart_items ci
+        LEFT JOIN products p ON ci."productId" = p.id
+        WHERE ci."cartId" = $1
+      `, [cart.id])
+      
+      cart.items = itemsResult.rows
+      
+      client.release()
+      await pool.end()
+      
+      return NextResponse.json({ cart })
+      
+    } catch (fallbackError) {
+      console.error('Cart fallback error:', fallbackError)
+      
+      // Return detailed error in development, generic in production
+      const errorMessage = process.env.NODE_ENV === 'development' 
+        ? `Failed to fetch cart: ${error instanceof Error ? error.message : 'Unknown error'}`
+        : 'Failed to fetch cart'
+      
+      return NextResponse.json(
+        { error: errorMessage },
+        { status: 500 }
+      )
+    }
   }
 }
 
