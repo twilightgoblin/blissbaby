@@ -5,7 +5,6 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
 import { useState, useEffect } from "react"
@@ -416,33 +415,34 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
 
-        {/* Tabs Section */}
-        <Tabs defaultValue="details" className="mb-16 animate-fade-in-up">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-1 rounded-full bg-muted/50">
-            <TabsTrigger
-              value="details"
-              className="rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-            >
-              Product Details
-            </TabsTrigger>
-          </TabsList>
+        {/* Product Details Section */}
+        <div className="mb-16 animate-fade-in-up">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold tracking-tight mb-2">Product Details</h2>
+            <div className="h-1 w-20 bg-gradient-to-r from-primary to-primary/50 rounded-full"></div>
+          </div>
 
-          <TabsContent value="details" className="mt-8">
-            <Card className="rounded-3xl border-border/60 hover:shadow-lg transition-shadow duration-300">
-              <CardContent className="p-8 space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Product Description</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {product.description || 'No description available for this product.'}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold mb-3">Specifications</h3>
-                  <dl className="grid gap-3">
-                    {product.category && (
-                      <div className="flex justify-between border-b border-border/60 pb-2">
-                        <dt className="text-muted-foreground">Category</dt>
-                        <dd className="font-medium">{product.category.name}</dd>
+          <Card className="rounded-3xl border-border/60 hover:shadow-lg transition-shadow duration-300">
+            <CardContent className="p-8 space-y-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-primary"></div>
+                  Product Description
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  {product.description || 'No description available for this product.'}
+                </p>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-primary"></div>
+                  Specifications
+                </h3>
+                <dl className="grid gap-3">
+                  {product.category && (
+                    <div className="flex justify-between border-b border-border/60 pb-2">
+                      <dt className="text-muted-foreground">Category</dt>
+                      <dd className="font-medium">{product.category.name}</dd>
                       </div>
                     )}
                     {product.brand && (
@@ -475,8 +475,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
 
         {/* Related Products */}
         {relatedProducts.length > 0 && (
