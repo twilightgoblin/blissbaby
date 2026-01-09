@@ -305,22 +305,62 @@ export async function DELETE(request: NextRequest) {
     const cartItemId = searchParams.get('cartItemId')
     const clerkUserId = searchParams.get('userId')
 
-    if (cartItemId) {
-      await db.cartItem.delete({
-        where: { id: cartItemId }
-      })
-      return NextResponse.json({ message: 'Item removed from cart' })
+    if (!cartItemId && !clerkUserId) {
+      return NextResponse.json(
+        { error: 'Cart item ID or User ID is required' },
+        { status: 400 }
+      )
     }
 
-    if (clerkUserId) {
-      await db.cartItem.deleteMany({
-        where: {
-          cart: {
-            clerkUserId
+    try {
+      if (cartItemId) {
+        await db.cartItem.delete({
+          where: { id: cartItemId }
+        })
+        return NextResponse.json({ message: 'Item removed from cart' })
+      }
+
+      if (clerkUserId) {
+        await db.cartItem.deleteMany({
+          where: {
+            cart: {
+              clerkUserId
+            }
           }
-        }
+        })
+        return NextResponse.json({ message: 'Cart cleared' })
+      }
+    } catch (prismaError) {
+      console.log('Prisma failed, using raw SQL fallback for cart deletion:', prismaError)
+      
+      // Fallback with raw SQL
+      const { Pool } = await import('pg')
+      const pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        max: 1,
+        ssl: { rejectUnauthorized: false }
       })
-      return NextResponse.json({ message: 'Cart cleared' })
+      
+      const client = await pool.connect()
+      
+      if (cartItemId) {
+        await client.query('DELETE FROM cart_items WHERE id = $1', [cartItemId])
+        client.release()
+        await pool.end()
+        return NextResponse.json({ message: 'Item removed from cart' })
+      }
+
+      if (clerkUserId) {
+        await client.query(`
+          DELETE FROM cart_items 
+          WHERE "cartId" IN (
+            SELECT id FROM carts WHERE "clerkUserId" = $1
+          )
+        `, [clerkUserId])
+        client.release()
+        await pool.end()
+        return NextResponse.json({ message: 'Cart cleared' })
+      }
     }
 
     return NextResponse.json(
