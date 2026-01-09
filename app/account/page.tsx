@@ -436,10 +436,6 @@ export default function AccountPage() {
                       </p>
                     </div>
                   </div>
-                  
-                  <div className="pt-4 border-t">
-                    <Button>Edit Profile</Button>
-                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
