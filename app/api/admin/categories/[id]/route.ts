@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCategoryById, updateCategory, deleteCategory } from '@/lib/categories'
+import { db } from '@/lib/db'
 
 // GET /api/admin/categories/[id] - Get single category
 export async function GET(
@@ -33,12 +34,19 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    console.log('=== Category Update Request Started ===')
+    
     const { id } = await params
+    console.log('Category ID:', id)
+    
     const body = await request.json()
+    console.log('Request body:', body)
+    
     const { name, description, icon, image, color, isActive } = body
 
     // Validate required fields
     if (!name || typeof name !== 'string' || !name.trim()) {
+      console.log('Validation failed: Invalid name')
       return NextResponse.json(
         { error: 'Category name is required and must be a non-empty string' },
         { status: 400 }
@@ -47,33 +55,48 @@ export async function PUT(
 
     // Validate ID format
     if (!id || typeof id !== 'string') {
+      console.log('Validation failed: Invalid ID')
       return NextResponse.json(
         { error: 'Valid category ID is required' },
         { status: 400 }
       )
     }
 
-    console.log(`Updating category ${id} with data:`, { name, description, icon, image, color, isActive })
+    console.log('Validation passed, attempting database update...')
 
-    const category = await updateCategory(id, {
+    // Direct database update without health check to avoid additional complexity
+    const updateData: any = {
       name: name.trim(),
-      description: description?.trim() || null,
-      icon: icon?.trim() || null,
-      image: image?.trim() || null,
-      color: color || 'bg-blue-100',
-      isActive: isActive !== undefined ? Boolean(isActive) : undefined
+      updatedAt: new Date()
+    }
+
+    // Only include fields that are provided
+    if (description !== undefined) updateData.description = description?.trim() || null
+    if (icon !== undefined) updateData.icon = icon?.trim() || null
+    if (image !== undefined) updateData.image = image?.trim() || null
+    if (color !== undefined) updateData.color = color || 'bg-blue-100'
+    if (isActive !== undefined) updateData.isActive = Boolean(isActive)
+
+    console.log('Update data prepared:', updateData)
+
+    const category = await db.category.update({
+      where: { id },
+      data: updateData
     })
 
-    console.log(`Successfully updated category ${id}:`, category)
+    console.log('Database update successful:', category.id)
+    console.log('=== Category Update Request Completed ===')
+    
     return NextResponse.json(category)
   } catch (error: any) {
-    console.error('Error updating category:', {
-      error: error.message,
-      stack: error.stack,
-      code: error.code,
-      meta: error.meta
-    })
+    console.error('=== Category Update Error ===')
+    console.error('Error message:', error.message)
+    console.error('Error code:', error.code)
+    console.error('Error stack:', error.stack)
+    console.error('Error meta:', error.meta)
+    console.error('================================')
     
+    // Handle specific Prisma errors
     if (error?.code === 'P2002') {
       return NextResponse.json(
         { error: 'Category name already exists' },
@@ -96,6 +119,19 @@ export async function PUT(
       )
     }
 
+    // Generic database errors
+    if (error?.code?.startsWith('P')) {
+      return NextResponse.json(
+        { 
+          error: 'Database error occurred',
+          details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+          code: error.code
+        },
+        { status: 500 }
+      )
+    }
+
+    // Generic server error
     return NextResponse.json(
       { 
         error: 'Failed to update category',

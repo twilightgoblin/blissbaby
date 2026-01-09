@@ -3,69 +3,42 @@ import { db } from '@/lib/db'
 
 export async function GET() {
   try {
-    // Test basic database connection
+    console.log('Testing database connection...')
+    
+    // Test basic connection
     const result = await db.$queryRaw`SELECT 1 as test`
+    console.log('Basic query result:', result)
     
     // Test categories table
     const categoryCount = await db.category.count()
+    console.log('Category count:', categoryCount)
     
-    // Test products table  
-    const productCount = await db.product.count()
+    // Test a simple category fetch
+    const categories = await db.category.findMany({
+      take: 1,
+      select: { id: true, name: true }
+    })
+    console.log('Sample category:', categories[0])
     
     return NextResponse.json({
       success: true,
-      connection: 'OK',
-      testQuery: result,
-      counts: {
-        categories: categoryCount,
-        products: productCount
-      },
-      env: {
-        hasDatabaseUrl: !!process.env.DATABASE_URL,
-        nodeEnv: process.env.NODE_ENV
+      message: 'Database connection successful',
+      data: {
+        categoryCount,
+        sampleCategory: categories[0] || null
       }
     })
-  } catch (error) {
-    console.error('Database test error:', error)
+  } catch (error: any) {
+    console.error('Database test failed:', error)
     
     return NextResponse.json({
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      env: {
-        hasDatabaseUrl: !!process.env.DATABASE_URL,
-        nodeEnv: process.env.NODE_ENV
-      }
-    }, { status: 500 })
-  }
-}
-
-export async function POST() {
-  try {
-    console.log('Running migrations via test-db endpoint...')
-    
-    // Import execSync here to avoid build issues
-    const { execSync } = await import('child_process')
-    
-    // Run migrations
-    const output = execSync('npx prisma migrate deploy', { 
-      encoding: 'utf8',
-      env: { ...process.env }
-    })
-    
-    return NextResponse.json({
-      success: true,
-      message: 'Migrations completed successfully',
-      output: output
-    })
-    
-  } catch (error) {
-    console.error('Migration error:', error)
-    
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Migration failed',
-      details: error instanceof Error ? error.stack : undefined
+      error: error.message,
+      code: error.code,
+      details: process.env.NODE_ENV === 'development' ? {
+        stack: error.stack,
+        meta: error.meta
+      } : undefined
     }, { status: 500 })
   }
 }

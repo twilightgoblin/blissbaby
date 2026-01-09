@@ -1,5 +1,4 @@
 import { db } from './db'
-import { ensureDatabaseConnection } from './db-health'
 
 export interface CreateCategoryData {
   name: string
@@ -14,7 +13,6 @@ export interface UpdateCategoryData extends CreateCategoryData {
 }
 
 export async function getCategories() {
-  await ensureDatabaseConnection()
   return await db.category.findMany({
     include: {
       _count: {
@@ -26,7 +24,6 @@ export async function getCategories() {
 }
 
 export async function getCategoryById(id: string) {
-  await ensureDatabaseConnection()
   return await db.category.findUnique({
     where: { id },
     include: {
@@ -38,7 +35,6 @@ export async function getCategoryById(id: string) {
 }
 
 export async function createCategory(data: CreateCategoryData) {
-  await ensureDatabaseConnection()
   return await db.category.create({
     data: {
       ...data,
@@ -48,8 +44,6 @@ export async function createCategory(data: CreateCategoryData) {
 }
 
 export async function updateCategory(id: string, data: UpdateCategoryData) {
-  await ensureDatabaseConnection()
-  
   // Filter out undefined values and add updatedAt
   const updateData = Object.fromEntries(
     Object.entries(data).filter(([_, value]) => value !== undefined)
