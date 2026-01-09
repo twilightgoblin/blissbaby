@@ -212,46 +212,126 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if SKU already exists
-    if (sku) {
-      const existingSku = await db.product.findUnique({
-        where: { sku }
-      })
-      if (existingSku) {
-        return NextResponse.json(
-          { error: 'SKU already exists' },
-          { status: 400 }
-        )
+    try {
+      // Check if SKU already exists
+      if (sku) {
+        const existingSku = await db.product.findUnique({
+          where: { sku }
+        })
+        if (existingSku) {
+          return NextResponse.json(
+            { error: 'SKU already exists' },
+            { status: 400 }
+          )
+        }
       }
-    }
 
-    const product = await db.product.create({
-      data: {
+      const product = await db.product.create({
+        data: {
+          name,
+          description,
+          price: parseFloat(price),
+          comparePrice: comparePrice ? parseFloat(comparePrice) : null,
+          categoryId,
+          brand,
+          images: images || [],
+          inventory: parseInt(inventory) || 0,
+          lowStock: parseInt(lowStock) || 5,
+          sku,
+          barcode,
+          weight: weight ? parseFloat(weight) : null,
+          dimensions,
+          tags: tags || [],
+          featured: featured || false,
+          status: status || 'ACTIVE',
+          seoTitle,
+          seoDescription
+        },
+        include: {
+          category: true
+        }
+      })
+
+      return NextResponse.json({ product }, { status: 201 })
+    } catch (prismaError) {
+      console.log('Prisma failed, using raw SQL fallback for product creation:', prismaError)
+      
+      // Fallback with raw SQL
+      const { Pool } = await import('pg')
+      const pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        max: 1,
+        ssl: { rejectUnauthorized: false }
+      })
+      
+      const client = await pool.connect()
+      
+      // Check if SKU already exists with raw SQL
+      if (sku) {
+        const existingSkuResult = await client.query('SELECT id FROM products WHERE sku = $1', [sku])
+        if (existingSkuResult.rows.length > 0) {
+          client.release()
+          await pool.end()
+          return NextResponse.json(
+            { error: 'SKU already exists' },
+            { status: 400 }
+          )
+        }
+      }
+      
+      // Create product with raw SQL
+      const productId = crypto.randomUUID()
+      
+      const insertQuery = `
+        INSERT INTO products (
+          id, name, description, price, "comparePrice", "categoryId", brand, 
+          images, inventory, "lowStock", sku, barcode, weight, dimensions, 
+          tags, featured, status, "seoTitle", "seoDescription", "createdAt", "updatedAt"
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW(), NOW()
+        ) RETURNING *
+      `
+      
+      const values = [
+        productId,
         name,
         description,
-        price: parseFloat(price),
-        comparePrice: comparePrice ? parseFloat(comparePrice) : null,
+        parseFloat(price),
+        comparePrice ? parseFloat(comparePrice) : null,
         categoryId,
         brand,
-        images: images || [],
-        inventory: parseInt(inventory) || 0,
-        lowStock: parseInt(lowStock) || 5,
+        images || [],
+        parseInt(inventory) || 0,
+        parseInt(lowStock) || 5,
         sku,
         barcode,
-        weight: weight ? parseFloat(weight) : null,
+        weight ? parseFloat(weight) : null,
         dimensions,
-        tags: tags || [],
-        featured: featured || false,
-        status: status || 'ACTIVE',
+        tags || [],
+        featured || false,
+        status || 'ACTIVE',
         seoTitle,
         seoDescription
-      },
-      include: {
-        category: true
+      ]
+      
+      const result = await client.query(insertQuery, values)
+      
+      // Get category info
+      const categoryResult = await client.query('SELECT * FROM categories WHERE id = $1', [categoryId])
+      
+      client.release()
+      await pool.end()
+      
+      const product = {
+        ...result.rows[0],
+        price: parseFloat(result.rows[0].price),
+        comparePrice: result.rows[0].comparePrice ? parseFloat(result.rows[0].comparePrice) : null,
+        weight: result.rows[0].weight ? parseFloat(result.rows[0].weight) : null,
+        category: categoryResult.rows[0] || null
       }
-    })
-
-    return NextResponse.json({ product }, { status: 201 })
+      
+      return NextResponse.json({ product }, { status: 201 })
+    }
   } catch (error) {
     console.error('Error creating product:', error)
     return NextResponse.json(
