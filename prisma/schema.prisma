@@ -6,57 +6,137 @@ datasource db {
   provider = "postgresql"
 }
 
-model Address {
-  id             String      @id @default(cuid())
-  clerkUserId    String
-  userEmail      String?
-  userName       String?
-  type           AddressType @default(SHIPPING)
-  firstName      String
-  lastName       String
-  company        String?
-  addressLine1   String
-  addressLine2   String?
-  city           String
-  state          String
-  postalCode     String
-  country        String      @default("US")
-  phone          String?
-  isDefault      Boolean     @default(false)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  billingOrders  Order[]     @relation("BillingAddress")
-  shippingOrders Order[]     @relation("ShippingAddress")
-  shipments      Shipment[]
-
-  @@map("addresses")
+model addresses {
+  id                                         String      @id
+  type                                       AddressType @default(SHIPPING)
+  firstName                                  String
+  lastName                                   String
+  company                                    String?
+  addressLine1                               String
+  addressLine2                               String?
+  city                                       String
+  state                                      String
+  postalCode                                 String
+  country                                    String      @default("US")
+  phone                                      String?
+  isDefault                                  Boolean     @default(false)
+  createdAt                                  DateTime    @default(now())
+  updatedAt                                  DateTime
+  userEmail                                  String?
+  userName                                   String?
+  clerkUserId                                String
+  orders_orders_billingAddressIdToaddresses  orders[]    @relation("orders_billingAddressIdToaddresses")
+  orders_orders_shippingAddressIdToaddresses orders[]    @relation("orders_shippingAddressIdToaddresses")
+  shipments                                  shipments[]
 }
 
-model Category {
-  id          String    @id @default(cuid())
-  name        String    @unique
+model cart_items {
+  id          String   @id
+  cartId      String
+  productId   String
+  quantity    Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  productName String?
+  userEmail   String?
+  userName    String?
+  carts       carts    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  products    products @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
+}
+
+model carts {
+  id          String       @id
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime
+  userEmail   String?
+  userName    String?
+  clerkUserId String
+  cart_items  cart_items[]
+}
+
+model categories {
+  id          String     @id
+  name        String     @unique
   description String?
   icon        String?
+  color       String?    @default("bg-blue-100")
+  isActive    Boolean    @default(true)
+  sortOrder   Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime
   image       String?
-  color       String?   @default("bg-blue-100")
-  isActive    Boolean   @default(true)
-  sortOrder   Int       @default(0)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  products    Product[]
-
-  @@map("categories")
+  products    products[]
 }
 
-model Product {
-  id             String        @id @default(cuid())
+model order_items {
+  id         String   @id
+  orderId    String
+  productId  String
+  quantity   Int
+  unitPrice  Decimal  @db.Decimal(10, 2)
+  totalPrice Decimal  @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime
+  orders     orders   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  products   products @relation(fields: [productId], references: [id])
+}
+
+model orders {
+  id                                            String        @id
+  orderNumber                                   String        @unique
+  status                                        OrderStatus   @default(PENDING)
+  subtotal                                      Decimal       @db.Decimal(10, 2)
+  taxAmount                                     Decimal       @default(0) @db.Decimal(10, 2)
+  shippingAmount                                Decimal       @default(0) @db.Decimal(10, 2)
+  discountAmount                                Decimal       @default(0) @db.Decimal(10, 2)
+  totalAmount                                   Decimal       @db.Decimal(10, 2)
+  currency                                      String        @default("INR")
+  notes                                         String?
+  shippingAddressId                             String?
+  billingAddressId                              String?
+  createdAt                                     DateTime      @default(now())
+  updatedAt                                     DateTime
+  userEmail                                     String?
+  userName                                      String?
+  clerkUserId                                   String
+  order_items                                   order_items[]
+  addresses_orders_billingAddressIdToaddresses  addresses?    @relation("orders_billingAddressIdToaddresses", fields: [billingAddressId], references: [id])
+  addresses_orders_shippingAddressIdToaddresses addresses?    @relation("orders_shippingAddressIdToaddresses", fields: [shippingAddressId], references: [id])
+  payments                                      payments[]
+  refunds                                       refunds[]
+  shipments                                     shipments[]
+}
+
+model payments {
+  id                String        @id
+  orderId           String
+  amount            Decimal       @db.Decimal(10, 2)
+  currency          String        @default("INR")
+  status            PaymentStatus @default(PENDING)
+  method            PaymentMethod
+  provider          String?
+  providerPaymentId String?
+  providerData      Json?
+  failureReason     String?
+  processedAt       DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime
+  userEmail         String?
+  userName          String?
+  orders            orders        @relation(fields: [orderId], references: [id])
+  refunds           refunds[]
+}
+
+model products {
+  id             String        @id
   name           String
   description    String?
   price          Decimal       @db.Decimal(10, 2)
   comparePrice   Decimal?      @db.Decimal(10, 2)
   sku            String?       @unique
   barcode        String?
-  categoryId     String?
   brand          String?
   images         String[]
   weight         Decimal?      @db.Decimal(8, 2)
@@ -69,114 +149,17 @@ model Product {
   seoTitle       String?
   seoDescription String?
   createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  cartItems      CartItem[]
-  orderItems     OrderItem[]
-  category       Category?     @relation(fields: [categoryId], references: [id])
-
-  @@map("products")
+  updatedAt      DateTime
+  categoryId     String?
+  cart_items     cart_items[]
+  order_items    order_items[]
+  categories     categories?   @relation(fields: [categoryId], references: [id])
 }
 
-model Cart {
-  id          String     @id @default(cuid())
-  clerkUserId String
-  userEmail   String?
-  userName    String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  items       CartItem[]
-
-  @@map("carts")
-}
-
-model CartItem {
-  id          String   @id @default(cuid())
-  cartId      String
-  productId   String
-  quantity    Int      @default(1)
-  productName String?
-  userName    String?
-  userEmail   String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  cart        Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@unique([cartId, productId])
-  @@map("cart_items")
-}
-
-model Order {
-  id                String      @id @default(cuid())
-  clerkUserId       String
-  userEmail         String?
-  userName          String?
-  orderNumber       String      @unique
-  status            OrderStatus @default(PENDING)
-  subtotal          Decimal     @db.Decimal(10, 2)
-  taxAmount         Decimal     @default(0) @db.Decimal(10, 2)
-  shippingAmount    Decimal     @default(0) @db.Decimal(10, 2)
-  discountAmount    Decimal     @default(0) @db.Decimal(10, 2)
-  totalAmount       Decimal     @db.Decimal(10, 2)
-  currency          String      @default("INR")
-  notes             String?
-  shippingAddressId String?
-  billingAddressId  String?
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-  items             OrderItem[]
-  billingAddress    Address?    @relation("BillingAddress", fields: [billingAddressId], references: [id])
-  shippingAddress   Address?    @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
-  payments          Payment[]
-  refunds           Refund[]
-  shipments         Shipment[]
-
-  @@map("orders")
-}
-
-model OrderItem {
-  id         String   @id @default(cuid())
-  orderId    String
-  productId  String
-  quantity   Int
-  unitPrice  Decimal  @db.Decimal(10, 2)
-  totalPrice Decimal  @db.Decimal(10, 2)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product    Product  @relation(fields: [productId], references: [id])
-
-  @@map("order_items")
-}
-
-model Payment {
-  id                String        @id @default(cuid())
-  orderId           String
-  userEmail         String?
-  userName          String?
-  amount            Decimal       @db.Decimal(10, 2)
-  currency          String        @default("INR")
-  status            PaymentStatus @default(PENDING)
-  method            PaymentMethod
-  provider          String?
-  providerPaymentId String?
-  providerData      Json?
-  failureReason     String?
-  processedAt       DateTime?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  order             Order         @relation(fields: [orderId], references: [id])
-  refunds           Refund[]
-
-  @@map("payments")
-}
-
-model Refund {
-  id          String       @id @default(cuid())
+model refunds {
+  id          String       @id
   orderId     String
   paymentId   String?
-  userEmail   String?
-  userName    String?
   amount      Decimal      @db.Decimal(10, 2)
   currency    String       @default("INR")
   reason      RefundReason
@@ -184,15 +167,15 @@ model Refund {
   description String?
   processedAt DateTime?
   createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  order       Order        @relation(fields: [orderId], references: [id])
-  payment     Payment?     @relation(fields: [paymentId], references: [id])
-
-  @@map("refunds")
+  updatedAt   DateTime
+  userEmail   String?
+  userName    String?
+  orders      orders       @relation(fields: [orderId], references: [id])
+  payments    payments?    @relation(fields: [paymentId], references: [id])
 }
 
-model Shipment {
-  id                String         @id @default(cuid())
+model shipments {
+  id                String         @id
   orderId           String
   addressId         String
   trackingNumber    String?        @unique
@@ -205,55 +188,15 @@ model Shipment {
   deliveredAt       DateTime?
   estimatedDelivery DateTime?
   createdAt         DateTime       @default(now())
-  updatedAt         DateTime       @updatedAt
-  address           Address        @relation(fields: [addressId], references: [id])
-  order             Order          @relation(fields: [orderId], references: [id])
-
-  @@map("shipments")
-}
-
-model Offer {
-  id                String       @id @default(cuid())
-  title             String
-  description       String?
-  code              String?      @unique
-  type              OfferType
-  discountType      DiscountType
-  discountValue     Decimal      @db.Decimal(10, 2)
-  minOrderAmount    Decimal?     @db.Decimal(10, 2)
-  maxDiscountAmount Decimal?     @db.Decimal(10, 2)
-  usageLimit        Int?
-  usageCount        Int          @default(0)
-  isActive          Boolean      @default(true)
-  startDate         DateTime
-  endDate           DateTime?
-  image             String?
-  buttonText        String?
-  buttonLink        String?
-  position          String?
-  priority          Int          @default(0)
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-
-  @@map("offers")
-}
-
-enum UserRole {
-  CUSTOMER
-  ADMIN
-  SUPER_ADMIN
+  updatedAt         DateTime
+  addresses         addresses      @relation(fields: [addressId], references: [id])
+  orders            orders         @relation(fields: [orderId], references: [id])
 }
 
 enum AddressType {
   SHIPPING
   BILLING
   BOTH
-}
-
-enum ProductStatus {
-  ACTIVE
-  INACTIVE
-  ARCHIVED
 }
 
 enum OrderStatus {
@@ -266,6 +209,16 @@ enum OrderStatus {
   REFUNDED
 }
 
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  PAYPAL
+  APPLE_PAY
+  GOOGLE_PAY
+  BANK_TRANSFER
+  CASH_ON_DELIVERY
+}
+
 enum PaymentStatus {
   PENDING
   PROCESSING
@@ -275,14 +228,10 @@ enum PaymentStatus {
   REFUNDED
 }
 
-enum PaymentMethod {
-  CREDIT_CARD
-  DEBIT_CARD
-  PAYPAL
-  APPLE_PAY
-  GOOGLE_PAY
-  BANK_TRANSFER
-  CASH_ON_DELIVERY
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
 }
 
 enum RefundReason {
@@ -313,14 +262,8 @@ enum ShipmentStatus {
   RETURNED
 }
 
-enum OfferType {
-  DISCOUNT_CODE
-  BANNER
-  BOTH
-}
-
-enum DiscountType {
-  PERCENTAGE
-  FIXED_AMOUNT
-  FREE_SHIPPING
+enum UserRole {
+  CUSTOMER
+  ADMIN
+  SUPER_ADMIN
 }

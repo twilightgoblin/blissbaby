@@ -19,14 +19,19 @@ const createAdapter = () => {
     }))
   }
   
-  return new PrismaPg(new Pool({ 
+  // Configuration for Supabase pooler
+  const poolConfig = {
     connectionString,
-    max: 5,
+    max: 3, // Lower max connections for pooler
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
     acquireTimeoutMillis: 60000,
-    ssl: connectionString.includes('supabase.co') ? { rejectUnauthorized: false } : undefined
-  }))
+    ssl: {
+      rejectUnauthorized: false
+    }
+  }
+  
+  return new PrismaPg(new Pool(poolConfig))
 }
 
 // Create Prisma client with required adapter for Prisma 7
