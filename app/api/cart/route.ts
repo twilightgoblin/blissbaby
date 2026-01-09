@@ -104,8 +104,102 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const cartItem = await addToCart(clerkUserId, productId, quantity)
-    return NextResponse.json({ cartItem }, { status: 201 })
+    try {
+      const cartItem = await addToCart(clerkUserId, productId, quantity)
+      return NextResponse.json({ cartItem }, { status: 201 })
+    } catch (prismaError) {
+      console.log('Prisma failed, using raw SQL fallback for add to cart:', prismaError)
+      
+      // Fallback with raw SQL
+      const { Pool } = await import('pg')
+      const pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        max: 1,
+        ssl: { rejectUnauthorized: false }
+      })
+      
+      const client = await pool.connect()
+      
+      // Get or create cart
+      let cartResult = await client.query(`
+        SELECT * FROM carts WHERE "clerkUserId" = $1
+      `, [clerkUserId])
+      
+      let cartId
+      if (cartResult.rows.length === 0) {
+        // Create new cart
+        cartId = crypto.randomUUID()
+        await client.query(`
+          INSERT INTO carts (id, "clerkUserId", "userEmail", "userName", "createdAt", "updatedAt")
+          VALUES ($1, $2, $3, $4, NOW(), NOW())
+        `, [cartId, clerkUserId, `user-${clerkUserId}@temp.com`, `User ${clerkUserId.slice(-4)}`])
+      } else {
+        cartId = cartResult.rows[0].id
+      }
+      
+      // Get product info
+      const productResult = await client.query('SELECT name FROM products WHERE id = $1', [productId])
+      const productName = productResult.rows[0]?.name || 'Unknown Product'
+      
+      // Check if item already exists in cart
+      const existingItemResult = await client.query(`
+        SELECT * FROM cart_items WHERE "cartId" = $1 AND "productId" = $2
+      `, [cartId, productId])
+      
+      let cartItem
+      if (existingItemResult.rows.length > 0) {
+        // Update existing item
+        const newQuantity = existingItemResult.rows[0].quantity + quantity
+        const updateResult = await client.query(`
+          UPDATE cart_items 
+          SET quantity = $1, "productName" = $2, "userName" = $3, "userEmail" = $4, "updatedAt" = NOW()
+          WHERE "cartId" = $5 AND "productId" = $6
+          RETURNING *
+        `, [newQuantity, productName, `User ${clerkUserId.slice(-4)}`, `user-${clerkUserId}@temp.com`, cartId, productId])
+        
+        cartItem = updateResult.rows[0]
+      } else {
+        // Create new item
+        const itemId = crypto.randomUUID()
+        const insertResult = await client.query(`
+          INSERT INTO cart_items (
+            id, "cartId", "productId", quantity, "productName", "userName", "userEmail", "createdAt", "updatedAt"
+          ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, NOW(), NOW()
+          ) RETURNING *
+        `, [itemId, cartId, productId, quantity, productName, `User ${clerkUserId.slice(-4)}`, `user-${clerkUserId}@temp.com`])
+        
+        cartItem = insertResult.rows[0]
+      }
+      
+      // Get product details for response
+      const productDetailsResult = await client.query(`
+        SELECT p.*, c.name as category_name, c.color as category_color
+        FROM products p
+        LEFT JOIN categories c ON p."categoryId" = c.id
+        WHERE p.id = $1
+      `, [productId])
+      
+      const product = productDetailsResult.rows[0]
+      if (product) {
+        cartItem.product = {
+          ...product,
+          price: parseFloat(product.price),
+          comparePrice: product.comparePrice ? parseFloat(product.comparePrice) : null,
+          weight: product.weight ? parseFloat(product.weight) : null,
+          category: product.category_name ? {
+            id: product.categoryId,
+            name: product.category_name,
+            color: product.category_color
+          } : null
+        }
+      }
+      
+      client.release()
+      await pool.end()
+      
+      return NextResponse.json({ cartItem }, { status: 201 })
+    }
   } catch (error) {
     console.error('Error adding to cart:', error)
     
