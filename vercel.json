@@ -4,5 +4,7 @@
     "app/api/**/*.ts": {
       "maxDuration": 60
     }
-  }
+  },
+  "buildCommand": "npx prisma generate && npx prisma migrate deploy && next build",
+  "installCommand": "npm ci"
 }

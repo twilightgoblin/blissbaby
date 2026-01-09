@@ -21,9 +21,11 @@ const createAdapter = () => {
   
   return new PrismaPg(new Pool({ 
     connectionString,
-    max: 1,
+    max: 5,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionTimeoutMillis: 10000,
+    acquireTimeoutMillis: 60000,
+    ssl: connectionString.includes('supabase.co') ? { rejectUnauthorized: false } : undefined
   }))
 }
 
