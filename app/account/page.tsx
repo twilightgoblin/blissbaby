@@ -79,10 +79,10 @@ export default function AccountPage() {
 
   const fetchUserData = async () => {
     try {
-      const response = await fetch('/api/user/profile');
+      const response = await fetch(`/api/profile?userId=${clerkUser?.id}`);
       if (response.ok) {
         const data = await response.json();
-        setUser(data.user);
+        setUser(data.profile);
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -93,7 +93,7 @@ export default function AccountPage() {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch('/api/user/orders');
+      const response = await fetch(`/api/orders?userId=${clerkUser?.id}`);
       
       if (response.ok) {
         const data = await response.json();
@@ -108,7 +108,7 @@ export default function AccountPage() {
 
   const fetchAddresses = async () => {
     try {
-      const response = await fetch('/api/user/addresses');
+      const response = await fetch(`/api/addresses?userId=${clerkUser?.id}`);
       
       if (response.ok) {
         const data = await response.json();
@@ -335,7 +335,7 @@ export default function AccountPage() {
                               </div>
                               <div className="text-right">
                                 <p className="text-lg font-bold text-primary">
-                                  {formatCurrency(Number(order.totalAmount), '$')}
+                                  {formatCurrency(Number(order.totalAmount), order.currency || 'INR')}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
                                   {order.items.length} item{order.items.length !== 1 ? 's' : ''}
@@ -360,7 +360,7 @@ export default function AccountPage() {
                                   <div className="flex-1">
                                     <p className="font-medium">{item.product.name}</p>
                                     <p className="text-muted-foreground">
-                                      Qty: {item.quantity} × {formatCurrency(Number(item.unitPrice), '$')}
+                                      Qty: {item.quantity} × {formatCurrency(Number(item.unitPrice), order.currency || 'INR')}
                                     </p>
                                   </div>
                                 </div>
