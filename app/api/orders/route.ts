@@ -258,6 +258,17 @@ export async function POST(request: NextRequest) {
           }
         })
 
+        // Clear the user's cart after successful order
+        if (finalUserId !== 'guest') {
+          await tx.cartItem.deleteMany({
+            where: {
+              cart: {
+                clerkUserId: finalUserId
+              }
+            }
+          })
+        }
+
         return {
           ...newOrder,
           items: orderItems,
@@ -336,6 +347,16 @@ export async function POST(request: NextRequest) {
           paymentId, orderId, userEmail, userName, parseFloat(totalAmount.toString()), 
           currency, 'COMPLETED', 'CREDIT_CARD', 'stripe', paymentIntentId
         ])
+        
+        // Clear the user's cart after successful order (raw SQL fallback)
+        if (finalUserId !== 'guest') {
+          await client.query(`
+            DELETE FROM cart_items 
+            WHERE "cartId" IN (
+              SELECT id FROM carts WHERE "clerkUserId" = $1
+            )
+          `, [finalUserId])
+        }
         
         await client.query('COMMIT')
         
