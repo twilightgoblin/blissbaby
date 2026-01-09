@@ -51,7 +51,6 @@ export async function GET(request: NextRequest) {
       
       if (cartResult.rows.length === 0) {
         // Create new cart
-        const { uuid_generate_v4 } = await import('crypto')
         const cartId = crypto.randomUUID()
         
         await client.query(`
