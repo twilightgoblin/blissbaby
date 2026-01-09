@@ -63,13 +63,36 @@ export async function GET(request: NextRequest) {
       
       // Get cart items
       const itemsResult = await client.query(`
-        SELECT ci.*, p.name as product_name, p.price, p.images
+        SELECT ci.*, p.name as product_name, p.price, p.images, p.id as product_id,
+               c.name as category_name, c.id as category_id, c.color as category_color
         FROM cart_items ci
         LEFT JOIN products p ON ci."productId" = p.id
+        LEFT JOIN categories c ON p."categoryId" = c.id
         WHERE ci."cartId" = $1
       `, [cart.id])
       
-      cart.items = itemsResult.rows
+      // Format cart items to match expected structure
+      cart.items = itemsResult.rows.map(row => ({
+        id: row.id,
+        productId: row.productId,
+        quantity: row.quantity,
+        productName: row.productName,
+        userName: row.userName,
+        userEmail: row.userEmail,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        product: {
+          id: row.product_id,
+          name: row.product_name,
+          price: parseFloat(row.price || 0),
+          images: row.images || [],
+          category: row.category_name ? {
+            id: row.category_id,
+            name: row.category_name,
+            color: row.category_color
+          } : null
+        }
+      }))
       
       client.release()
       await pool.end()
