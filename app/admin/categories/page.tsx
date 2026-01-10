@@ -259,12 +259,12 @@ export default function CategoriesPage() {
               Add Category
             </Button>
           </DialogTrigger>
-          <DialogContent className="rounded-3xl">
+          <DialogContent className="rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Category</DialogTitle>
               <DialogDescription>Create a new product category</DialogDescription>
             </DialogHeader>
-            <div className="space-y-4 py-4">
+            <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
               <div className="space-y-2">
                 <Label htmlFor="category-name">Category Name *</Label>
                 <Input 
@@ -320,7 +320,7 @@ export default function CategoriesPage() {
                 </div>
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="sticky bottom-0 bg-background pt-4 border-t">
               <Button 
                 variant="outline" 
                 className="rounded-full bg-transparent"
@@ -420,12 +420,12 @@ export default function CategoriesPage() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="rounded-3xl">
+        <DialogContent className="rounded-3xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Category</DialogTitle>
             <DialogDescription>Update category information</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto">
             <div className="space-y-2">
               <Label htmlFor="edit-category-name">Category Name *</Label>
               <Input 
@@ -481,7 +481,7 @@ export default function CategoriesPage() {
               </div>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="sticky bottom-0 bg-background pt-4 border-t">
             <Button 
               variant="outline" 
               className="rounded-full bg-transparent"
