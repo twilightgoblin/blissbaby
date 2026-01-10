@@ -352,18 +352,16 @@ export default function ProductsPage({ searchParams }: { searchParams: Promise<{
             {loading ? (
               // Loading skeleton
               [...Array(9)].map((_, index) => (
-                <Card key={index} className="overflow-hidden rounded-3xl border-border/60 animate-pulse">
-                  <CardContent className="p-0">
-                    <div className="aspect-square bg-muted" />
-                    <div className="space-y-3 p-4">
-                      <div className="h-4 bg-muted rounded w-3/4" />
-                      <div className="h-3 bg-muted rounded w-1/2" />
-                      <div className="flex items-center justify-between">
-                        <div className="h-4 bg-muted rounded w-1/3" />
-                        <div className="h-8 bg-muted rounded w-16" />
-                      </div>
+                <Card key={index} className="overflow-hidden rounded-3xl border-border/60 animate-pulse p-0">
+                  <div className="aspect-square bg-muted" />
+                  <div className="space-y-3 p-4">
+                    <div className="h-4 bg-muted rounded w-3/4" />
+                    <div className="h-3 bg-muted rounded w-1/2" />
+                    <div className="flex items-center justify-between">
+                      <div className="h-4 bg-muted rounded w-1/3" />
+                      <div className="h-8 bg-muted rounded w-16" />
                     </div>
-                  </CardContent>
+                  </div>
                 </Card>
               ))
             ) : products.length === 0 ? (
@@ -376,90 +374,88 @@ export default function ProductsPage({ searchParams }: { searchParams: Promise<{
               </div>
             ) : (
               products.map((product) => (
-                <Card key={product.id} className="group overflow-hidden rounded-3xl border-border/60 transition-all hover:shadow-lg hover:-translate-y-1">
-                  <CardContent className="p-0">
-                    <Link href={`/products/${product.id}`} className="block">
-                      <div className="relative aspect-square bg-muted/50">
-                        {product.featured && (
-                          <Badge className="absolute left-3 top-3 z-10 rounded-full bg-primary text-primary-foreground border-0">
-                            Featured
-                          </Badge>
-                        )}
-                        {product.comparePrice && parseFloat(product.comparePrice) > parseFloat(product.price) && (
-                          <Badge className="absolute right-3 top-3 z-10 rounded-full bg-destructive text-destructive-foreground border-0">
-                            {Math.round(((parseFloat(product.comparePrice) - parseFloat(product.price)) / parseFloat(product.comparePrice)) * 100)}% OFF
-                          </Badge>
-                        )}
-                        <img
-                          src={product.images?.[0] || "/placeholder.svg"}
-                          alt={product.name}
-                          className="h-full w-full object-cover transition-transform group-hover:scale-110"
-                        />
-                      </div>
-                    </Link>
-                    <div className="space-y-3 p-4">
-                      <div className="space-y-1">
-                        <Link href={`/products/${product.id}`}>
-                          <h3 className="font-semibold group-hover:text-primary transition-colors text-balance line-clamp-2 hover:text-primary">
-                            {product.name}
-                          </h3>
-                        </Link>
-                        {product.brand && (
-                          <p className="text-sm text-muted-foreground">{product.brand}</p>
-                        )}
-                        {product.category && (
-                          <Badge variant="outline" className="text-xs">
-                            {product.category.name}
-                          </Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <div className="flex items-center gap-1">
-                          <Star className="h-4 w-4 fill-primary text-primary" />
-                          <span className="font-medium">4.5</span>
-                        </div>
-                        <span className="text-muted-foreground">(0)</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-baseline gap-2">
-                          <p className="text-lg font-bold text-primary">{formatCurrency(parseFloat(product.price))}</p>
-                          {product.comparePrice && parseFloat(product.comparePrice) > parseFloat(product.price) && (
-                            <p className="text-sm text-muted-foreground line-through">{formatCurrency(parseFloat(product.comparePrice))}</p>
-                          )}
-                        </div>
-                        <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
-                            className="rounded-full bg-transparent hover:bg-primary hover:text-primary-foreground"
-                            asChild
-                          >
-                            <Link href={`/products/${product.id}`}>
-                              <Eye className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            className="rounded-full bg-primary hover:bg-primary/90"
-                            onClick={(e) => handleAddToCart(product, e)}
-                            disabled={addingToCart === product.id || cartLoading || product.inventory <= 0}
-                          >
-                            {addingToCart === product.id ? (
-                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                            ) : (
-                              <ShoppingCart className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                      {product.inventory <= 5 && product.inventory > 0 && (
-                        <p className="text-xs text-orange-600">Only {product.inventory} left in stock!</p>
+                <Card key={product.id} className="group overflow-hidden rounded-3xl border-border/60 transition-all hover:shadow-lg hover:-translate-y-1 p-0">
+                  <Link href={`/products/${product.id}`} className="block">
+                    <div className="relative aspect-square bg-muted/50">
+                      {product.featured && (
+                        <Badge className="absolute left-3 top-3 z-10 rounded-full bg-primary text-primary-foreground border-0">
+                          Featured
+                        </Badge>
                       )}
-                      {product.inventory === 0 && (
-                        <p className="text-xs text-red-600">Out of stock</p>
+                      {product.comparePrice && parseFloat(product.comparePrice) > parseFloat(product.price) && (
+                        <Badge className="absolute right-3 top-3 z-10 rounded-full bg-destructive text-destructive-foreground border-0">
+                          {Math.round(((parseFloat(product.comparePrice) - parseFloat(product.price)) / parseFloat(product.comparePrice)) * 100)}% OFF
+                        </Badge>
+                      )}
+                      <img
+                        src={product.images?.[0] || "/placeholder.svg"}
+                        alt={product.name}
+                        className="h-full w-full object-cover transition-transform group-hover:scale-110"
+                      />
+                    </div>
+                  </Link>
+                  <div className="space-y-3 p-4">
+                    <div className="space-y-1">
+                      <Link href={`/products/${product.id}`}>
+                        <h3 className="font-semibold group-hover:text-primary transition-colors text-balance line-clamp-2 hover:text-primary">
+                          {product.name}
+                        </h3>
+                      </Link>
+                      {product.brand && (
+                        <p className="text-sm text-muted-foreground">{product.brand}</p>
+                      )}
+                      {product.category && (
+                        <Badge variant="outline" className="text-xs">
+                          {product.category.name}
+                        </Badge>
                       )}
                     </div>
-                  </CardContent>
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="flex items-center gap-1">
+                        <Star className="h-4 w-4 fill-primary text-primary" />
+                        <span className="font-medium">4.5</span>
+                      </div>
+                      <span className="text-muted-foreground">(0)</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-baseline gap-2">
+                        <p className="text-lg font-bold text-primary">{formatCurrency(parseFloat(product.price))}</p>
+                        {product.comparePrice && parseFloat(product.comparePrice) > parseFloat(product.price) && (
+                          <p className="text-sm text-muted-foreground line-through">{formatCurrency(parseFloat(product.comparePrice))}</p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="rounded-full bg-transparent hover:bg-primary hover:text-primary-foreground"
+                          asChild
+                        >
+                          <Link href={`/products/${product.id}`}>
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          className="rounded-full bg-primary hover:bg-primary/90"
+                          onClick={(e) => handleAddToCart(product, e)}
+                          disabled={addingToCart === product.id || cartLoading || product.inventory <= 0}
+                        >
+                          {addingToCart === product.id ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          ) : (
+                            <ShoppingCart className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                    {product.inventory <= 5 && product.inventory > 0 && (
+                      <p className="text-xs text-orange-600">Only {product.inventory} left in stock!</p>
+                    )}
+                    {product.inventory === 0 && (
+                      <p className="text-xs text-red-600">Out of stock</p>
+                    )}
+                  </div>
                 </Card>
               ))
             )}

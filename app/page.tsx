@@ -173,16 +173,16 @@ export default function HomePage() {
           {loading ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               {[...Array(5)].map((_, index) => (
-                <Card key={index} className="overflow-hidden rounded-2xl border-border/60 animate-pulse bg-gradient-to-br from-background to-muted/30 h-full">
-                  <CardContent className="p-0 h-full flex flex-col">
+                <Card key={index} className="overflow-hidden rounded-2xl border-border/60 animate-pulse bg-gradient-to-br from-background to-muted/30 h-full p-0">
+                  <div className="h-full flex flex-col">
                     <div className="aspect-square bg-muted/50" />
-                    <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div className="p-3 flex-1 flex flex-col justify-between">
                       <div className="space-y-2">
                         <div className="h-4 bg-muted rounded w-3/4" />
                         <div className="h-3 bg-muted rounded w-1/2" />
                       </div>
                     </div>
-                  </CardContent>
+                  </div>
                 </Card>
               ))}
             </div>
@@ -197,8 +197,8 @@ export default function HomePage() {
                 {categories.slice(0, 5).map((category, index) => (
                   <Link key={category.id} href={`/products?category=${category.id}`} className="group h-full">
                     <div className="animate-scale-in h-full" style={{ animationDelay: `${index * 100}ms` }}>
-                      <Card className="group overflow-hidden rounded-2xl border-border/60 transition-all duration-500 hover:shadow-xl hover:-translate-y-1 hover:border-primary/30 cursor-pointer bg-gradient-to-br from-background to-muted/30 h-full">
-                        <CardContent className="p-0 h-full flex flex-col">
+                      <Card className="group overflow-hidden rounded-2xl border-border/60 transition-all duration-500 hover:shadow-xl hover:-translate-y-1 hover:border-primary/30 cursor-pointer bg-gradient-to-br from-background to-muted/30 h-full p-0">
+                        <div className="h-full flex flex-col">
                           <div className="relative aspect-square overflow-hidden">
                             {category.image ? (
                               <Image
@@ -217,7 +217,7 @@ export default function HomePage() {
                             )}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                           </div>
-                          <div className="p-4 flex-1 flex flex-col justify-between">
+                          <div className="p-3 flex-1 flex flex-col justify-between">
                             <div className="space-y-1">
                               <h3 className="font-semibold text-sm group-hover:text-primary transition-colors duration-300 line-clamp-2 leading-tight">
                                 {category.name}
@@ -228,12 +228,12 @@ export default function HomePage() {
                                 </p>
                               )}
                             </div>
-                            <div className="mt-3 flex items-center text-primary font-medium text-xs group-hover:translate-x-1 transition-transform duration-300">
+                            <div className="mt-2 flex items-center text-primary font-medium text-xs group-hover:translate-x-1 transition-transform duration-300">
                               Shop Now
                               <ArrowRight className="ml-1 h-3 w-3" />
                             </div>
                           </div>
-                        </CardContent>
+                        </div>
                       </Card>
                     </div>
                   </Link>
@@ -266,17 +266,17 @@ export default function HomePage() {
           {loading ? (
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {[...Array(4)].map((_, index) => (
-                <Card key={index} className="overflow-hidden rounded-3xl border-border/60 animate-pulse bg-gradient-to-br from-background to-muted/20 h-full">
-                  <CardContent className="p-0 h-full flex flex-col">
+                <Card key={index} className="overflow-hidden rounded-3xl border-border/60 animate-pulse bg-gradient-to-br from-background to-muted/20 h-full p-0">
+                  <div className="h-full flex flex-col">
                     <div className="aspect-square bg-muted/50" />
-                    <div className="p-6 space-y-3 flex-1 flex flex-col justify-between">
+                    <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
                       <div className="space-y-3">
                         <div className="h-5 bg-muted rounded w-3/4" />
                         <div className="h-4 bg-muted rounded w-1/2" />
                         <div className="h-5 bg-muted rounded w-1/3" />
                       </div>
                     </div>
-                  </CardContent>
+                  </div>
                 </Card>
               ))}
             </div>
@@ -290,8 +290,8 @@ export default function HomePage() {
               {featuredProducts.map((product, index) => (
                 <Link key={product.id} href={`/products/${product.id}`} className="group h-full">
                   <div className="animate-scale-in h-full" style={{ animationDelay: `${index * 100}ms` }}>
-                    <Card className="group overflow-hidden rounded-3xl border-border/60 transition-all duration-500 hover:shadow-2xl hover:-translate-y-3 hover:border-primary/30 relative cursor-pointer bg-gradient-to-br from-background to-muted/20 h-full">
-                      <CardContent className="p-0 h-full flex flex-col">
+                    <Card className="group overflow-hidden rounded-3xl border-border/60 transition-all duration-500 hover:shadow-2xl hover:-translate-y-3 hover:border-primary/30 relative cursor-pointer bg-gradient-to-br from-background to-muted/20 h-full p-0">
+                      <div className="h-full flex flex-col">
                         <div className="relative aspect-square bg-muted/30 overflow-hidden">
                           {product.featured && (
                             <Badge className="absolute left-3 top-3 z-10 rounded-full bg-primary text-primary-foreground border-0 text-xs px-3 py-1.5 font-semibold">
@@ -310,7 +310,7 @@ export default function HomePage() {
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                         </div>
-                        <div className="p-6 space-y-3 flex-1 flex flex-col justify-between">
+                        <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
                           <div className="space-y-3">
                             <h3 className="font-bold text-lg group-hover:text-primary transition-colors duration-300 line-clamp-2 leading-tight">
                               {product.name}
@@ -334,7 +334,7 @@ export default function HomePage() {
                             )}
                           </div>
                         </div>
-                      </CardContent>
+                      </div>
                     </Card>
                   </div>
                 </Link>
