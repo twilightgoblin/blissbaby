@@ -4,7 +4,7 @@ import { ShoppingCart, User, Search, Menu, Heart, X, LogOut } from "lucide-react
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useUser, useClerk, SignInButton, SignUpButton } from "@clerk/nextjs"
@@ -12,18 +12,48 @@ import { useCart } from "@/contexts/cart-context"
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
   const [wishlistCount] = useState(5)
   const pathname = usePathname()
   const router = useRouter()
   const { user, isSignedIn } = useUser()
   const { signOut } = useClerk()
   const { cartCount } = useCart()
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  const mobileSearchInputRef = useRef<HTMLInputElement>(null)
 
   const isActive = (path: string) => pathname === path
 
   const handleSignOut = async () => {
     await signOut()
     router.push('/')
+  }
+
+  const handleSearch = (query: string) => {
+    if (!query.trim()) return
+    
+    // Navigate to products page with search query
+    const searchParams = new URLSearchParams()
+    searchParams.set('search', query.trim())
+    router.push(`/products?${searchParams.toString()}`)
+    
+    // Close mobile menu if open
+    setMobileMenuOpen(false)
+    
+    // Clear search input
+    setSearchQuery("")
+  }
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    handleSearch(searchQuery)
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleSearch(searchQuery)
+    }
   }
 
   return (
@@ -85,14 +115,27 @@ export function Header() {
 
           {/* Search Bar */}
           <div className="hidden flex-1 max-w-md lg:block">
-            <div className="relative group">
+            <form onSubmit={handleSearchSubmit} className="relative group">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground transition-colors duration-300 group-focus-within:text-primary" />
               <Input
+                ref={searchInputRef}
                 type="search"
                 placeholder="Search products..."
-                className="pl-10 rounded-full border-border/60 bg-muted/50 focus:bg-background transition-all duration-300 focus:ring-2 focus:ring-primary/20"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
+                className="pl-10 pr-12 rounded-full border-border/60 bg-muted/50 focus:bg-background transition-all duration-300 focus:ring-2 focus:ring-primary/20"
               />
-            </div>
+              {searchQuery && (
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-primary hover:bg-primary/90 p-0"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              )}
+            </form>
           </div>
 
           {/* Actions - Icons only */}
@@ -272,8 +315,27 @@ export function Header() {
             )}
             
             <div className="relative mt-2 lg:hidden">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input type="search" placeholder="Search products..." className="pl-10 rounded-full" />
+              <form onSubmit={handleSearchSubmit} className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input 
+                  ref={mobileSearchInputRef}
+                  type="search" 
+                  placeholder="Search products..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
+                  className="pl-10 pr-12 rounded-full" 
+                />
+                {searchQuery && (
+                  <Button
+                    type="submit"
+                    size="sm"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full bg-primary hover:bg-primary/90 p-0"
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
+                )}
+              </form>
             </div>
           </nav>
         )}

@@ -139,6 +139,12 @@ export default function ProductsPage({ searchParams }: { searchParams: Promise<{
         if (priceRange[0] > 0) params.set('minPrice', priceRange[0].toString())
         if (priceRange[1] < 10000) params.set('maxPrice', priceRange[1].toString())
         params.set('sortBy', sortBy)
+        
+        // Add search parameter from URL
+        const searchParam = resolvedSearchParams.search as string
+        if (searchParam) {
+          params.set('search', searchParam)
+        }
 
         // Fetch products
         const productsResponse = await fetch(`/api/products?${params.toString()}`)
@@ -152,7 +158,7 @@ export default function ProductsPage({ searchParams }: { searchParams: Promise<{
     }
 
     fetchData()
-  }, [selectedCategories, priceRange, sortBy])
+  }, [selectedCategories, priceRange, sortBy, resolvedSearchParams.search])
 
   const updateURL = (newParams: Record<string, string | null>) => {
     const params = new URLSearchParams()
@@ -202,7 +208,7 @@ export default function ProductsPage({ searchParams }: { searchParams: Promise<{
     setSelectedCategories([])
     setPriceRange([0, 10000])
     setSortBy('popular')
-    router.push(pathname)
+    router.push(pathname) // This will clear all URL parameters including search
   }
 
   const FiltersContent = () => (
@@ -272,7 +278,16 @@ export default function ProductsPage({ searchParams }: { searchParams: Promise<{
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8 space-y-4">
-          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">All Products</h1>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+              {resolvedSearchParams.search ? `Search Results for "${resolvedSearchParams.search}"` : 'All Products'}
+            </h1>
+            {resolvedSearchParams.search && (
+              <p className="text-muted-foreground">
+                {loading ? 'Searching...' : `Found ${products.length} products matching "${resolvedSearchParams.search}"`}
+              </p>
+            )}
+          </div>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="text-muted-foreground">
               {loading ? 'Loading...' : `Showing ${products.length} products`}
@@ -312,8 +327,23 @@ export default function ProductsPage({ searchParams }: { searchParams: Promise<{
           </div>
 
           {/* Active Filters */}
-          {selectedCategories.length > 0 && (
+          {(selectedCategories.length > 0 || resolvedSearchParams.search) && (
             <div className="flex flex-wrap gap-2">
+              {resolvedSearchParams.search && (
+                <Badge variant="secondary" className="rounded-full gap-1">
+                  Search: "{resolvedSearchParams.search}"
+                  <button 
+                    onClick={() => {
+                      const params = new URLSearchParams(window.location.search)
+                      params.delete('search')
+                      router.push(`${pathname}?${params.toString()}`)
+                    }} 
+                    className="ml-1 hover:text-destructive"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
               {selectedCategories.map((catId) => {
                 const category = categories.find((c) => c.id === catId)
                 return (
@@ -336,7 +366,7 @@ export default function ProductsPage({ searchParams }: { searchParams: Promise<{
               <CardContent className="p-6">
                 <div className="mb-4 flex items-center justify-between">
                   <h2 className="text-lg font-semibold">Filters</h2>
-                  {selectedCategories.length > 0 && (
+                  {(selectedCategories.length > 0 || resolvedSearchParams.search) && (
                     <Button onClick={clearFilters} variant="ghost" size="sm" className="h-auto p-0 text-primary">
                       Clear
                     </Button>
@@ -366,11 +396,31 @@ export default function ProductsPage({ searchParams }: { searchParams: Promise<{
               ))
             ) : products.length === 0 ? (
               <div className="col-span-full text-center py-12">
-                <p className="text-muted-foreground text-lg">No products found</p>
-                <p className="text-sm text-muted-foreground mt-2">Try adjusting your filters or search criteria</p>
-                <Button onClick={clearFilters} variant="outline" className="mt-4 rounded-full">
-                  Clear Filters
-                </Button>
+                {resolvedSearchParams.search ? (
+                  <>
+                    <p className="text-muted-foreground text-lg">No products found for "{resolvedSearchParams.search}"</p>
+                    <p className="text-sm text-muted-foreground mt-2">Try searching with different keywords or check your spelling</p>
+                    <Button 
+                      onClick={() => {
+                        const params = new URLSearchParams(window.location.search)
+                        params.delete('search')
+                        router.push(`${pathname}?${params.toString()}`)
+                      }} 
+                      variant="outline" 
+                      className="mt-4 rounded-full"
+                    >
+                      Clear Search
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-muted-foreground text-lg">No products found</p>
+                    <p className="text-sm text-muted-foreground mt-2">Try adjusting your filters or search criteria</p>
+                    <Button onClick={clearFilters} variant="outline" className="mt-4 rounded-full">
+                      Clear Filters
+                    </Button>
+                  </>
+                )}
               </div>
             ) : (
               products.map((product) => (
