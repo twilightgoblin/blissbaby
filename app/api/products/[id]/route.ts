@@ -19,9 +19,8 @@ export async function GET(
       )
     }
 
-    // Validate ID format (basic UUID check)
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-    if (!uuidRegex.test(id)) {
+    // Validate ID format (CUID format check - starts with 'c' and is 25 characters long)
+    if (!id.match(/^c[a-z0-9]{24}$/)) {
       console.log('Product API: Invalid ID format:', id)
       return NextResponse.json(
         { error: 'Invalid product ID format' },
