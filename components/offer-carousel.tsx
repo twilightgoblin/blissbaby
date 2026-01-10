@@ -161,8 +161,8 @@ export function OfferCarousel({
         <Card className="overflow-hidden rounded-3xl border-0 bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 relative hover:shadow-2xl transition-shadow duration-500">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-secondary/5 animate-shimmer" />
           <CardContent className="p-0 relative">
-            <div className="grid gap-8 lg:grid-cols-2 items-center">
-              <div className="space-y-6 p-8 md:p-12 animate-slide-in-left">
+            <div className="grid gap-0 lg:grid-cols-2 items-center min-h-[400px]">
+              <div className="space-y-6 p-8 md:p-12 lg:pr-6 animate-slide-in-left">
                 <Badge className="rounded-full bg-primary text-primary-foreground border-0 animate-pulse-soft">
                   <Sparkles className="mr-1 h-3 w-3" />
                   Limited Time Offer
@@ -212,14 +212,16 @@ export function OfferCarousel({
                 </Button>
               </div>
               {offer.image && (
-                <div className="relative h-64 md:h-80 lg:h-96 animate-slide-in-right">
-                  <Image
-                    src={offer.image}
-                    alt={offer.title}
-                    fill
-                    className="object-cover rounded-2xl"
-                    priority
-                  />
+                <div className="relative h-64 md:h-80 lg:h-96 p-4 md:p-8 lg:pl-6 animate-slide-in-right">
+                  <div className="relative h-full w-full rounded-2xl overflow-hidden shadow-lg">
+                    <Image
+                      src={offer.image}
+                      alt={offer.title}
+                      fill
+                      className="object-cover"
+                      priority
+                    />
+                  </div>
                 </div>
               )}
             </div>
@@ -254,8 +256,8 @@ export function OfferCarousel({
               >
                 {offers.map((offer, index) => (
                   <div key={offer.id} className="w-full flex-shrink-0">
-                    <div className="grid gap-8 lg:grid-cols-2 items-center">
-                      <div className="space-y-6 p-8 md:p-12">
+                    <div className="grid gap-0 lg:grid-cols-2 items-center min-h-[400px]">
+                      <div className="space-y-6 p-8 md:p-12 lg:pr-6">
                         <Badge className="rounded-full bg-primary text-primary-foreground border-0 animate-pulse-soft">
                           <Sparkles className="mr-1 h-3 w-3" />
                           Limited Time Offer
@@ -305,14 +307,16 @@ export function OfferCarousel({
                         </Button>
                       </div>
                       {offer.image && (
-                        <div className="relative h-64 md:h-80 lg:h-96">
-                          <Image
-                            src={offer.image}
-                            alt={offer.title}
-                            fill
-                            className="object-cover rounded-2xl"
-                            priority={index === 0}
-                          />
+                        <div className="relative h-64 md:h-80 lg:h-96 p-4 md:p-8 lg:pl-6">
+                          <div className="relative h-full w-full rounded-2xl overflow-hidden shadow-lg">
+                            <Image
+                              src={offer.image}
+                              alt={offer.title}
+                              fill
+                              className="object-cover"
+                              priority={index === 0}
+                            />
+                          </div>
                         </div>
                       )}
                     </div>
