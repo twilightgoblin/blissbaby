@@ -152,6 +152,25 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Button cursor pointer styles */
+  button,
+  [role="button"],
+  input[type="button"],
+  input[type="submit"],
+  input[type="reset"],
+  .btn {
+    cursor: pointer;
+  }
+  
+  button:disabled,
+  [role="button"]:disabled,
+  input[type="button"]:disabled,
+  input[type="submit"]:disabled,
+  input[type="reset"]:disabled,
+  .btn:disabled {
+    cursor: not-allowed;
+  }
 }
 
 /* Added sophisticated keyframe animations for baby-friendly interactions */
@@ -342,6 +361,26 @@
 
   .hover-scale:hover {
     transform: scale(1.05);
+  }
+
+  /* Button hover enhancements */
+  .btn-hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+  }
+
+  .btn-hover-lift:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .btn-hover-scale {
+    transition: transform 0.2s ease;
+    cursor: pointer;
+  }
+
+  .btn-hover-scale:hover:not(:disabled) {
+    transform: scale(1.02);
   }
 
   /* Grid alignment utilities */
