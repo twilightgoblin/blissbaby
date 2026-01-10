@@ -75,87 +75,87 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-pink-50 via-blue-50 to-purple-50">
-        <div className="container mx-auto px-4 py-16 md:py-24">
-          <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
-            <div className="space-y-6 animate-fade-in-up">
+        <div className="container mx-auto px-4 py-8 sm:py-12 md:py-16 lg:py-20 xl:py-24">
+          <div className="grid gap-6 lg:grid-cols-2 lg:gap-8 xl:gap-12 items-center">
+            <div className="space-y-4 sm:space-y-5 lg:space-y-6 animate-fade-in-up">
               <Badge className="rounded-full bg-primary/10 text-primary hover:bg-primary/20 border-0 animate-scale-in">
                 <Sparkles className="mr-1 h-3 w-3 animate-pulse" />
                 New Collection 2024
               </Badge>
-              <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl md:text-6xl">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-balance leading-tight">
                 Everything Your Baby Needs, All in One Place
               </h1>
-              <p className="text-lg text-muted-foreground leading-relaxed text-pretty">
+              <p className="text-sm sm:text-base lg:text-lg text-muted-foreground leading-relaxed text-pretty max-w-lg">
                 Discover premium, safe, and adorable products for your little ones. From feeding essentials to cozy
                 clothing, we've got you covered.
               </p>
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-2 sm:gap-3">
                 <Link href="/products">
                   <Button
-                    size="lg"
-                    className="rounded-full bg-primary hover:bg-primary/90 hover:scale-105 transition-all duration-300 hover:shadow-lg group"
+                    size="default"
+                    className="rounded-full bg-primary hover:bg-primary/90 hover:scale-105 transition-all duration-300 hover:shadow-lg group sm:size-lg"
                   >
                     Shop Now <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </Link>
                 <Button
-                  size="lg"
+                  size="default"
                   variant="outline"
-                  className="rounded-full bg-transparent hover:bg-primary/5 hover:scale-105 transition-all duration-300"
+                  className="rounded-full bg-transparent hover:bg-primary/5 hover:scale-105 transition-all duration-300 sm:size-lg"
                 >
                   View Bestsellers
                 </Button>
               </div>
             </div>
-            <div className="relative animate-slide-in-right">
+            <div className="relative animate-slide-in-right mt-4 lg:mt-0">
               <div className="absolute inset-0 -z-10 bg-gradient-to-br from-primary/20 via-secondary/20 to-accent/20 blur-3xl animate-pulse-soft" />
               <img
                 src="/happy-baby-with-products.jpg"
                 alt="Baby Products Hero"
-                className="w-full h-auto rounded-3xl shadow-2xl animate-float"
+                className="w-full h-auto rounded-2xl sm:rounded-3xl shadow-xl lg:shadow-2xl animate-float max-h-[300px] sm:max-h-[400px] lg:max-h-none object-cover"
               />
             </div>
           </div>
         </div>
 
         {/* Features */}
-        <div className="border-y border-border/40 bg-muted/20 py-8">
+        <div className="border-y border-border/40 bg-muted/20 py-4 sm:py-6 lg:py-8">
           <div className="container mx-auto px-4">
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 stagger-fade-in">
-              <div className="flex items-center gap-3 group">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
-                  <Truck className="h-6 w-6 text-primary" />
+            <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-4 stagger-fade-in">
+              <div className="flex items-center gap-2 sm:gap-3 group">
+                <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl sm:rounded-2xl bg-primary/10 group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
+                  <Truck className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="font-semibold">Free Shipping</p>
-                  <p className="text-sm text-muted-foreground">Orders over ₹2000</p>
+                  <p className="font-semibold text-sm sm:text-base">Free Shipping</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Orders over ₹2000</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 group">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/50 group-hover:bg-secondary/70 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
-                  <Shield className="h-6 w-6 text-secondary-foreground" />
+              <div className="flex items-center gap-2 sm:gap-3 group">
+                <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl sm:rounded-2xl bg-secondary/50 group-hover:bg-secondary/70 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
+                  <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-secondary-foreground" />
                 </div>
                 <div>
-                  <p className="font-semibold">Safe Products</p>
-                  <p className="text-sm text-muted-foreground">Certified & tested</p>
+                  <p className="font-semibold text-sm sm:text-base">Safe Products</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Certified & tested</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 group">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/50 group-hover:bg-accent/70 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
-                  <HeadphonesIcon className="h-6 w-6 text-accent-foreground" />
+              <div className="flex items-center gap-2 sm:gap-3 group">
+                <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl sm:rounded-2xl bg-accent/50 group-hover:bg-accent/70 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
+                  <HeadphonesIcon className="h-5 w-5 sm:h-6 sm:w-6 text-accent-foreground" />
                 </div>
                 <div>
-                  <p className="font-semibold">24/7 Support</p>
-                  <p className="text-sm text-muted-foreground">We're here to help</p>
+                  <p className="font-semibold text-sm sm:text-base">24/7 Support</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">We're here to help</p>
                 </div>
               </div>
-              <div className="flex items-center gap-3 group">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
-                  <Star className="h-6 w-6 text-primary" />
+              <div className="flex items-center gap-2 sm:gap-3 group">
+                <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl sm:rounded-2xl bg-primary/10 group-hover:bg-primary/20 transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
+                  <Star className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="font-semibold">Top Rated</p>
-                  <p className="text-sm text-muted-foreground">5-star reviews</p>
+                  <p className="font-semibold text-sm sm:text-base">Top Rated</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground">5-star reviews</p>
                 </div>
               </div>
             </div>
@@ -164,10 +164,10 @@ export default function HomePage() {
       </section>
 
       {/* Categories Section */}
-      <section className="py-16 md:py-24">
+      <section className="py-8 sm:py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="container mx-auto px-4">
-          <div className="mb-12 text-center space-y-3 animate-fade-in-up">
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl text-balance">Shop by Category</h2>
+          <div className="mb-8 sm:mb-10 lg:mb-12 text-center space-y-2 sm:space-y-3 animate-fade-in-up">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-balance">Shop by Category</h2>
             <p className="text-muted-foreground text-pretty">Find exactly what you need for your little one</p>
           </div>
           {loading ? (
@@ -257,14 +257,14 @@ export default function HomePage() {
       </section>
 
       {/* Featured Products Section */}
-      <section className="bg-muted/30 py-16 md:py-24">
+      <section className="bg-muted/30 py-8 sm:py-12 md:py-16 lg:py-20 xl:py-24">
         <div className="container mx-auto px-4">
-          <div className="mb-12 text-center space-y-3 animate-fade-in-up">
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl text-balance">Featured Products</h2>
-            <p className="text-muted-foreground text-pretty">Our most loved items this month</p>
+          <div className="mb-8 sm:mb-10 lg:mb-12 text-center space-y-2 sm:space-y-3 animate-fade-in-up">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-balance">Featured Products</h2>
+            <p className="text-sm sm:text-base text-muted-foreground text-pretty">Our most loved items this month</p>
           </div>
           {loading ? (
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {[...Array(4)].map((_, index) => (
                 <Card key={index} className="overflow-hidden rounded-3xl border-border/60 animate-pulse bg-gradient-to-br from-background to-muted/20 h-full p-0">
                   <div className="h-full flex flex-col">
@@ -286,7 +286,7 @@ export default function HomePage() {
               <p className="text-sm text-muted-foreground mt-2">Please check back later for our latest featured items.</p>
             </div>
           ) : (
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 stagger-fade-in">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 stagger-fade-in">
               {featuredProducts.map((product, index) => (
                 <Link key={product.id} href={`/products/${product.id}`} className="group h-full">
                   <div className="animate-scale-in h-full" style={{ animationDelay: `${index * 100}ms` }}>
