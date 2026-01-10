@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find all DISCOUNT_CODE offers
-    const discountCodeOffers = await db.offer.findMany({
+    const discountCodeOffers = await db.offers.findMany({
       where: { type: 'DISCOUNT_CODE' }
     })
     
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       console.log(`Migrating offer: ${offer.title} (${offer.id})`)
       
       // Convert to BOTH type and add default banner fields if missing
-      const updatedOffer = await db.offer.update({
+      const updatedOffer = await db.offers.update({
         where: { id: offer.id },
         data: {
           type: 'BOTH',

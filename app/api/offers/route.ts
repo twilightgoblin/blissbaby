@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       where.type = type
     }
 
-    const offers = await db.offer.findMany({
+    const offers = await db.offers.findMany({
       where,
       orderBy: [
         { priority: "desc" },

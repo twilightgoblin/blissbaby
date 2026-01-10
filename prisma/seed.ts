@@ -277,7 +277,7 @@ async function main() {
 
   const products = await Promise.all(
     sampleProducts.map(product =>
-      prisma.product.upsert({
+      prisma.products.upsert({
         where: { sku: product.sku },
         update: {},
         create: product

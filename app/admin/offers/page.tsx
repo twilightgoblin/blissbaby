@@ -32,9 +32,8 @@ interface Offer {
   discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING'
   discountValue: number
   minOrderAmount?: number
-  maxDiscountAmount?: number
-  usageLimit?: number
-  usageCount: number
+  maxUses?: number
+  usedCount: number
   isActive: boolean
   startDate: string
   endDate?: string
@@ -64,8 +63,7 @@ export default function OffersPage() {
     discountType: 'PERCENTAGE' | 'FIXED_AMOUNT' | 'FREE_SHIPPING'
     discountValue: string
     minOrderAmount: string
-    maxDiscountAmount: string
-    usageLimit: string
+    maxUses: string
     startDate: string
     endDate: string
     image: string[]
@@ -81,8 +79,7 @@ export default function OffersPage() {
     discountType: 'PERCENTAGE',
     discountValue: '',
     minOrderAmount: '',
-    maxDiscountAmount: '',
-    usageLimit: '',
+    maxUses: '',
     startDate: '',
     endDate: '',
     image: [],
@@ -119,8 +116,7 @@ export default function OffersPage() {
       discountType: 'PERCENTAGE',
       discountValue: '',
       minOrderAmount: '',
-      maxDiscountAmount: '',
-      usageLimit: '',
+      maxUses: '',
       startDate: '',
       endDate: '',
       image: [],
@@ -189,8 +185,7 @@ export default function OffersPage() {
       discountType: offer.discountType,
       discountValue: offer.discountValue.toString(),
       minOrderAmount: offer.minOrderAmount?.toString() || '',
-      maxDiscountAmount: offer.maxDiscountAmount?.toString() || '',
-      usageLimit: offer.usageLimit?.toString() || '',
+      maxUses: offer.maxUses?.toString() || '',
       startDate: offer.startDate.split('T')[0],
       endDate: offer.endDate ? offer.endDate.split('T')[0] : '',
       image: offer.image ? [offer.image] : [],
@@ -647,7 +642,7 @@ export default function OffersPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <TrendingUp className="h-4 w-4" />
-                    <span>{offer.usageCount} times used</span>
+                    <span>{offer.usedCount} times used</span>
                   </div>
                 </div>
 

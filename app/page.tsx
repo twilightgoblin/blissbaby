@@ -222,11 +222,9 @@ export default function HomePage() {
                               <h3 className="font-semibold text-sm group-hover:text-primary transition-colors duration-300 line-clamp-2 leading-tight">
                                 {category.name}
                               </h3>
-                              {category._count?.products && category._count.products > 0 && (
-                                <p className="text-xs text-muted-foreground">
-                                  {category._count.products} items
-                                </p>
-                              )}
+                              <p className="text-xs text-muted-foreground">
+                                {category._count?.products || 0} {(category._count?.products || 0) === 1 ? 'item' : 'items'}
+                              </p>
                             </div>
                             <div className="mt-2 flex items-center text-primary font-medium text-xs group-hover:translate-x-1 transition-transform duration-300">
                               Shop Now

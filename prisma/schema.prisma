@@ -57,7 +57,7 @@ model carts {
 }
 
 model categories {
-  id          String     @id
+  id          String     @id @default(cuid())
   name        String     @unique
   description String?
   icon        String?
@@ -65,7 +65,7 @@ model categories {
   isActive    Boolean    @default(true)
   sortOrder   Int        @default(0)
   createdAt   DateTime   @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime   @updatedAt
   image       String?
   products    products[]
 }
@@ -130,7 +130,7 @@ model payments {
 }
 
 model products {
-  id             String        @id
+  id             String        @id @default(cuid())
   name           String
   description    String?
   price          Decimal       @db.Decimal(10, 2)
@@ -149,7 +149,7 @@ model products {
   seoTitle       String?
   seoDescription String?
   createdAt      DateTime      @default(now())
-  updatedAt      DateTime
+  updatedAt      DateTime      @updatedAt
   categoryId     String?
   cart_items     cart_items[]
   order_items    order_items[]
@@ -266,4 +266,38 @@ enum UserRole {
   CUSTOMER
   ADMIN
   SUPER_ADMIN
+}
+
+model offers {
+  id              String       @id @default(cuid())
+  title           String
+  description     String?
+  code            String?      @unique
+  type            OfferType
+  discountType    DiscountType
+  discountValue   Decimal      @db.Decimal(10, 2)
+  minOrderAmount  Decimal?     @db.Decimal(10, 2)
+  maxUses         Int?
+  usedCount       Int          @default(0)
+  isActive        Boolean      @default(true)
+  startDate       DateTime
+  endDate         DateTime?
+  position        String?      @default("home-hero")
+  priority        Int          @default(0)
+  image           String?
+  buttonText      String?
+  buttonLink      String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+enum OfferType {
+  BANNER
+  DISCOUNT_CODE
+  BOTH
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
 }
