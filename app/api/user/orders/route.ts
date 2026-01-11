@@ -14,12 +14,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user orders with items and products using Clerk user ID
-    const orders = await db.order.findMany({
+    const orders = await db.orders.findMany({
       where: { clerkUserId: userId },
       include: {
-        items: {
+        order_items: {
           include: {
-            product: {
+            products: {
               select: {
                 id: true,
                 name: true,

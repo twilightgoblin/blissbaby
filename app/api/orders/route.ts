@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { auth } from '@clerk/nextjs/server'
+import { sendNotificationToMultipleUsers } from '@/lib/firebase-admin'
 
 export async function GET(request: NextRequest) {
   try {
@@ -164,7 +165,7 @@ export async function POST(request: NextRequest) {
         // Create shipping address if provided
         let shippingAddressId = null
         if (shippingAddress) {
-          const createdShippingAddress = await tx.address.create({
+          const createdShippingAddress = await tx.addresses.create({
             data: {
               clerkUserId: finalUserId,
               userEmail,
@@ -188,7 +189,7 @@ export async function POST(request: NextRequest) {
         // Create billing address if provided and different from shipping
         let billingAddressId = shippingAddressId
         if (billingAddress && billingAddress !== shippingAddress) {
-          const createdBillingAddress = await tx.address.create({
+          const createdBillingAddress = await tx.addresses.create({
             data: {
               clerkUserId: finalUserId,
               userEmail,
@@ -210,7 +211,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Create the order
-        const newOrder = await tx.order.create({
+        const newOrder = await tx.orders.create({
           data: {
             clerkUserId: finalUserId,
             userEmail,
@@ -230,7 +231,7 @@ export async function POST(request: NextRequest) {
         // Create order items
         const orderItems = await Promise.all(
           cartItems.map((item: any) =>
-            tx.orderItem.create({
+            tx.order_items.create({
               data: {
                 orderId: newOrder.id,
                 productId: item.productId,
@@ -243,7 +244,7 @@ export async function POST(request: NextRequest) {
         )
 
         // Create payment record
-        const payment = await tx.payment.create({
+        const payment = await tx.payments.create({
           data: {
             orderId: newOrder.id,
             userEmail,
@@ -260,9 +261,9 @@ export async function POST(request: NextRequest) {
 
         // Clear the user's cart after successful order
         if (finalUserId !== 'guest') {
-          await tx.cartItem.deleteMany({
+          await tx.cart_items.deleteMany({
             where: {
-              cart: {
+              carts: {
                 clerkUserId: finalUserId
               }
             }
@@ -273,10 +274,49 @@ export async function POST(request: NextRequest) {
           ...newOrder,
           items: orderItems,
           payment,
-          shippingAddress: shippingAddressId ? await tx.address.findUnique({ where: { id: shippingAddressId } }) : null,
-          billingAddress: billingAddressId ? await tx.address.findUnique({ where: { id: billingAddressId } }) : null,
+          shippingAddress: shippingAddressId ? await tx.addresses.findUnique({ where: { id: shippingAddressId } }) : null,
+          billingAddress: billingAddressId ? await tx.addresses.findUnique({ where: { id: billingAddressId } }) : null,
         }
       })
+
+      // Send notification to admin users about new order
+      try {
+        const adminUsers = await db.users.findMany({
+          where: {
+            role: { in: ['ADMIN', 'SUPER_ADMIN'] },
+            fcmToken: { not: null },
+            notificationEnabled: true,
+          },
+          select: {
+            fcmToken: true,
+          },
+        })
+
+        if (adminUsers.length > 0) {
+          const adminTokens = adminUsers.map(user => user.fcmToken).filter(Boolean)
+          
+          const notificationTitle = '🛒 New Order Received!'
+          const notificationBody = `Order ${orderNumber} from ${userName || userEmail} - ₹${totalAmount}`
+          
+          await sendNotificationToMultipleUsers(
+            adminTokens,
+            notificationTitle,
+            notificationBody,
+            {
+              type: 'admin_order',
+              orderId: order.id,
+              orderNumber,
+              amount: totalAmount.toString(),
+              url: `/admin/orders/${order.id}`,
+            }
+          )
+
+          console.log(`Sent order notification to ${adminTokens.length} admin users`)
+        }
+      } catch (notificationError) {
+        console.error('Error sending admin order notification:', notificationError)
+        // Don't fail the order creation if notifications fail
+      }
 
       return NextResponse.json({ 
         success: true, 
@@ -362,6 +402,45 @@ export async function POST(request: NextRequest) {
         
         client.release()
         await pool.end()
+
+        // Send notification to admin users about new order (fallback)
+        try {
+          const adminUsers = await db.users.findMany({
+            where: {
+              role: { in: ['ADMIN', 'SUPER_ADMIN'] },
+              fcmToken: { not: null },
+              notificationEnabled: true,
+            },
+            select: {
+              fcmToken: true,
+            },
+          })
+
+          if (adminUsers.length > 0) {
+            const adminTokens = adminUsers.map(user => user.fcmToken).filter(Boolean)
+            
+            const notificationTitle = '🛒 New Order Received!'
+            const notificationBody = `Order ${orderNumber} from ${userName || userEmail} - ₹${totalAmount}`
+            
+            await sendNotificationToMultipleUsers(
+              adminTokens,
+              notificationTitle,
+              notificationBody,
+              {
+                type: 'admin_order',
+                orderId: order.id,
+                orderNumber,
+                amount: totalAmount.toString(),
+                url: `/admin/orders/${order.id}`,
+              }
+            )
+
+            console.log(`Sent order notification to ${adminTokens.length} admin users (fallback)`)
+          }
+        } catch (notificationError) {
+          console.error('Error sending admin order notification (fallback):', notificationError)
+          // Don't fail the order creation if notifications fail
+        }
         
         return NextResponse.json({ 
           success: true, 

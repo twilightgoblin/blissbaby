@@ -15,8 +15,8 @@ export async function GET(request: NextRequest) {
     try {
       // Basic stats first (fast queries)
       const basicStats = await Promise.all([
-        db.order.count().catch(() => 0),
-        db.payment.aggregate({
+        db.orders.count().catch(() => 0),
+        db.payments.aggregate({
           _sum: { amount: true },
           where: { status: PaymentStatus.COMPLETED }
         }).catch(() => ({ _sum: { amount: null } })),
@@ -28,19 +28,19 @@ export async function GET(request: NextRequest) {
       const [totalOrders, totalRevenue, totalProducts] = basicStats
 
       // Customer count (separate query)
-      const totalCustomers = await db.order.findMany({
+      const totalCustomers = await db.orders.findMany({
         select: { clerkUserId: true },
         distinct: ['clerkUserId']
       }).catch(() => [])
 
       // Recent orders (separate query with timeout protection)
-      const recentOrders = await db.order.findMany({
+      const recentOrders = await db.orders.findMany({
         take: 3,
         orderBy: { createdAt: 'desc' },
         include: {
-          items: {
+          order_items: {
             include: {
-              product: { select: { name: true } }
+              products: { select: { name: true } }
             }
           },
           payments: {
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
         amount: Number(order.totalAmount),
         status: order.status.toLowerCase(),
         date: order.createdAt.toLocaleDateString(),
-        items: order.items.length
+        items: order.order_items.length
       }))
 
       return NextResponse.json({

@@ -20,15 +20,15 @@ export async function GET(
     const { id } = await params
 
     // Get specific order with full details using Clerk user ID
-    const order = await db.order.findFirst({
+    const order = await db.orders.findFirst({
       where: { 
         id,
         clerkUserId: user.id 
       },
       include: {
-        items: {
+        order_items: {
           include: {
-            product: {
+            products: {
               select: {
                 id: true,
                 name: true,
@@ -37,8 +37,8 @@ export async function GET(
             }
           }
         },
-        shippingAddress: true,
-        billingAddress: true,
+        addresses_orders_shippingAddressIdToaddresses: true,
+        addresses_orders_billingAddressIdToaddresses: true,
         payments: true
       }
     });

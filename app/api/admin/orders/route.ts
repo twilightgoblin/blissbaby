@@ -26,12 +26,12 @@ export async function GET(request: NextRequest) {
 
     try {
       const [orders, total] = await Promise.all([
-        db.order.findMany({
+        db.orders.findMany({
           where,
           include: {
-            items: {
+            order_items: {
               include: {
-                product: {
+                products: {
                   select: {
                     id: true,
                     name: true,
@@ -41,15 +41,15 @@ export async function GET(request: NextRequest) {
               }
             },
             payments: true,
-            shippingAddress: true,
-            billingAddress: true,
+            addresses_orders_shippingAddressIdToaddresses: true,
+            addresses_orders_billingAddressIdToaddresses: true,
             shipments: true
           },
           orderBy: { createdAt: 'desc' },
           skip,
           take: limit
         }),
-        db.order.count({ where })
+        db.orders.count({ where })
       ])
 
       return NextResponse.json({
@@ -95,16 +95,16 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    const updatedOrder = await db.order.update({
+    const updatedOrder = await db.orders.update({
       where: { id: orderId },
       data: { 
         status: status.toUpperCase(),
         updatedAt: new Date()
       },
       include: {
-        items: {
+        order_items: {
           include: {
-            product: {
+            products: {
               select: {
                 id: true,
                 name: true,
@@ -114,8 +114,8 @@ export async function PATCH(request: NextRequest) {
           }
         },
         payments: true,
-        shippingAddress: true,
-        billingAddress: true
+        addresses_orders_shippingAddressIdToaddresses: true,
+        addresses_orders_billingAddressIdToaddresses: true
       }
     })
 

@@ -16,13 +16,14 @@ import {
 } from "@/components/ui/dialog"
 import { Search, Eye, Package, Truck, CheckCircle, XCircle, Clock, AlertCircle } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
+import { toast } from "sonner"
 
 interface OrderItem {
   id: string
   quantity: number
   unitPrice: number
   totalPrice: number
-  product: {
+  products: {
     id: string
     name: string
     images: string[]
@@ -38,10 +39,10 @@ interface Order {
   userEmail: string | null
   userName: string | null
   createdAt: string
-  items: OrderItem[]
+  order_items: OrderItem[]
   payments: any[]
-  shippingAddress: any
-  billingAddress: any
+  addresses_orders_shippingAddressIdToaddresses: any
+  addresses_orders_billingAddressIdToaddresses: any
 }
 
 export default function OrdersPage() {
@@ -85,6 +86,15 @@ export default function OrdersPage() {
   useEffect(() => {
     fetchOrders()
   }, [statusFilter, pagination.page])
+
+  // Auto-refresh orders every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchOrders()
+    }, 30000) // 30 seconds
+
+    return () => clearInterval(interval)
+  }, [statusFilter, pagination.page, searchQuery])
 
   const handleSearch = () => {
     setPagination(prev => ({ ...prev, page: 1 }))
@@ -193,6 +203,34 @@ export default function OrdersPage() {
           <p className="text-muted-foreground mt-2">Manage and track customer orders</p>
         </div>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              try {
+                const response = await fetch('/api/notifications/test-admin', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    title: '🧪 Admin Test Notification',
+                    body: 'Testing admin notification system - this is a test message!'
+                  })
+                })
+                const data = await response.json()
+                if (response.ok) {
+                  toast.success(`🎉 Test notification sent to ${data.successCount} admin users!`)
+                } else {
+                  toast.error(`Failed to send test notification: ${data.error}`)
+                }
+              } catch (error) {
+                console.error('Error sending test notification:', error)
+                toast.error('Error sending test notification')
+              }
+            }}
+            className="rounded-2xl"
+          >
+            🧪 Test Admin Notifications
+          </Button>
           <Badge className="rounded-full bg-blue-100 text-blue-700 hover:bg-blue-100">
             {statusCounts.processing} Processing
           </Badge>
@@ -286,7 +324,7 @@ export default function OrdersPage() {
                           {formatCurrency(Number(order.totalAmount), order.currency)}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                          {order.order_items?.length || 0} item{(order.order_items?.length || 0) !== 1 ? 's' : ''}
                         </div>
                       </div>
                       
@@ -341,18 +379,18 @@ export default function OrdersPage() {
                               <div>
                                 <h4 className="font-semibold mb-2">Order Items</h4>
                                 <div className="space-y-2">
-                                  {order.items.map((item) => (
+                                  {(order.order_items || []).map((item) => (
                                     <div key={item.id} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
                                       <div className="flex items-center gap-3">
-                                        {item.product.images?.[0] && (
+                                        {item.products.images?.[0] && (
                                           <img 
-                                            src={item.product.images[0]} 
-                                            alt={item.product.name}
+                                            src={item.products.images[0]} 
+                                            alt={item.products.name}
                                             className="w-12 h-12 object-cover rounded"
                                           />
                                         )}
                                         <div>
-                                          <p className="font-medium">{item.product.name}</p>
+                                          <p className="font-medium">{item.products.name}</p>
                                           <p className="text-sm text-muted-foreground">
                                             Qty: {item.quantity} × {formatCurrency(Number(item.unitPrice), order.currency)}
                                           </p>
@@ -378,16 +416,16 @@ export default function OrdersPage() {
                               </div>
                               
                               {/* Addresses */}
-                              {order.shippingAddress && (
+                              {order.addresses_orders_shippingAddressIdToaddresses && (
                                 <div>
                                   <h4 className="font-semibold mb-2">Shipping Address</h4>
                                   <div className="bg-muted/50 p-4 rounded-lg">
-                                    <p>{order.shippingAddress.firstName} {order.shippingAddress.lastName}</p>
-                                    <p>{order.shippingAddress.addressLine1}</p>
-                                    {order.shippingAddress.addressLine2 && <p>{order.shippingAddress.addressLine2}</p>}
-                                    <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}</p>
-                                    <p>{order.shippingAddress.country}</p>
-                                    {order.shippingAddress.phone && <p>Phone: {order.shippingAddress.phone}</p>}
+                                    <p>{order.addresses_orders_shippingAddressIdToaddresses.firstName} {order.addresses_orders_shippingAddressIdToaddresses.lastName}</p>
+                                    <p>{order.addresses_orders_shippingAddressIdToaddresses.addressLine1}</p>
+                                    {order.addresses_orders_shippingAddressIdToaddresses.addressLine2 && <p>{order.addresses_orders_shippingAddressIdToaddresses.addressLine2}</p>}
+                                    <p>{order.addresses_orders_shippingAddressIdToaddresses.city}, {order.addresses_orders_shippingAddressIdToaddresses.state} {order.addresses_orders_shippingAddressIdToaddresses.postalCode}</p>
+                                    <p>{order.addresses_orders_shippingAddressIdToaddresses.country}</p>
+                                    {order.addresses_orders_shippingAddressIdToaddresses.phone && <p>Phone: {order.addresses_orders_shippingAddressIdToaddresses.phone}</p>}
                                   </div>
                                 </div>
                               )}

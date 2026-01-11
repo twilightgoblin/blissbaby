@@ -218,13 +218,13 @@ export default function OrderDetailsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {order.items.map((item) => (
+                    {(order.order_items || []).map((item) => (
                       <div key={item.id} className="flex items-center gap-4 p-4 border border-border/40 rounded-xl">
                         <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                          {item.product.images[0] ? (
+                          {item.products.images[0] ? (
                             <img 
-                              src={item.product.images[0]} 
-                              alt={item.product.name}
+                              src={item.products.images[0]} 
+                              alt={item.products.name}
                               className="w-full h-full object-cover rounded-lg"
                             />
                           ) : (
@@ -232,7 +232,7 @@ export default function OrderDetailsPage() {
                           )}
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-semibold">{item.product.name}</h3>
+                          <h3 className="font-semibold">{item.products.name}</h3>
                           <p className="text-sm text-muted-foreground">
                             Quantity: {item.quantity}
                           </p>

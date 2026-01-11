@@ -41,7 +41,7 @@ export async function GET() {
           orderNumber: sampleOrder.orderNumber,
           totalAmount: sampleOrder.totalAmount,
           status: sampleOrder.status,
-          itemCount: sampleOrder.items.length
+          itemCount: sampleOrder.order_items?.length || 0
         } : null,
         sampleProduct: sampleProduct ? {
           id: sampleProduct.id,

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllOffers, createOffer } from '@/lib/offers'
 import { OfferType, DiscountType } from '@prisma/client'
+import { db } from '@/lib/db'
+import { sendNotificationToMultipleUsers } from '@/lib/firebase-admin'
 
 // GET /api/admin/offers - Get all offers for admin
 export async function GET(request: NextRequest) {
@@ -99,6 +101,56 @@ export async function POST(request: NextRequest) {
       priority: priority ? parseInt(priority) : undefined,
       isActive: isActive !== undefined ? isActive : true
     })
+
+    // Send push notifications to all users when a new offer/banner is created
+    if (offer && isActive) {
+      try {
+        // Get all users with FCM tokens and notifications enabled
+        const users = await db.users.findMany({
+          where: {
+            fcmToken: { not: null },
+            notificationEnabled: true,
+          },
+          select: {
+            fcmToken: true,
+          },
+        })
+
+        if (users.length > 0) {
+          const tokens = users.map(user => user.fcmToken).filter(Boolean)
+          
+          // Prepare notification content
+          let notificationTitle = '🎉 New Offer Available!'
+          let notificationBody = title
+          
+          if (type === 'BANNER') {
+            notificationTitle = '🎯 New Banner!'
+            notificationBody = description || title
+          } else if (type === 'DISCOUNT_CODE') {
+            notificationTitle = '💰 New Discount Code!'
+            notificationBody = `${title}${code ? ` - Use code: ${code}` : ''}`
+          }
+
+          // Send notifications
+          const result = await sendNotificationToMultipleUsers(
+            tokens,
+            notificationTitle,
+            notificationBody,
+            {
+              type: 'offer',
+              offerId: offer.id,
+              offerType: type,
+              url: '/products',
+            }
+          )
+
+          console.log(`Sent offer notifications to ${result.successCount} users`)
+        }
+      } catch (notificationError) {
+        console.error('Error sending offer notifications:', notificationError)
+        // Don't fail the offer creation if notifications fail
+      }
+    }
 
     return NextResponse.json(offer, { status: 201 })
   } catch (error: any) {

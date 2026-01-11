@@ -8,6 +8,9 @@ const isProtectedApiRoute = createRouteMatcher([
   '/api/user/(.*)',
 ])
 
+// Define admin routes that require authentication
+const isAdminRoute = createRouteMatcher(['/admin(.*)'])
+
 export default clerkMiddleware(async (auth, req) => {
   // Protect page routes that require authentication
   if (isProtectedRoute(req)) {
@@ -19,7 +22,10 @@ export default clerkMiddleware(async (auth, req) => {
     await auth.protect()
   }
   
-  // Admin routes are now publicly accessible - no authentication required
+  // Protect admin routes - require authentication
+  if (isAdminRoute(req)) {
+    await auth.protect()
+  }
 })
 
 export const config = {

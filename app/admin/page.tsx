@@ -9,6 +9,7 @@ import { useState, useEffect } from "react"
 import { formatCurrency } from "@/lib/utils"
 import { toast } from "sonner"
 import Link from "next/link"
+import { AdminSetupCard } from "@/components/admin/admin-setup-card"
 
 interface DashboardStats {
   title: string
@@ -249,6 +250,9 @@ export default function AdminDashboard() {
           <Badge className="rounded-full bg-primary/10 text-primary border-primary/20 px-4 py-2">Admin</Badge>
         </div>
       </div>
+
+      {/* Admin Setup Card */}
+      <AdminSetupCard />
 
       {/* Stats Grid */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 stagger-fade-in">

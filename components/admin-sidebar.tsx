@@ -2,10 +2,11 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, Package, FolderTree, ShoppingBag, Users, Tag, LogOut, Menu, X } from "lucide-react"
+import { LayoutDashboard, Package, FolderTree, ShoppingBag, Users, Tag, Bell, LogOut, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { cn } from "@/lib/utils"
+import { SignOutButton } from "@clerk/nextjs"
 
 const navItems = [
   {
@@ -37,6 +38,11 @@ const navItems = [
     title: "Offers & Banners",
     href: "/admin/offers",
     icon: Tag,
+  },
+  {
+    title: "Notifications",
+    href: "/admin/notifications",
+    icon: Bell,
   },
 ]
 
@@ -108,7 +114,17 @@ export function AdminSidebar() {
           </nav>
 
           {/* Footer */}
-          <div className="border-t border-sidebar-border p-4">
+          <div className="border-t border-sidebar-border p-4 space-y-2">
+            <SignOutButton>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 rounded-xl text-sidebar-foreground hover:bg-sidebar-accent hover:text-black"
+              >
+                <LogOut className="h-5 w-5" />
+                Sign Out
+              </Button>
+            </SignOutButton>
+            
             <Button
               variant="ghost"
               className="w-full justify-start gap-3 rounded-xl text-sidebar-foreground hover:bg-sidebar-accent hover:text-black"

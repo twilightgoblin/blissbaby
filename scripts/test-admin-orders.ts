@@ -40,7 +40,7 @@ async function testAdminOrders() {
       
       console.log(`📦 Sample orders:`)
       orders.forEach(order => {
-        console.log(`  - ${order.orderNumber}: ${order.status} - $${order.totalAmount} (${order.items.length} items)`)
+        console.log(`  - ${order.orderNumber}: ${order.status} - $${order.totalAmount} (${order.items?.length || 0} items)`)
       })
     }
     

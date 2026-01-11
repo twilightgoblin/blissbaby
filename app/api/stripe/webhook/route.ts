@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         
         try {
           // Update payment status in database
-          await db.payment.updateMany({
+          await db.payments.updateMany({
             where: {
               providerPaymentId: paymentIntent.id
             },
@@ -53,17 +53,17 @@ export async function POST(request: NextRequest) {
           })
 
           // Update order status to CONFIRMED
-          const payment = await db.payment.findFirst({
+          const payment = await db.payments.findFirst({
             where: {
               providerPaymentId: paymentIntent.id
             },
             include: {
-              order: true
+              orders: true
             }
           })
 
           if (payment) {
-            await db.order.update({
+            await db.orders.update({
               where: {
                 id: payment.orderId
               },
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
                 status: 'CONFIRMED'
               }
             })
-            console.log(`Order ${payment.order.orderNumber} confirmed after successful payment`)
+            console.log(`Order ${payment.orders.orderNumber} confirmed after successful payment`)
           }
         } catch (dbError) {
           console.error('Database update error:', dbError)
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
         
         try {
           // Update payment status to FAILED
-          await db.payment.updateMany({
+          await db.payments.updateMany({
             where: {
               providerPaymentId: failedPayment.id
             },
@@ -96,17 +96,17 @@ export async function POST(request: NextRequest) {
           })
 
           // Update order status to CANCELLED
-          const payment = await db.payment.findFirst({
+          const payment = await db.payments.findFirst({
             where: {
               providerPaymentId: failedPayment.id
             },
             include: {
-              order: true
+              orders: true
             }
           })
 
           if (payment) {
-            await db.order.update({
+            await db.orders.update({
               where: {
                 id: payment.orderId
               },
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
                 status: 'CANCELLED'
               }
             })
-            console.log(`Order ${payment.order.orderNumber} cancelled due to payment failure`)
+            console.log(`Order ${payment.orders.orderNumber} cancelled due to payment failure`)
           }
         } catch (dbError) {
           console.error('Database update error for failed payment:', dbError)

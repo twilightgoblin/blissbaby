@@ -338,19 +338,19 @@ export default function AccountPage() {
                                   {formatCurrency(Number(order.totalAmount), order.currency || 'INR')}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                  {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                                  {order.order_items?.length || 0} item{(order.order_items?.length || 0) !== 1 ? 's' : ''}
                                 </p>
                               </div>
                             </div>
                             
                             <div className="space-y-2">
-                              {order.items.slice(0, 2).map((item) => (
+                              {(order.order_items || []).slice(0, 2).map((item) => (
                                 <div key={item.id} className="flex items-center gap-3 text-sm">
                                   <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                                    {item.product.images[0] ? (
+                                    {item.products.images[0] ? (
                                       <img 
-                                        src={item.product.images[0]} 
-                                        alt={item.product.name}
+                                        src={item.products.images[0]} 
+                                        alt={item.products.name}
                                         className="w-full h-full object-cover rounded-lg"
                                       />
                                     ) : (
@@ -358,16 +358,16 @@ export default function AccountPage() {
                                     )}
                                   </div>
                                   <div className="flex-1">
-                                    <p className="font-medium">{item.product.name}</p>
+                                    <p className="font-medium">{item.products.name}</p>
                                     <p className="text-muted-foreground">
                                       Qty: {item.quantity} × {formatCurrency(Number(item.unitPrice), order.currency || 'INR')}
                                     </p>
                                   </div>
                                 </div>
                               ))}
-                              {order.items.length > 2 && (
+                              {(order.order_items?.length || 0) > 2 && (
                                 <p className="text-sm text-muted-foreground">
-                                  +{order.items.length - 2} more item{order.items.length - 2 !== 1 ? 's' : ''}
+                                  +{(order.order_items?.length || 0) - 2} more item{((order.order_items?.length || 0) - 2) !== 1 ? 's' : ''}
                                 </p>
                               )}
                             </div>

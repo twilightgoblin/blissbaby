@@ -216,25 +216,25 @@ export default function OrdersPage() {
 
                   {/* Order Items */}
                   <div className="space-y-3">
-                    {order.items.map((item) => (
+                    {(order.order_items || []).map((item) => (
                       <div key={item.id} className="flex gap-4 rounded-2xl border border-border/40 p-4 bg-muted/20">
                         <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-muted/50">
                           <img
-                            src={item.product.images?.[0] || "/placeholder.svg"}
-                            alt={item.product.name}
+                            src={item.products.images?.[0] || "/placeholder.svg"}
+                            alt={item.products.name}
                             className="h-full w-full object-cover"
                           />
                         </div>
                         <div className="flex flex-1 items-center justify-between gap-4">
                           <div className="flex-1">
-                            <p className="font-medium text-balance">{item.product.name}</p>
+                            <p className="font-medium text-balance">{item.products.name}</p>
                             <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
                             <p className="text-sm text-muted-foreground">Unit Price: {formatCurrency(Number(item.unitPrice))}</p>
                           </div>
                           <div className="text-right space-y-2">
                             <p className="font-semibold">{formatCurrency(Number(item.totalPrice))}</p>
                             <Button variant="outline" size="sm" className="rounded-full bg-transparent" asChild>
-                              <Link href={`/products/${item.product.id}`}>
+                              <Link href={`/products/${item.products.id}`}>
                                 <Eye className="mr-1 h-3 w-3" />
                                 View Product
                               </Link>
@@ -250,7 +250,7 @@ export default function OrdersPage() {
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Subtotal</span>
-                          <span>{formatCurrency(order.items.reduce((sum, item) => sum + Number(item.totalPrice), 0))}</span>
+                          <span>{formatCurrency((order.order_items || []).reduce((sum, item) => sum + Number(item.totalPrice), 0))}</span>
                         </div>
                         {order.taxAmount && Number(order.taxAmount) > 0 && (
                           <div className="flex justify-between">

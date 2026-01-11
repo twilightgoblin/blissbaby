@@ -67,29 +67,13 @@ export const getActiveProducts = async (limit?: number) => {
 
 // Cart helpers
 export const getOrCreateCart = async (clerkUserId: string) => {
-  let cart = await db.cart.findFirst({
-    where: { clerkUserId },
-    include: {
-      items: {
-        include: {
-          product: {
-            include: {
-              category: true
-            }
-          }
-        }
-      }
+  try {
+    if (!db) {
+      throw new Error('Database connection not available')
     }
-  })
-
-  if (!cart) {
-    const { userEmail, userName } = await getClerkUserInfo(clerkUserId)
-    cart = await db.cart.create({
-      data: { 
-        clerkUserId,
-        userEmail,
-        userName
-      },
+    
+    let cart = await db.cart.findFirst({
+      where: { clerkUserId },
       include: {
         items: {
           include: {
@@ -102,9 +86,34 @@ export const getOrCreateCart = async (clerkUserId: string) => {
         }
       }
     })
-  }
 
-  return cart
+    if (!cart) {
+      const { userEmail, userName } = await getClerkUserInfo(clerkUserId)
+      cart = await db.cart.create({
+        data: { 
+          clerkUserId,
+          userEmail,
+          userName
+        },
+        include: {
+          items: {
+            include: {
+              product: {
+                include: {
+                  category: true
+                }
+              }
+            }
+          }
+        }
+      })
+    }
+
+    return cart
+  } catch (error) {
+    console.error('Error in getOrCreateCart:', error)
+    throw error
+  }
 }
 
 export const addToCart = async (clerkUserId: string, productId: string, quantity: number = 1) => {
