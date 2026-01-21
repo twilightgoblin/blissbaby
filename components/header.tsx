@@ -7,7 +7,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useState, useRef } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { useUser, useClerk, SignInButton, SignUpButton } from "@clerk/nextjs"
+import { useUser, useClerk } from "@clerk/nextjs"
+import { ClerkSignInButton, ClerkSignUpButton } from "@/components/clerk-wrapper"
 import { useCart } from "@/contexts/cart-context"
 
 export function Header() {
@@ -193,25 +194,21 @@ export function Header() {
             ) : (
               <>
                 {/* Sign In Button */}
-                <SignInButton mode="modal">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="rounded-full hover:bg-muted/50 hover:scale-105 transition-all duration-300"
-                  >
-                    Sign In
-                  </Button>
-                </SignInButton>
+                <ClerkSignInButton
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full hover:bg-muted/50 hover:scale-105 transition-all duration-300"
+                >
+                  Sign In
+                </ClerkSignInButton>
                 
                 {/* Sign Up Button */}
-                <SignUpButton mode="modal">
-                  <Button
-                    size="sm"
-                    className="rounded-full bg-primary hover:bg-primary/90 hover:scale-105 transition-all duration-300"
-                  >
-                    Sign Up
-                  </Button>
-                </SignUpButton>
+                <ClerkSignUpButton
+                  size="sm"
+                  className="rounded-full bg-primary hover:bg-primary/90 hover:scale-105 transition-all duration-300"
+                >
+                  Sign Up
+                </ClerkSignUpButton>
               </>
             )}
             
@@ -295,22 +292,20 @@ export function Header() {
               </>
             ) : (
               <>
-                <SignInButton mode="modal">
-                  <button
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-sm font-medium transition-colors text-left text-foreground/80 hover:text-primary"
-                  >
-                    Sign In
-                  </button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <button
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-sm font-medium transition-colors text-left text-foreground/80 hover:text-primary"
-                  >
-                    Sign Up
-                  </button>
-                </SignUpButton>
+                <ClerkSignInButton
+                  asChild
+                  className="text-sm font-medium transition-colors text-left text-foreground/80 hover:text-primary"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign In
+                </ClerkSignInButton>
+                <ClerkSignUpButton
+                  asChild
+                  className="text-sm font-medium transition-colors text-left text-foreground/80 hover:text-primary"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign Up
+                </ClerkSignUpButton>
               </>
             )}
             

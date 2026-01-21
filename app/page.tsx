@@ -12,7 +12,7 @@ import { useState, useEffect } from "react"
 import { formatCurrency } from "@/lib/utils"
 import { OfferCarousel } from "@/components/offer-carousel"
 import { useSearchParams } from "next/navigation"
-import { SignInButton } from "@clerk/nextjs"
+import { ClerkSignInButton } from "@/components/clerk-wrapper"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface Category {
@@ -86,11 +86,11 @@ export default function HomePage() {
             <AlertDescription className="text-orange-800">
               <div className="flex items-center justify-between">
                 <span>You need to sign in to access the admin dashboard.</span>
-                <SignInButton mode="modal">
-                  <Button size="sm" className="ml-4">
+                <div className="ml-4">
+                  <ClerkSignInButton size="sm">
                     Sign In
-                  </Button>
-                </SignInButton>
+                  </ClerkSignInButton>
+                </div>
               </div>
             </AlertDescription>
           </Alert>

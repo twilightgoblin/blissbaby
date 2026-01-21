@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 import { Loader2, Shield, AlertCircle, Home } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { SignInButton } from "@clerk/nextjs"
+import { ClerkSignInButton } from "@/components/clerk-wrapper"
 
 interface AdminAuthGuardProps {
   children: React.ReactNode
@@ -102,11 +102,9 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <SignInButton mode="modal">
-              <Button className="w-full">
-                Sign In
-              </Button>
-            </SignInButton>
+            <ClerkSignInButton className="w-full">
+              Sign In
+            </ClerkSignInButton>
             <Button 
               variant="outline" 
               className="w-full"
