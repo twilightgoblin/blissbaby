@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import Link from "next/link"
 import { Star, SlidersHorizontal, X, ShoppingCart, Eye } from "lucide-react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { useSearchParams, useRouter, usePathname } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
 import { useCart } from "@/contexts/cart-context"
 import { toast } from "sonner"
