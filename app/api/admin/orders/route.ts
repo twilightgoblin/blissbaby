@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { requireAdminAccess } from '@/lib/admin-auth'
 
 export async function GET(request: NextRequest) {
+  // Verify admin access
+  const authResult = await requireAdminAccess()
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')

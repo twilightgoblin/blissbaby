@@ -5,12 +5,15 @@ import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowRight, Star, Truck, Shield, HeadphonesIcon, Sparkles } from "lucide-react"
+import { ArrowRight, Star, Truck, Shield, HeadphonesIcon, Sparkles, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useState, useEffect } from "react"
 import { formatCurrency } from "@/lib/utils"
 import { OfferCarousel } from "@/components/offer-carousel"
+import { useSearchParams } from "next/navigation"
+import { SignInButton } from "@clerk/nextjs"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface Category {
   id: string
@@ -40,6 +43,8 @@ export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
   const [offers, setOffers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const searchParams = useSearchParams()
+  const adminRedirect = searchParams.get('admin_redirect')
 
   useEffect(() => {
     const fetchData = async () => {
@@ -72,6 +77,25 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       <Header />
+
+      {/* Admin Redirect Alert */}
+      {adminRedirect && (
+        <div className="container mx-auto px-4 py-4">
+          <Alert className="border-orange-200 bg-orange-50">
+            <AlertCircle className="h-4 w-4 text-orange-600" />
+            <AlertDescription className="text-orange-800">
+              <div className="flex items-center justify-between">
+                <span>You need to sign in to access the admin dashboard.</span>
+                <SignInButton mode="modal">
+                  <Button size="sm" className="ml-4">
+                    Sign In
+                  </Button>
+                </SignInButton>
+              </div>
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
 
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-pink-50 via-blue-50 to-purple-50">

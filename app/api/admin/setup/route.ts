@@ -27,6 +27,20 @@ export async function POST(request: NextRequest) {
 
     const userEmail = clerkUser.emailAddresses[0]?.emailAddress || ''
 
+    // Check if user already has admin access
+    const existingUser = await db.users.findUnique({
+      where: { clerkUserId: userId },
+      select: { role: true }
+    })
+
+    if (existingUser && (existingUser.role === 'ADMIN' || existingUser.role === 'SUPER_ADMIN')) {
+      return NextResponse.json({
+        success: true,
+        message: 'User already has admin access',
+        user: { email: userEmail, role: existingUser.role }
+      })
+    }
+
     // Check if self-service admin setup is allowed
     if (!shouldAllowSelfServiceAdmin()) {
       // Check if this email is in the allowed list
@@ -68,6 +82,13 @@ export async function POST(request: NextRequest) {
         role: 'ADMIN',
         notificationEnabled: true,
       },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        firstName: true,
+        lastName: true,
+      },
     })
 
     return NextResponse.json({
@@ -77,6 +98,7 @@ export async function POST(request: NextRequest) {
         id: user.id,
         email: user.email,
         role: user.role,
+        name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
       },
     })
   } catch (error) {

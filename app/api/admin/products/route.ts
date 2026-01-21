@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { ProductStatus } from '@prisma/client'
+import { requireAdminAccess } from '@/lib/admin-auth'
 
 export async function GET(request: NextRequest) {
+  // Verify admin access
+  const authResult = await requireAdminAccess()
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')
@@ -77,7 +84,7 @@ export async function GET(request: NextRequest) {
       let paramIndex = 1
       
       if (search) {
-        sqlQuery += ` AND (p.name ILIKE $${paramIndex} OR p.description ILIKE $${paramIndex} OR p.sku ILIKE $${paramIndex})`
+        sqlQuery += ` AND (p.name mIndex} OR p.description ILIKE $${paramIndex} OR p.sku ILIKE $${paramIndex})`
         queryParams.push(`%${search}%`)
         paramIndex++
       }
@@ -110,7 +117,7 @@ export async function GET(request: NextRequest) {
       let countParamIndex = 1
       
       if (search) {
-        countQuery += ` AND (p.name ILIKE $${countParamIndex} OR p.description ILIKE $${countParamIndex} OR p.sku ILIKE $${countParamIndex})`
+        countQuery += ` AND (p.namIndex} OR p.description ILIKE $${countParamIndex} OR p.sku ILIKE $${countParamIndex})`
         countParams.push(`%${search}%`)
         countParamIndex++
       }
@@ -124,7 +131,7 @@ export async function GET(request: NextRequest) {
       if (status && status !== 'all') {
         countQuery += ` AND p.status = $${countParamIndex}`
         countParams.push(status.toUpperCase())
-        countParamIndex++
+        countParamInde
       }
       
       const countResult = await client.query(countQuery, countParams)
@@ -183,6 +190,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  // Verify admin access
+  const authResult = await requireAdminAccess()
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const body = await request.json()
     const {
@@ -325,7 +338,7 @@ export async function POST(request: NextRequest) {
       
       const product = {
         ...result.rows[0],
-        price: parseFloat(result.rows[0].price),
+     
         comparePrice: result.rows[0].comparePrice ? parseFloat(result.rows[0].comparePrice) : null,
         weight: result.rows[0].weight ? parseFloat(result.rows[0].weight) : null,
         category: categoryResult.rows[0] || null

@@ -3,7 +3,7 @@
 import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { Loader2, Shield, AlertCircle } from "lucide-react"
+import { Loader2, Shield, AlertCircle, Home } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { SignInButton } from "@clerk/nextjs"
@@ -54,7 +54,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
         isAuthenticated: data.isAuthenticated,
         loading: false,
         error: data.isAdmin ? undefined : 'Admin access required',
-        allowSetup: data.isAuthenticated && !data.isAdmin, // Allow setup if authenticated but not admin
+        allowSetup: data.isAuthenticated && !data.isAdmin,
       })
     } catch (error) {
       console.error('Error checking admin status:', error)
@@ -98,13 +98,13 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
               Admin Access Required
             </CardTitle>
             <CardDescription>
-              Please sign in to access the admin panel
+              Please sign in to access the admin dashboard
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <SignInButton mode="modal">
               <Button className="w-full">
-                Sign In to Continue
+                Sign In
               </Button>
             </SignInButton>
             <Button 
@@ -112,6 +112,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
               className="w-full"
               onClick={() => router.push('/')}
             >
+              <Home className="h-4 w-4 mr-2" />
               Back to Store
             </Button>
           </CardContent>
@@ -120,12 +121,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
     )
   }
 
-  // Not admin but authenticated - show setup if allowed
-  if (!adminStatus.isAdmin && adminStatus.allowSetup) {
-    return <>{children}</>
-  }
-
-  // Not admin
+  // Signed in but not admin
   if (!adminStatus.isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted/20">
@@ -136,28 +132,52 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
               Access Denied
             </CardTitle>
             <CardDescription>
-              You don't have admin privileges to access this area
+              You don't have permission to access the admin dashboard
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="p-4 bg-muted rounded-lg text-center">
-              <p className="text-sm text-muted-foreground">
-                Current user: {user?.emailAddresses[0]?.emailAddress}
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Contact an administrator to request access
-              </p>
+            <div className="text-sm text-muted-foreground text-center">
+              <p>Signed in as: <strong>{user?.emailAddresses[0]?.emailAddress}</strong></p>
+              <p className="mt-2">Only authorized administrators can access this area.</p>
             </div>
+            
+            {adminStatus.allowSetup && (
+              <div className="space-y-2">
+                <Button 
+                  className="w-full" 
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/admin/setup', { method: 'POST' })
+                      if (response.ok) {
+                        checkAdminStatus()
+                      } else {
+                        const error = await response.json()
+                        alert(error.error || 'Failed to setup admin access')
+                      }
+                    } catch (error) {
+                      alert('Failed to setup admin access')
+                    }
+                  }}
+                >
+                  Request Admin Access
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  This will only work if your email is authorized or if you're the first user
+                </p>
+              </div>
+            )}
+            
             <div className="flex gap-2">
               <Button 
                 variant="outline" 
                 className="flex-1"
                 onClick={() => router.push('/')}
               >
+                <Home className="h-4 w-4 mr-2" />
                 Back to Store
               </Button>
               <Button 
-                variant="default" 
+                variant="outline" 
                 className="flex-1"
                 onClick={checkAdminStatus}
               >

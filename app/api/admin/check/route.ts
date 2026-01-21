@@ -1,55 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
-import { db } from '@/lib/db'
+import { requireAdminAccess } from '@/lib/admin-auth'
 
 // GET /api/admin/check - Check if current user has admin access
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const result = await requireAdminAccess()
     
-    if (!userId) {
+    if (result instanceof NextResponse) {
+      // Not authorized - return user-friendly response for check endpoint
       return NextResponse.json({
         isAdmin: false,
         isAuthenticated: false,
-        message: 'Not authenticated'
+        message: 'Admin access required'
       })
     }
 
-    // Check if user exists and has admin role
-    const user = await db.users.findUnique({
-      where: { clerkUserId: userId },
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        fcmToken: true,
-        notificationEnabled: true,
-      },
-    })
-
-    const isAdmin = user && (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN')
+    const { user } = result
 
     return NextResponse.json({
-      isAdmin,
+      isAdmin: true,
       isAuthenticated: true,
-      user: user ? {
+      user: {
         id: user.id,
         email: user.email,
         role: user.role,
-        hasNotifications: !!user.fcmToken,
-        notificationEnabled: user.notificationEnabled,
-      } : null,
-      message: isAdmin ? 'Admin access confirmed' : 'No admin access'
+      },
+      message: 'Admin access confirmed'
     })
   } catch (error) {
     console.error('Error checking admin status:', error)
-    return NextResponse.json(
-      { 
-        isAdmin: false,
-        isAuthenticated: false,
-        error: 'Failed to check admin status' 
-      },
-      { status: 500 }
-    )
+    return NextResponse.json({
+      isAdmin: false,
+      isAuthenticated: false,
+      message: 'Error verifying admin access'
+    }, { status: 500 })
   }
 }

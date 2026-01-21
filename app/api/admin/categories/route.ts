@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCategories, createCategory } from '@/lib/categories'
+import { requireAdminAccess } from '@/lib/admin-auth'
 
 // GET /api/admin/categories - Get all categories
 export async function GET() {
+  // Verify admin access
+  const authResult = await requireAdminAccess()
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const categories = await getCategories()
     return NextResponse.json(categories)
@@ -47,6 +54,12 @@ export async function GET() {
 
 // POST /api/admin/categories - Create new category
 export async function POST(request: NextRequest) {
+  // Verify admin access
+  const authResult = await requireAdminAccess()
+  if (authResult instanceof NextResponse) {
+    return authResult
+  }
+
   try {
     const body = await request.json()
     const { name, description, icon, image, color } = body

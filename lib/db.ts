@@ -41,12 +41,3 @@ db.$on('error' as never, (e: any) => {
 })
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = db
-
-// Graceful shutdown
-process.on('beforeExit', async () => {
-  try {
-    await db.$disconnect()
-  } catch (error) {
-    console.error('Error disconnecting Prisma:', error)
-  }
-})
