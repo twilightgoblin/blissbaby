@@ -1,17 +1,17 @@
 import { initializeApp, getApps } from 'firebase/app'
 import { getMessaging, getToken, onMessage, isSupported } from 'firebase/messaging'
 
-// Firebase configuration - hardcoded for reliability
+// Firebase configuration using environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyA5z1knFO6vGeRu6is7gpN7FkOfJMAWY4U",
-  authDomain: "babybliss-e0200.firebaseapp.com",
-  projectId: "babybliss-e0200",
-  storageBucket: "babybliss-e0200.firebasestorage.app",
-  messagingSenderId: "601666612120",
-  appId: "1:601666612120:web:a835e273f471f47a5159ed",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-const vapidKey = "BNSpyXjDbBX2PRo8J64hTcqOmZhiAxYCAxwKpaGY7QJSyGC3eRBELua5gmNc1bcWVSzQxmbg05giZl13v_NpTMA"
+const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY
 
 // Validate Firebase configuration
 const validateFirebaseConfig = () => {

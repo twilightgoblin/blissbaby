@@ -2,7 +2,7 @@
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js')
 importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js')
 
-// Firebase configuration
+// Firebase configuration - these values will be replaced at build time
 const firebaseConfig = {
   apiKey: "AIzaSyA5z1knFO6vGeRu6is7gpN7FkOfJMAWY4U",
   authDomain: "babybliss-e0200.firebaseapp.com",

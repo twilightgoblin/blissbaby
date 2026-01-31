@@ -48,16 +48,19 @@ When users complete orders, admin users receive push notifications:
 
 ### Environment Variables (Already in .env)
 ```env
-NEXT_PUBLIC_FIREBASE_API_KEY="AIzaSyA5z1knFO6vGeRu6is7gpN7FkOfJMAWY4U"
+# Firebase configuration - using environment variables for security
+NEXT_PUBLIC_FIREBASE_API_KEY="[Your Firebase API Key]"
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="babybliss-e0200.firebaseapp.com"
 NEXT_PUBLIC_FIREBASE_PROJECT_ID="babybliss-e0200"
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="babybliss-e0200.firebasestorage.app"
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="601666612120"
 NEXT_PUBLIC_FIREBASE_APP_ID="1:601666612120:web:a835e273f471f47a5159ed"
-NEXT_PUBLIC_FIREBASE_VAPID_KEY="FcJrYM4zajjc9WKM4FgZQLwEvFn59yG9oUGH2FDy_dI"
+NEXT_PUBLIC_FIREBASE_VAPID_KEY="[Your VAPID Key]"
 FIREBASE_PRIVATE_KEY="[Your private key]"
 FIREBASE_CLIENT_EMAIL="firebase-adminsdk-fbsvc@babybliss-e0200.iam.gserviceaccount.com"
 ```
+
+**Note**: Firebase configuration now uses environment variables instead of hardcoded values for better security. The service worker at `/firebase-messaging-sw.js` is dynamically generated with environment variables.
 
 ### Database Migration
 ```bash
@@ -115,6 +118,8 @@ npx tsx scripts/test-notifications.ts
 - **User Consent**: Users must explicitly enable notifications
 - **Token Security**: FCM tokens encrypted and stored securely
 - **Permission Checks**: Browser permission required for notifications
+- **Environment Variables**: Firebase API keys now use environment variables instead of hardcoded values
+- **Dynamic Service Worker**: Service worker is generated dynamically with environment variables for better security
 
 ## 📊 Admin Dashboard Features
 
@@ -127,9 +132,9 @@ npx tsx scripts/test-notifications.ts
 ## 🎯 Key Files Created/Modified
 
 ### New Files:
-- `lib/firebase.ts` - Client FCM setup
+- `lib/firebase.ts` - Client FCM setup (now uses environment variables)
 - `lib/firebase-admin.ts` - Server FCM setup
-- `public/firebase-messaging-sw.js` - Service worker
+- `public/firebase-messaging-sw.js` - Service worker (dynamically generated with env vars)
 - `hooks/use-notifications.ts` - React hook
 - `components/notification-setup.tsx` - User UI
 - `components/notification-provider.tsx` - FCM wrapper
@@ -143,6 +148,7 @@ npx tsx scripts/test-notifications.ts
 - `app/layout.tsx` - Added NotificationProvider
 - `app/api/admin/offers/route.ts` - Added auto-notifications
 - `app/api/orders/route.ts` - Added admin notifications
+- `middleware.ts` - Added dynamic service worker generation with environment variables
 
 ## ✅ Ready for Production
 
