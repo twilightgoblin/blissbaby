@@ -1,15 +1,26 @@
 import { NextResponse } from 'next/server'
 import { getCategories } from '@/lib/categories'
+import { CachedQueries } from '@/lib/cache-wrapper'
+import { CacheKeys, CacheTTL } from '@/lib/redis'
+import { withCache } from '@/lib/cache-wrapper'
 
 // GET /api/categories - Get all active categories (public endpoint)
 export async function GET() {
   try {
-    const allCategories = await getCategories()
+    const result = await withCache(
+      CacheKeys.categories(),
+      async () => {
+        const allCategories = await getCategories()
+        
+        // Filter only active categories for public use
+        const activeCategories = allCategories.filter(category => category.isActive)
+        
+        return { categories: activeCategories }
+      },
+      CacheTTL.VERY_LONG // Cache categories for 24 hours since they change infrequently
+    )
     
-    // Filter only active categories for public use
-    const activeCategories = allCategories.filter(category => category.isActive)
-    
-    return NextResponse.json({ categories: activeCategories })
+    return NextResponse.json(result)
   } catch (error) {
     console.error('Error fetching categories:', error)
     

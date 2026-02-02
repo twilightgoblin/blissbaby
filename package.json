@@ -27,7 +27,11 @@
     "test:upload": "tsx scripts/test-upload-endpoints.ts",
     "test:order-creation": "tsx scripts/test-order-creation.ts",
     "test:order-api": "tsx scripts/test-order-api.ts",
-    "test:admin-orders": "tsx scripts/test-admin-orders.ts"
+    "test:admin-orders": "tsx scripts/test-admin-orders.ts",
+    "test:redis": "tsx scripts/test-redis.ts",
+    "test:cache": "tsx scripts/test-cache-fallback.ts",
+    "test:upstash": "tsx scripts/test-upstash-rest.ts",
+    "test:integration": "tsx scripts/test-redis-integration.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.36.5",
@@ -63,6 +67,8 @@
     "@radix-ui/react-tooltip": "1.1.6",
     "@stripe/react-stripe-js": "^5.4.1",
     "@stripe/stripe-js": "^8.6.0",
+    "@types/redis": "^4.0.10",
+    "@upstash/redis": "^1.36.1",
     "@vercel/analytics": "1.3.1",
     "autoprefixer": "^10.4.20",
     "class-variance-authority": "^0.7.1",
@@ -85,6 +91,7 @@
     "react-hook-form": "^7.60.0",
     "react-resizable-panels": "^2.1.7",
     "recharts": "2.15.4",
+    "redis": "^5.10.0",
     "sonner": "^1.7.4",
     "stripe": "^20.1.0",
     "svix": "^1.40.0",

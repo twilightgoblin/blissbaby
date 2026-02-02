@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { ProductStatus } from '@prisma/client'
+import { CachedQueries } from '@/lib/cache-wrapper'
+import { CacheKeys, CacheTTL } from '@/lib/redis'
+import { withCache } from '@/lib/cache-wrapper'
 
 export async function GET(
   request: NextRequest,
@@ -28,64 +31,77 @@ export async function GET(
       )
     }
 
-    // Get the product
-    const product = await db.products.findUnique({
-      where: { 
-        id,
-        status: ProductStatus.ACTIVE
-      },
-      include: {
-        categories: {
-          select: {
-            id: true,
-            name: true,
-            color: true
+    // Use cache wrapper for product and related products
+    const result = await withCache(
+      CacheKeys.product(id),
+      async () => {
+        // Get the product
+        const product = await db.products.findUnique({
+          where: { 
+            id,
+            status: ProductStatus.ACTIVE
+          },
+          include: {
+            categories: {
+              select: {
+                id: true,
+                name: true,
+                color: true
+              }
+            }
           }
+        })
+
+        console.log('Product lookup:', { id, found: !!product })
+
+        if (!product) {
+          return null
         }
-      }
-    })
 
-    console.log('Product lookup:', { id, found: !!product })
+        // Get related products from the same category
+        const relatedProducts = await db.products.findMany({
+          where: {
+            categoryId: product.categoryId,
+            status: ProductStatus.ACTIVE,
+            id: { not: product.id }
+          },
+          include: {
+            categories: {
+              select: {
+                id: true,
+                name: true,
+                color: true
+              }
+            }
+          },
+          take: 3,
+          orderBy: {
+            createdAt: 'desc'
+          }
+        })
 
-    if (!product) {
+        return { 
+          product: {
+            ...product,
+            category: product.categories // Map categories to category for frontend compatibility
+          },
+          relatedProducts: relatedProducts.map(p => ({
+            ...p,
+            category: p.categories // Map categories to category for frontend compatibility
+          }))
+        }
+      },
+      CacheTTL.LONG // Cache individual products for 1 hour
+    )
+
+    if (!result) {
       return NextResponse.json(
         { error: 'Product not found' },
         { status: 404 }
       )
     }
 
-    // Get related products from the same category
-    const relatedProducts = await db.products.findMany({
-      where: {
-        categoryId: product.categoryId,
-        status: ProductStatus.ACTIVE,
-        id: { not: product.id }
-      },
-      include: {
-        categories: {
-          select: {
-            id: true,
-            name: true,
-            color: true
-          }
-        }
-      },
-      take: 3,
-      orderBy: {
-        createdAt: 'desc'
-      }
-    })
-
-    return NextResponse.json({ 
-      product: {
-        ...product,
-        category: product.categories // Map categories to category for frontend compatibility
-      },
-      relatedProducts: relatedProducts.map(p => ({
-        ...p,
-        category: p.categories // Map categories to category for frontend compatibility
-      }))
-    })
+    return NextResponse.json(result)
   } catch (error) {
     console.error('Error fetching product:', error)
     return NextResponse.json(

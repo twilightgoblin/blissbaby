@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { ProductStatus } from '@prisma/client'
 import { requireAdminAccess } from '@/lib/admin-auth'
+import { CacheInvalidator } from '@/lib/cache-wrapper'
 
 export async function GET(request: NextRequest) {
   // Verify admin access
@@ -265,6 +266,9 @@ export async function POST(request: NextRequest) {
           category: true
         }
       })
+
+      // Invalidate product caches after creating new product
+      await CacheInvalidator.invalidateProduct(product.id)
 
       return NextResponse.json({ product }, { status: 201 })
     } catch (prismaError) {
