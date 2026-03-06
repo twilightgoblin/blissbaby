@@ -36,7 +36,7 @@ let messaging: any = null
 let initializationAttempted = false
 
 // Initialize Firebase lazily
-const initializeFirebase = () => {
+const initializeFirebase = async () => {
   if (initializationAttempted) return { app, messaging }
   
   initializationAttempted = true
@@ -51,17 +51,30 @@ const initializeFirebase = () => {
     app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
     console.log('Firebase app initialized successfully')
 
-    // Initialize Firebase Cloud Messaging
-    isSupported().then((supported) => {
-      if (supported) {
-        messaging = getMessaging(app)
-        console.log('Firebase FCM initialized successfully')
-      } else {
-        console.log('FCM is not supported in this browser')
+    // Register service worker first
+    if ('serviceWorker' in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+          scope: '/'
+        })
+        console.log('Service Worker registered successfully:', registration)
+        
+        // Wait for service worker to be ready
+        await navigator.serviceWorker.ready
+        console.log('Service Worker is ready')
+      } catch (swError) {
+        console.error('Service Worker registration failed:', swError)
       }
-    }).catch((error) => {
-      console.error('Error checking FCM support:', error)
-    })
+    }
+
+    // Initialize Firebase Cloud Messaging
+    const supported = await isSupported()
+    if (supported) {
+      messaging = getMessaging(app)
+      console.log('Firebase FCM initialized successfully')
+    } else {
+      console.log('FCM is not supported in this browser')
+    }
   } catch (error) {
     console.error('Error initializing Firebase:', error)
   }
@@ -70,8 +83,8 @@ const initializeFirebase = () => {
 }
 
 // Export messaging with lazy initialization
-export const getFirebaseMessaging = () => {
-  const { messaging: msg } = initializeFirebase()
+export const getFirebaseMessaging = async () => {
+  const { messaging: msg } = await initializeFirebase()
   return msg
 }
 
@@ -87,7 +100,7 @@ export const getFCMToken = async (): Promise<string | null> => {
     }
 
     // Initialize Firebase if not already done
-    const { app: firebaseApp, messaging: firebaseMessaging } = initializeFirebase()
+    const { app: firebaseApp, messaging: firebaseMessaging } = await initializeFirebase()
     
     if (!firebaseApp) {
       console.error('Firebase app not initialized')
@@ -128,17 +141,18 @@ export const getFCMToken = async (): Promise<string | null> => {
 }
 
 // Function to listen for foreground messages
-export const onMessageListener = () =>
-  new Promise((resolve) => {
-    const { messaging: currentMessaging } = initializeFirebase()
-    
-    if (!currentMessaging) {
-      console.warn('Firebase messaging not available for foreground messages')
-      return
-    }
+export const onMessageListener = async () => {
+  const { messaging: currentMessaging } = await initializeFirebase()
+  
+  if (!currentMessaging) {
+    console.warn('Firebase messaging not available for foreground messages')
+    return new Promise(() => {})
+  }
 
+  return new Promise((resolve) => {
     onMessage(currentMessaging, (payload) => {
       console.log('Message received in foreground:', payload)
       resolve(payload)
     })
   })
+}

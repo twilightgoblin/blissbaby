@@ -129,7 +129,7 @@ export function useNotifications() {
   // Listen for foreground messages
   useEffect(() => {
     if (permission.granted && token) {
-      const unsubscribe = onMessageListener()
+      onMessageListener()
         .then((payload: any) => {
           console.log('Received foreground message:', payload)
           
@@ -145,10 +145,6 @@ export function useNotifications() {
         .catch((error) => {
           console.error('Error listening for messages:', error)
         })
-
-      return () => {
-        // Cleanup if needed
-      }
     }
   }, [permission.granted, token])
 
