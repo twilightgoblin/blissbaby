@@ -292,7 +292,3 @@ For support and questions:
 - [Cloudinary](https://cloudinary.com/) - Image management
 - [Radix UI](https://www.radix-ui.com/) - UI components
 - [Tailwind CSS](https://tailwindcss.com/) - CSS framework
-
----
-
-Built by DiGiLABS for modern e-commerce experiences.
