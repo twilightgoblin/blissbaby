@@ -1,83 +1,67 @@
-# BabyBliss - Modern Baby Products E-commerce Platform
+# BabyBliss - Baby Products E-commerce Platform
 
-A full-stack e-commerce platform built with Next.js 16, featuring modern authentication, secure payments, and comprehensive product management for baby products.
+A full-stack e-commerce platform built with Next.js 16, featuring modern authentication, secure payments, push notifications, and comprehensive product management for baby products.
 
-##  Features
+## Features
 
 ### Core E-commerce
 - **Product Catalog** - Browse products by categories with advanced filtering
 - **Shopping Cart** - Persistent cart with real-time updates
 - **Secure Checkout** - Stripe integration with tax calculation and address collection
 - **Order Management** - Complete order tracking and history
-- **User Profiles** - Account management with order history and addresses
+- **Offers & Discounts** - Promo code and discount offer system
+- **User Profiles** - Account management with order history and saved addresses
 
 ### Authentication & Security
-- **Clerk Authentication** - Modern, secure authentication with social logins
+- **Clerk Authentication** - Secure authentication with social logins
 - **Role-based Access** - Admin and user role management
-- **Webhook Integration** - Real-time user data synchronization
-- **Secure API Routes** - Protected endpoints with proper authorization
+- **Webhook Integration** - Real-time user data synchronization via Svix
+- **Protected API Routes** - Authorization on all sensitive endpoints
 
-### Admin Features
+### Admin Dashboard
 - **Product Management** - Create, edit, and manage products with multiple images
 - **Order Processing** - View and manage customer orders
 - **Category Management** - Organize products into categories
-- **Image Management** - Cloudinary integration for optimized image handling
+- **Offers Management** - Create and manage discount offers
+- **Customer Management** - View and manage user accounts
+- **Analytics** - Sales and performance reporting
+- **Push Notifications** - Send notifications to all users or specific segments
+
+### Notifications
+- **Firebase Cloud Messaging** - Push notifications via FCM
+- **Admin Broadcast** - Send notifications to all users from the admin panel
+- **Order Notifications** - Automatic notifications on order status changes
+- **Notification Preferences** - Users can manage their notification settings
 
 ### Technical Features
-- **Responsive Design** - Mobile-first design with Tailwind CSS
-- **Image Optimization** - Cloudinary integration with automatic optimization
+- **Caching** - Redis/Upstash caching layer for performance
+- **Responsive Design** - Mobile-first with Tailwind CSS
+- **Image Optimization** - Cloudinary CDN with automatic optimization
 - **Database** - PostgreSQL with Prisma ORM
 - **Type Safety** - Full TypeScript implementation
 - **Modern UI** - Radix UI components with custom styling
 
 ## Tech Stack
 
-### Frontend
-- **Next.js 16** - React framework with App Router
-- **React 19** - Latest React features with concurrent rendering
-- **TypeScript 5** - Type-safe development
-- **Tailwind CSS 4** - Utility-first CSS framework
-- **Radix UI** - 20+ accessible component primitives
-- **Lucide React** - Beautiful & consistent icons
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript 5 |
+| UI | React 19, Tailwind CSS 4, Radix UI |
+| Auth | Clerk 6 |
+| Database | PostgreSQL + Prisma 7 |
+| Payments | Stripe 20 |
+| Images | Cloudinary |
+| Notifications | Firebase Cloud Messaging |
+| Caching | Redis / Upstash |
+| Deployment | Vercel |
 
-### Backend & Database
-- **Next.js API Routes** - Serverless API endpoints
-- **Prisma 7** - Type-safe database ORM with PostgreSQL adapter
-- **PostgreSQL** - Robust relational database
-- **Edge Runtime** - Optimal performance on Vercel
-
-### Authentication & Payments
-- **Clerk 6** - Complete authentication platform with social logins
-- **Stripe 20** - Payment processing with webhooks
-- **Svix** - Webhook infrastructure and verification
-
-### Media & Storage
-- **Cloudinary** - Cloud-based image optimization and CDN
-- **Next.js Image** - Automatic image optimization
-- **Multi-format support** - WebP, AVIF, responsive delivery
-
-### UI/UX & Interactions
-- **React Hook Form** - Performant forms with validation
-- **Zod** - TypeScript-first schema validation
-- **Sonner** - Toast notifications
-- **Embla Carousel** - Touch-friendly carousels
-- **Custom animations** - Smooth transitions and micro-interactions
-
-### Development & Deployment
-- **Vercel** - Serverless deployment with global CDN
-- **ESLint** - Code linting and quality
-- **PostCSS** - CSS processing and optimization
-- **Vercel Analytics** - Performance monitoring
-
-
-##  Installation
+## Installation
 
 ### Prerequisites
-- Node.js 18+ 
+- Node.js 18+
 - PostgreSQL database
-- Clerk account
-- Stripe account
-- Cloudinary account
+- Accounts for: Clerk, Stripe, Cloudinary, Firebase, Redis (or Upstash)
 
 ### Setup
 
@@ -92,205 +76,163 @@ A full-stack e-commerce platform built with Next.js 16, featuring modern authent
    npm install
    ```
 
-3. **Environment Configuration**
-   
-   Create a `.env` file in the root directory:
+3. **Configure environment variables**
+
+   Copy `.env.example` to `.env` and fill in your values:
+   ```bash
+   cp .env.example .env
+   ```
+
+   Key variables:
    ```env
    # Database
    DATABASE_URL="postgresql://username:password@localhost:5432/babybliss"
-   
+
    # Clerk Authentication
    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY="pk_test_..."
    CLERK_SECRET_KEY="sk_test_..."
    CLERK_WEBHOOK_SECRET="whsec_..."
-   
-   # Stripe Payment
+
+   # Admin
+   ADMIN_EMAILS="admin@example.com"
+
+   # Stripe
    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY="pk_test_..."
    STRIPE_SECRET_KEY="sk_test_..."
    STRIPE_WEBHOOK_SECRET="whsec_..."
-   
-   # Cloudinary Images
+
+   # Cloudinary
    CLOUDINARY_CLOUD_NAME="your_cloud_name"
    CLOUDINARY_API_KEY="your_api_key"
    CLOUDINARY_API_SECRET="your_api_secret"
    NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your_cloud_name"
+
+   # Firebase (Push Notifications)
+   NEXT_PUBLIC_FIREBASE_API_KEY="..."
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID="..."
+   NEXT_PUBLIC_FIREBASE_VAPID_KEY="..."
+   FIREBASE_PRIVATE_KEY="..."
+   FIREBASE_CLIENT_EMAIL="..."
+
+   # Redis / Upstash
+   REDIS_URL="redis://localhost:6379"
    ```
 
-4. **Database Setup**
+4. **Database setup**
    ```bash
-   # Generate Prisma client
    npx prisma generate
-   
-   # Run migrations
    npx prisma migrate deploy
-   
-   # Seed the database
    npm run db:seed
    ```
 
-5. **Start Development Server**
+5. **Start development server**
    ```bash
    npm run dev
    ```
 
-   Visit [http://localhost:3000](http://localhost:3000) to see the application.
+   Open [http://localhost:3000](http://localhost:3000).
 
-##  Deployment
+## Deployment
 
 ### Vercel (Recommended)
 1. Connect your repository to Vercel
-2. Add environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
+2. Add all environment variables in the Vercel dashboard
+3. Deploy — migrations run automatically via `prisma migrate deploy` on build
 
-### Manual Deployment
+### Manual
 ```bash
-# Build the application
 npm run build
-
-# Start production server
 npm start
 ```
 
 ## Available Scripts
 
 ### Development
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm start` - Start production server
-- `npm run lint` - Run ESLint
+```bash
+npm run dev          # Start dev server
+npm run build        # Build for production
+npm start            # Start production server
+npm run lint         # Run ESLint
+```
 
 ### Database
-- `npm run db:seed` - Seed database with sample data
-- `npm run db:reset` - Reset and reseed database
-- `npm run db:studio` - Open Prisma Studio
-- `npm run db:status` - Check database status
+```bash
+npm run db:seed              # Seed with sample data
+npm run db:reset             # Reset and reseed
+npm run db:studio            # Open Prisma Studio
+npm run db:status            # Check DB connection status
+npm run db:deploy            # Run pending migrations
+```
 
 ### Testing & Utilities
-- `npm run test:api` - Test API endpoints
-- `npm run test:cloudinary` - Test image upload
-- `npm run test:order-creation` - Test order processing
+```bash
+npm run test:api             # Test API endpoints
+npm run test:cloudinary      # Test image uploads
+npm run test:order-creation  # Test order flow
+npm run test:redis           # Test Redis connection
+npm run test:cache           # Test cache fallback
+```
 
-##  Project Structure
+## Project Structure
 
 ```
-├── app/                    # Next.js App Router
+├── app/
 │   ├── api/               # API routes
-│   ├── admin/             # Admin dashboard
-│   ├── products/          # Product pages
+│   ├── admin/             # Admin dashboard pages
+│   ├── products/          # Product listing & detail pages
 │   ├── checkout/          # Checkout flow
-│   └── ...
-├── components/            # Reusable components
-│   ├── ui/               # Base UI components
-│   └── admin/            # Admin-specific components
-├── contexts/             # React contexts
-├── hooks/                # Custom hooks
-├── lib/                  # Utility functions
-├── prisma/               # Database schema and migrations
-├── public/               # Static assets
-└── docs/                 # Documentation
+│   └── account/           # User account pages
+├── components/
+│   ├── ui/                # Base Radix UI components
+│   └── admin/             # Admin-specific components
+├── contexts/              # React context providers
+├── hooks/                 # Custom React hooks
+├── lib/                   # Utilities, DB client, helpers
+├── prisma/                # Schema and migrations
+├── public/                # Static assets
+└── scripts/               # DB and utility scripts
 ```
 
-##  Configuration
-
-### Clerk Setup
-1. Create a Clerk application
-2. Configure authentication methods
-3. Set up webhooks for user synchronization
-4. Add environment variables
-
-### Stripe Setup
-1. Create Stripe account
-2. Get API keys from dashboard
-3. Configure webhooks for payment events
-4. Test with provided test cards
-
-### Cloudinary Setup
-1. Create Cloudinary account
-2. Get cloud name and API credentials
-3. Configure upload presets
-4. Set up image transformations
-
-##  API Documentation
+## API Overview
 
 ### Products
-- `GET /api/products` - List products with filtering
-- `POST /api/products` - Create new product (admin)
-- `GET /api/products/[id]` - Get product details
-- `PUT /api/products/[id]` - Update product (admin)
+- `GET /api/products` — List with filtering & pagination
+- `GET /api/products/[id]` — Product details
+- `POST /api/admin/products` — Create (admin)
+- `PUT /api/admin/products/[id]` — Update (admin)
 
 ### Orders
-- `GET /api/orders` - List user orders
-- `POST /api/orders` - Create new order
-- `GET /api/orders/[id]` - Get order details
+- `GET /api/orders` — User's orders
+- `POST /api/orders` — Place an order
+- `GET /api/orders/[id]` — Order details
+
+### Offers
+- `GET /api/offers` — Active offers
+- `POST /api/offers/use` — Apply offer code
+
+### Notifications
+- `POST /api/notifications/token` — Register FCM token
+- `GET /api/notifications/preferences` — Get preferences
+- `POST /api/notifications/send` — Send notification (admin)
 
 ### Categories
-- `GET /api/categories` - List all categories
-- `POST /api/categories` - Create category (admin)
+- `GET /api/categories` — All categories
+- `POST /api/admin/categories` — Create (admin)
 
-### Upload
-- `POST /api/upload/images` - Upload product images
-- `DELETE /api/upload/delete` - Delete images
+## Stripe Test Cards
 
-##  Testing
-
-### Test Cards (Stripe)
-- **Success**: `4000 0035 6000 0008` (India Visa)
-- **Success**: `5555 5555 5555 4444` (Mastercard)
-- **Decline**: `4000 0000 0000 0002`
+| Card | Number |
+|---|---|
+| Visa (success) | `4000 0035 6000 0008` |
+| Mastercard (success) | `5555 5555 5555 4444` |
+| Declined | `4000 0000 0000 0002` |
 
 Use any future expiry date and any 3-digit CVC.
 
-##  Security Features
+## License
 
-- **Authentication** - Clerk-powered secure authentication
-- **Authorization** - Role-based access control
-- **Input Validation** - Zod schema validation
-- **CSRF Protection** - Built-in Next.js protection
-- **Secure Headers** - Security headers configuration
-- **Image Validation** - File type and size validation
-
-## UI/UX Features
-
-- **Responsive Design** - Mobile-first approach
-- **Dark/Light Mode** - Theme switching support
-- **Animations** - Smooth transitions and micro-interactions
-- **Accessibility** - WCAG compliant components
-- **Loading States** - Skeleton loaders and progress indicators
-
-##  Performance
-
-- **Image Optimization** - Cloudinary CDN with auto-format
-- **Code Splitting** - Automatic code splitting with Next.js
-- **Caching** - Optimized caching strategies
-- **Bundle Analysis** - Built-in bundle analyzer
-- **Core Web Vitals** - Optimized for performance metrics
-
-##  Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-##  License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-For support and questions:
-- Check the [documentation](./docs/)
-- Open an issue on GitHub
-- Contact the development team
+MIT License — see [LICENSE](LICENSE) for details.
 
 ## Acknowledgments
 
-- [Next.js](https://nextjs.org/) - The React framework
-- [Clerk](https://clerk.dev/) - Authentication platform
-- [Stripe](https://stripe.com/) - Payment processing
-- [Cloudinary](https://cloudinary.com/) - Image management
-- [Radix UI](https://www.radix-ui.com/) - UI components
-- [Tailwind CSS](https://tailwindcss.com/) - CSS framework
-
-----
+[Next.js](https://nextjs.org/) · [Clerk](https://clerk.dev/) · [Stripe](https://stripe.com/) · [Cloudinary](https://cloudinary.com/) · [Firebase](https://firebase.google.com/) · [Radix UI](https://www.radix-ui.com/) · [Tailwind CSS](https://tailwindcss.com/)
